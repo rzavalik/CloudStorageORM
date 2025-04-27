@@ -55,6 +55,8 @@ var context = new CloudStorageDbContext(options);
 var users = await context.Set<User>().ToListAsync();
 ```
 
+![SampleApp](https://github.com/user-attachments/assets/4184b418-23bf-4371-a636-7cef41b8f1f9)
+
 > 📚 Full examples and extended documentation are coming soon!
 
 ---
