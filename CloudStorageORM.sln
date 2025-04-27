@@ -15,6 +15,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{5D20
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CloudStorageORM.SampleApp", "samples\CloudStorageORM.SampleApp\CloudStorageORM.SampleApp.csproj", "{D9E4D71A-E138-46EF-B8F3-DC94263695DD}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "others", "others", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+		.gitignore = .gitignore
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -69,5 +75,8 @@ Global
 		{A9027E67-2AE8-4B44-A156-30D87946B490} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{32147945-F458-49AC-8C7D-239286657F75} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 		{D9E4D71A-E138-46EF-B8F3-DC94263695DD} = {5D20AA90-6969-D8BD-9DCD-8634F4692FDA}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {FA9D280C-5628-4F25-99B6-8C9FD0385E70}
 	EndGlobalSection
 EndGlobal
