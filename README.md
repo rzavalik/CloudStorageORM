@@ -66,6 +66,10 @@ Please read the [LICENSE](LICENSE) file for more details.
 Contributions are welcome!  
 If you have ideas for improvements, bug fixes, or new features, feel free to open an issue or submit a pull request.
 
+Please make sure to follow our [Pull Request Guidelines](./.github/PULL_REQUEST_TEMPLATE.md).
+
+Thank you for helping improve CloudStorageORM! 🚀
+
 ---
 
 > _"CloudStorageORM empowers developers to move faster, scale smarter, and build stronger applications by leveraging the true power of cloud storage."_ 🚀
