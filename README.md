@@ -7,8 +7,8 @@ Built with .NET 8, following Clean Architecture and SOLID principles, it empower
 
 ![License](https://img.shields.io/badge/license-GPLv3-blue)
 ![.NET](https://img.shields.io/badge/.NET-8.0-blue)
-![Build Status](https://github.com/rzavalik/CloudStorageORM/actions/workflows/ci.yml/badge.svg)
 ![NuGet](https://img.shields.io/nuget/v/CloudStorageORM?color=blue)
+![Build Status](https://github.com/rzavalik/CloudStorageORM/actions/workflows/ci.yml/badge.svg)
 [![Contributing](https://img.shields.io/badge/Contributing-Guidelines-blue.svg)](./CONTRIBUTING.md)
 [![Security Policy](https://img.shields.io/badge/Security-Policy-blue.svg)](./SECURITY.md)
 
