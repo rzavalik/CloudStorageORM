@@ -11,7 +11,7 @@
     <Authors>Rodrigo Zavalik Castro</Authors>
     <!-- Opcional -->
     <RepositoryUrl>https://github.com/rzavalik/CloudStorageORM</RepositoryUrl>
-    <PackageLicenseExpression>GPL-3.0</PackageLicenseExpression>
+    <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/rzavalik/CloudStorageORM</PackageProjectUrl>
     <Description>Entity Framework integration over cloud storage providers like Azure, AWS, and Google. Lightweight ORM for cloud-native applications.</Description>
     <PackageTags>entity-framework, orm, cloud-storage, azure, aws, google-cloud, dotnet</PackageTags>
