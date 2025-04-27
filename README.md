@@ -5,6 +5,11 @@
 CloudStorageORM is a lightweight and powerful library that enables developers to use cloud storage (Azure Blob Storage, AWS S3, Google Cloud Storage) as a reliable and scalable data source through Entity Framework.  
 Built with .NET 8, following Clean Architecture and SOLID principles, it empowers small and medium applications to focus on business logic while reducing the complexity of managing traditional databases.
 
+![License](https://img.shields.io/badge/license-GPLv3-blue)
+![.NET](https://img.shields.io/badge/.NET-8.0-blue)
+![Build](https://github.com/rzavalik/CloudStorageORM/actions/workflows/ci.yml/badge.svg)
+![NuGet](https://img.shields.io/nuget/v/CloudStorageORM?color=blue)
+
 ---
 
 ## ✨ Features
