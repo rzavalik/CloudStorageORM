@@ -17,8 +17,4 @@
     <PackageTags>entity-framework, orm, cloud-storage, azure, aws, google-cloud, dotnet</PackageTags>
   </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Azure.Storage.Blobs" Version="12.24.0" />
-  </ItemGroup>
-
 </Project>
