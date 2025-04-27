@@ -10,6 +10,8 @@ Built with .NET 8, following Clean Architecture and SOLID principles, it empower
 ![Build](https://github.com/rzavalik/CloudStorageORM/actions/workflows/ci.yml/badge.svg)
 ![NuGet](https://img.shields.io/nuget/v/CloudStorageORM?color=blue)
 
+[See the full Roadmap](./ROADMAP.md)
+
 ---
 
 ## ✨ Features
