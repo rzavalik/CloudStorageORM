@@ -12,34 +12,36 @@ Built with .NET 8, following Clean Architecture and SOLID principles, it empower
 [![Contributing](https://img.shields.io/badge/Contributing-Guidelines-blue.svg)](./CONTRIBUTING.md)
 [![Security Policy](https://img.shields.io/badge/Security-Policy-blue.svg)](./SECURITY.md)
 
-[See the full Roadmap](./ROADMAP.md)
+[👉 See the full Roadmap](./ROADMAP.md)
 
 ---
 
 ## ✨ Features
 
 - ☁️ Use Azure Blob Storage, AWS S3, or Google Cloud Storage as your database
-- 🛠️ Builder and Clean Architecture ready
-- 🔥 Full Unit Test coverage
-- 🔒 Optimized for scalability, reliability, and concurrency
-- 🎯 Targeting .NET 8 and Entity Framework integration
-- 📦 Installable via NuGet
+- 🛠️ Builder Pattern and Clean Architecture ready
+- 🔥 Full Unit Test coverage using xUnit, Shouldly, and Moq
+- 🔒 Optimized for scalability, reliability, and concurrency control
+- 🛆 Available on NuGet for easy installation
+- 🎯 Built with .NET 8 and Entity Framework integration in mind
 
 ---
 
-## 📦 Installation
+## 🛆 Installation
+
+Install via CLI:
 
 ```bash
 dotnet add package CloudStorageORM --version 0.1.0-beta
 ```
 
-Or search for `CloudStorageORM` in the NuGet Package Manager.
+Or search for `CloudStorageORM` in the NuGet Package Manager inside Visual Studio.
 
 ---
 
 ## 🚀 Getting Started
 
-Configure your storage and start using Entity Framework to interact with cloud objects as if they were entities.
+Start by configuring your cloud storage provider:
 
 ```csharp
 var options = new CloudStorageOptions
@@ -53,27 +55,33 @@ var context = new CloudStorageDbContext(options);
 var users = await context.Set<User>().ToListAsync();
 ```
 
-👉 Full examples and documentation coming soon!
+> 📚 Full examples and extended documentation are coming soon!
+
+---
+
+## 🧪 Running Tests Locally
+
+CloudStorageORM uses [Azurite](https://github.com/Azure/Azurite) to simulate Azure Blob Storage locally for unit testing.  
+See [Testing with Azurite](./docs/testing-with-azurite.md) to configure your local environment.
 
 ---
 
 ## 🛡️ License
 
-This project is licensed under the **GNU General Public License v3.0 (GPL-3.0)**.  
+This project is licensed under the **GNU General Public License v3.0 (GPL-3.0-only)**.  
 Commercial use without prior authorization is not allowed.  
-Please read the [LICENSE](LICENSE) file for more details.
+See the [LICENSE](./LICENSE) file for more information.
 
 ---
 
 ## 🤝 Contributing
 
-Contributions are welcome!  
-If you have ideas for improvements, bug fixes, or new features, feel free to open an issue or submit a pull request.
+We welcome contributions from the community! 🚀  
+If you'd like to help, please read our [Contributing Guidelines](./CONTRIBUTING.md) and [Pull Request Template](./.github/PULL_REQUEST_TEMPLATE.md).
 
-Please make sure to follow our [Pull Request Guidelines](./.github/PULL_REQUEST_TEMPLATE.md).
-
-Thank you for helping improve CloudStorageORM! 🚀
+Thank you for helping make CloudStorageORM even better!
 
 ---
 
 > _"CloudStorageORM empowers developers to move faster, scale smarter, and build stronger applications by leveraging the true power of cloud storage."_ 🚀
+
