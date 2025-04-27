@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-
-namespace CloudStorageORM.Repositories
+﻿namespace CloudStorageORM.Repositories
 {
     public class CloudStorageRepository<TEntity> where TEntity : class
     {
@@ -27,6 +24,11 @@ namespace CloudStorageORM.Repositories
         {
             // TODO: Implement Delete from Storage
             return Task.CompletedTask;
+        }
+
+        public async Task<IEnumerable<object>> ToListAsync()
+        {
+            throw new NotImplementedException();
         }
     }
 }
