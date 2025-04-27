@@ -32,7 +32,7 @@ Built with .NET 8, following Clean Architecture and SOLID principles, it empower
 Install via CLI:
 
 ```bash
-dotnet add package CloudStorageORM --version 0.1.0-beta
+dotnet add package CloudStorageORM --version 0.1.4-beta
 ```
 
 Or search for `CloudStorageORM` in the NuGet Package Manager inside Visual Studio.
@@ -47,15 +47,70 @@ Start by configuring your cloud storage provider:
 var options = new CloudStorageOptions
 {
     Provider = CloudProvider.Azure,
-    ConnectionString = "<your-connection-string>",
-    ContainerName = "your-container"
+    ConnectionString = "UseDevelopmentStorage=true",
+    ContainerName = "sampleapp-container"
 };
 
-var context = new CloudStorageDbContext(options);
+var storageProvider = new AzureBlobStorageProvider(options);
+var context = new CloudStorageDbContext(options, storageProvider);
 var users = await context.Set<User>().ToListAsync();
 ```
 
 ![SampleApp](https://github.com/user-attachments/assets/4184b418-23bf-4371-a636-7cef41b8f1f9)
+```csharp
+using CloudStorageORM.DbContext;
+using CloudStorageORM.Enums;
+using CloudStorageORM.Options;
+using CloudStorageORM.StorageProviders;
+
+var options = new CloudStorageOptions
+{
+    Provider = CloudProvider.Azure,
+    ConnectionString = "UseDevelopmentStorage=true", // Azurite local emulator or real Azure
+    ContainerName = "sampleapp-container"
+};
+
+var storageProvider = new AzureBlobStorageProvider(options);
+var context = new CloudStorageDbContext(options, storageProvider);
+
+var repository = context.Set<User>();
+var userId = Guid.NewGuid().ToString();
+
+// ➕ Create
+await repository.AddAsync(userId, new User
+{
+    Id = userId,
+    Name = "John Doe",
+    Email = "john.doe@example.com"
+});
+
+// 📃 List
+var users = await repository.ListAsync();
+foreach (var user in users)
+{
+    Console.WriteLine($"{user.Id}: {user.Name} ({user.Email})");
+}
+
+// ✏️ Update
+var updatedUser = new User
+{
+    Id = userId,
+    Name = "John Doe Updated",
+    Email = "john.doe.updated@example.com"
+};
+await repository.UpdateAsync(userId, updatedUser);
+
+// 🔎 Find
+var foundUser = await repository.FindAsync(userId);
+Console.WriteLine($"Found: {foundUser?.Id} - {foundUser?.Name} ({foundUser?.Email})");
+
+// 🗑️ Delete
+await repository.RemoveAsync(userId);
+
+// 📃 List after deletion
+var usersAfterDelete = await repository.ListAsync();
+Console.WriteLine($"Remaining users: {usersAfterDelete.Count}");
+```
 
 > 📚 Full examples and extended documentation are coming soon!
 
