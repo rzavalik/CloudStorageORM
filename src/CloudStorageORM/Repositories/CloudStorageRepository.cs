@@ -1,34 +1,75 @@
 ﻿namespace CloudStorageORM.Repositories
 {
-    public class CloudStorageRepository<TEntity> where TEntity : class
+    using CloudStorageORM.Interfaces.Repositories;
+    using CloudStorageORM.Interfaces.StorageProviders;
+    using System.Collections.Generic;
+    using System.Threading.Tasks;
+
+    public class CloudStorageRepository<TEntity> : ICloudStorageRepository<TEntity> where TEntity : class
     {
-        public Task SaveAsync(string path, TEntity entity)
+        private readonly IStorageProvider _storageProvider;
+        private readonly string _folderName;
+
+        public CloudStorageRepository(IStorageProvider storageProvider)
         {
-            // TODO: Implement Save to Storage
-            return Task.CompletedTask;
+            _storageProvider = storageProvider;
+            _folderName = typeof(TEntity).Name.ToLowerInvariant();
         }
 
-        public Task<TEntity> ReadAsync(string path)
+        public async Task AddAsync(string id, TEntity entity)
         {
-            // TODO: Implement Read from Storage
-            return Task.FromResult<TEntity>(null);
+            var path = $"{_folderName}/{id}.json";
+
+            var existing = await _storageProvider.ReadAsync<TEntity>(path);
+            if (existing != null)
+            {
+                throw new System.Exception($"Entity with id '{id}' already exists.");
+            }
+
+            await _storageProvider.SaveAsync(path, entity);
         }
 
-        public Task<List<string>> ListAsync(string folderPath)
+        public async Task UpdateAsync(string id, TEntity entity)
         {
-            // TODO: Implement List from Storage
-            return Task.FromResult(new List<string>());
+            var path = $"{_folderName}/{id}.json";
+
+            var existing = await _storageProvider.ReadAsync<TEntity>(path);
+            if (existing == null)
+            {
+                throw new System.Exception($"Entity with id '{id}' does not exist.");
+            }
+
+            await _storageProvider.SaveAsync(path, entity);
         }
 
-        public Task DeleteAsync(string path)
+        public async Task<TEntity> FindAsync(string id)
         {
-            // TODO: Implement Delete from Storage
-            return Task.CompletedTask;
+            var path = $"{_folderName}/{id}.json";
+            return await _storageProvider.ReadAsync<TEntity>(path);
         }
 
-        public async Task<IEnumerable<object>> ToListAsync()
+        public async Task<List<TEntity>> ListAsync()
         {
-            throw new NotImplementedException();
+            var entityPaths = await _storageProvider.ListAsync(_folderName);
+
+            var list = new List<TEntity>();
+
+            foreach (var path in entityPaths)
+            {
+                var entity = await _storageProvider.ReadAsync<TEntity>(path);
+                if (entity != null)
+                {
+                    list.Add(entity);
+                }
+            }
+
+            return list;
+        }
+
+        public async Task RemoveAsync(string id)
+        {
+            var path = $"{_folderName}/{id}.json";
+            await _storageProvider.DeleteAsync(path);
         }
     }
 }
