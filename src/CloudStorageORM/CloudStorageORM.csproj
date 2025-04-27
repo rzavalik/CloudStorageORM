@@ -7,7 +7,7 @@
 
     <!-- NuGet package metadata -->
     <PackageId>CloudStorageORM</PackageId>
-    <Version>0.1.0</Version>
+    <Version>0.1.1-beta</Version>
     <Authors>Rodrigo Zavalik Castro</Authors>
     <!-- Opcional -->
     <RepositoryUrl>https://github.com/rzavalik/CloudStorageORM</RepositoryUrl>
