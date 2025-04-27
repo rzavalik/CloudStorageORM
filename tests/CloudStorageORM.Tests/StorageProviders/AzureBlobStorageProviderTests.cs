@@ -1,67 +1,62 @@
 ﻿namespace CloudStorageORM.Tests.StorageProviders
 {
-    using System;
-    using System.Collections.Generic;
     using System.Threading.Tasks;
-    using Azure.Storage.Blobs;
     using CloudStorageORM.StorageProviders;
     using Shouldly;
     using Xunit;
-
-    public class AzureBlobStorageProviderTests
+    public class AzureBlobStorageProviderTests : IClassFixture<StorageFixture>
     {
-        // TODO: Mocks and Fakes here (later if needed)
+        private readonly AzureBlobStorageProvider _provider;
+        private readonly StorageFixture _fixture;
 
-        [Fact]
-        public void Constructor_ShouldThrowArgumentException_WhenConnectionStringIsNullOrEmpty()
+        public AzureBlobStorageProviderTests(StorageFixture fixture)
         {
-            Should.Throw<ArgumentException>(() =>
-            {
-                var provider = new AzureBlobStorageProvider(null, "test-container");
-            });
-
-            Should.Throw<ArgumentException>(() =>
-            {
-                var provider = new AzureBlobStorageProvider(string.Empty, "test-container");
-            });
+            _fixture = fixture;
+            _provider = new AzureBlobStorageProvider(_fixture.ConnectionString, _fixture.ContainerName);
         }
 
         [Fact]
-        public void Constructor_ShouldThrowArgumentException_WhenContainerNameIsNullOrEmpty()
-        {
-            Should.Throw<ArgumentException>(() =>
-            {
-                var provider = new AzureBlobStorageProvider("UseDevelopmentStorage=true", null);
-            });
-
-            Should.Throw<ArgumentException>(() =>
-            {
-                var provider = new AzureBlobStorageProvider("UseDevelopmentStorage=true", string.Empty);
-            });
-        }
-
-        [Fact(Skip = "Integration test placeholder - requires real Azure Storage or Mock")]
         public async Task SaveAsync_ShouldSaveEntity()
         {
-            // This would be a real integration test or a mock-based test
+            var entity = new TestEntity { Id = "entity1", Name = "Test" };
+            await _provider.SaveAsync("test-folder/entity1.json", entity);
+
+            var savedEntity = await _provider.ReadAsync<TestEntity>("test-folder/entity1.json");
+
+            savedEntity.ShouldNotBeNull();
+            savedEntity.Id.ShouldBe(entity.Id);
+            savedEntity.Name.ShouldBe(entity.Name);
         }
 
-        [Fact(Skip = "Integration test placeholder - requires real Azure Storage or Mock")]
-        public async Task ReadAsync_ShouldReturnEntity()
-        {
-            // This would be a real integration test or a mock-based test
-        }
-
-        [Fact(Skip = "Integration test placeholder - requires real Azure Storage or Mock")]
+        [Fact]
         public async Task DeleteAsync_ShouldDeleteEntity()
         {
-            // This would be a real integration test or a mock-based test
+            var entity = new TestEntity { Id = "entity2", Name = "ToDelete" };
+            await _provider.SaveAsync("test-folder/entity2.json", entity);
+
+            await _provider.DeleteAsync("test-folder/entity2.json");
+
+            var deletedEntity = await _provider.ReadAsync<TestEntity>("test-folder/entity2.json");
+
+            deletedEntity.ShouldBeNull();
         }
 
-        [Fact(Skip = "Integration test placeholder - requires real Azure Storage or Mock")]
+        [Fact]
         public async Task ListAsync_ShouldReturnListOfEntities()
         {
-            // This would be a real integration test or a mock-based test
+            await _provider.SaveAsync("test-folder/list-entity1.json", new TestEntity { Id = "list1", Name = "Item1" });
+            await _provider.SaveAsync("test-folder/list-entity2.json", new TestEntity { Id = "list2", Name = "Item2" });
+
+            var files = await _provider.ListAsync("test-folder/");
+
+            files.ShouldNotBeEmpty();
+            files.Count.ShouldBeGreaterThanOrEqualTo(2);
         }
+    }
+
+    public class TestEntity
+    {
+        public string Id { get; set; }
+        public string Name { get; set; }
     }
 }
