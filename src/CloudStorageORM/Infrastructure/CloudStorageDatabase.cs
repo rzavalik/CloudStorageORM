@@ -61,7 +61,24 @@
         {
             return queryContext =>
             {
-                return (TResult)(object)new CloudStorageQueryable<TResult>(new CloudStorageQueryProvider(this));
+                Type entityType;
+
+                if (typeof(TResult).IsGenericType &&
+                    typeof(TResult).GetGenericTypeDefinition() == typeof(IAsyncEnumerable<>))
+                {
+                    entityType = typeof(TResult).GetGenericArguments()[0];
+                }
+                else
+                {
+                    entityType = typeof(TResult);
+                }
+
+                var provider = new CloudStorageQueryProvider(this);
+                var queryableType = typeof(CloudStorageQueryable<>).MakeGenericType(entityType);
+
+                var queryable = (IQueryable)Activator.CreateInstance(queryableType, provider)!;
+
+                return (TResult)(object)queryable;
             };
         }
 
