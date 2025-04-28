@@ -1,12 +1,6 @@
 name: Build and Test
 
 on:
-  push:
-    branches:
-      - main
-      - feature/**
-      - bug/**
-      - hotfix/**
   pull_request:
     branches:
       - main
