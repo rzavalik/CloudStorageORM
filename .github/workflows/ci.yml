@@ -1,10 +1,12 @@
 name: Build and Test
 
 on:
-  push:
-    branches: [ "main" ]
   pull_request:
-    branches: [ "main" ]
+    branches:
+      - main
+      - feature/**
+      - bug/**
+      - hotfix/**
 
 jobs:
   build-and-test:
@@ -28,10 +30,10 @@ jobs:
         dotnet-version: 8.0.x
 
     - name: Install dependencies
-      run: dotnet restore
+      run: dotnet restore CloudStorageORM.sln
 
     - name: Build
-      run: dotnet build --no-restore --verbosity normal
+      run: dotnet build CloudStorageORM.sln --no-restore --configuration Release --verbosity normal
 
     - name: Run Azurite Emulator
       run: |
@@ -41,4 +43,4 @@ jobs:
       run: sleep 5
 
     - name: Test
-      run: dotnet test --no-build --verbosity normal
+      run: dotnet test CloudStorageORM.sln --no-build --configuration Release --verbosity normal --logger "trx"

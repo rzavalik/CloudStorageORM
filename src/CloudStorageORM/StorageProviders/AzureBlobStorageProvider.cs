@@ -9,14 +9,36 @@
 
     public class AzureBlobStorageProvider : IStorageProvider
     {
+        private readonly CloudStorageOptions _options;
         private readonly BlobContainerClient _containerClient;
 
-        public AzureBlobStorageProvider(CloudStorageOptions options)
+        public AzureBlobStorageProvider(
+           CloudStorageOptions options)
         {
-            var blobServiceClient = new BlobServiceClient(options.ConnectionString);
-            _containerClient = blobServiceClient.GetBlobContainerClient(options.ContainerName);
+            _options = options;
+            _containerClient = new BlobContainerClient(
+                options.ConnectionString,
+                options.ContainerName);
+        }
 
-            _containerClient.CreateIfNotExists();
+        public AzureBlobStorageProvider(
+            CloudStorageOptions options,
+            BlobContainerClient blobServiceClient)
+        {
+            _options = options;
+            _containerClient = blobServiceClient;
+        }
+
+        public AzureBlobStorageProvider(
+            string connectionString, 
+            string containerName)
+        {
+            _options = new CloudStorageOptions
+            {
+                ConnectionString = connectionString,
+                ContainerName = containerName
+            };
+            _containerClient = new BlobContainerClient(connectionString, containerName);
         }
 
         public async Task SaveAsync<T>(string path, T entity)
@@ -33,9 +55,10 @@
             if (await blobClient.ExistsAsync())
             {
                 var response = await blobClient.DownloadContentAsync();
-                return JsonSerializer.Deserialize<T>(response.Value.Content.ToString());
+                return JsonSerializer.Deserialize<T>(response.Value.Content.ToString())!;
             }
-            return default;
+
+            return default!;
         }
 
         public async Task DeleteAsync(string path)
