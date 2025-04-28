@@ -1,9 +1,8 @@
 ﻿namespace CloudStorageORM.Extensions
 {
     using CloudStorageORM.DbContext;
-    using CloudStorageORM.Enums;
     using CloudStorageORM.Infrastructure;
-    using Microsoft.EntityFrameworkCore;
+    using CloudStorageORM.Options;
     using Microsoft.EntityFrameworkCore.Infrastructure;
     using Microsoft.EntityFrameworkCore.Internal;
     using Microsoft.EntityFrameworkCore.Storage;
@@ -12,8 +11,22 @@
 
     public static class CloudStorageOrmServiceCollectionExtensions
     {
-        public static IServiceCollection AddEntityFrameworkCloudStorageORM(this IServiceCollection services)
+        public static IServiceCollection AddEntityFrameworkCloudStorageORM(
+            this IServiceCollection services, 
+            CloudStorageOptions storageOptions)
         {
+            services.AddSingleton(storageOptions);
+            services.AddDbContext<CloudStorageDbContext>((serviceProvider, options) =>
+            {
+                var storageOptions = serviceProvider.GetRequiredService<CloudStorageOptions>();
+                options.UseCloudStorageORM(builder =>
+                {
+                    builder.Provider = storageOptions.Provider;
+                    builder.ConnectionString = storageOptions.ConnectionString;
+                    builder.ContainerName = storageOptions.ContainerName;
+                });
+            });
+
             // Register the necessary services for CloudStorageORM
             services.TryAddEnumerable(ServiceDescriptor.Singleton<IDatabaseProvider, CloudStorageDatabaseProvider>());
             services.TryAddSingleton<IDbContextTransactionManager, CloudStorageTransactionManager>();
@@ -23,19 +36,8 @@
             services.TryAddSingleton<IDbSetInitializer, CloudStorageDbSetInitializer>();
             services.TryAddSingleton<ISingletonOptionsInitializer, SingletonOptionsInitializer>();
 
-            // Register CloudStorageDbContext with AddDbContext
-            services.AddDbContext<CloudStorageDbContext>(options =>
-            {
-                options.UseCloudStorageORM(builder =>
-                {
-                    builder.Provider = CloudProvider.Azure;
-                    builder.ConnectionString = "UseDevelopmentStorage=true";
-                    builder.ContainerName = "sample-container";
-                });
-            });
-
-            // Change CloudStorageDbContextServices registration to scoped
-            services.TryAddScoped<IDbContextServices, CloudStorageDbContextServices>();
+            // Register the necessary DbContext services
+            services.TryAddSingleton<IDbContextServices, CloudStorageDbContextServices>();
 
             return services;
         }

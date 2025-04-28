@@ -12,20 +12,31 @@
         public IStorageProvider StorageProvider { get; }
         public CloudStorageOptions Options { get; }
 
-        public CloudStorageOrmOptionsExtension(IStorageProvider storageProvider, CloudStorageOptions options)
+        public CloudStorageOrmOptionsExtension(
+            IStorageProvider storageProvider, 
+            CloudStorageOptions options)
         {
             StorageProvider = storageProvider;
             Options = options;
         }
 
-        public DbContextOptionsExtensionInfo Info => _info ??= new ExtensionInfo(this);
-
         public void ApplyServices(IServiceCollection services)
         {
-            services.AddEntityFrameworkCloudStorageORM();
+            services.AddEntityFrameworkCloudStorageORM(Options);
         }
 
-        public void Validate(IDbContextOptions options) { }
+        public DbContextOptionsExtensionInfo Info => 
+            new CloudStorageOrmOptionsExtensionInfo(this);
+
+        public IDbContextOptionsExtension Clone()
+        {
+            return new CloudStorageOrmOptionsExtension(
+                StorageProvider, Options);
+        }
+
+        public void Validate(IDbContextOptions options) 
+        {
+        }
 
         private sealed class ExtensionInfo : DbContextOptionsExtensionInfo
         {

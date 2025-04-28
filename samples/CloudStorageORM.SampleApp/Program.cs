@@ -8,6 +8,8 @@
     using System.Threading.Tasks;
     using SampleApp.DbContext;
     using Microsoft.Extensions.Options;
+    using CloudStorageORM.StorageProviders;
+    using CloudStorageORM.Options;
 
     public class Program
     {
@@ -53,10 +55,16 @@
 
                 if (storageType == StorageType.CloudStorageORM)
                 {
-                    var optionsBuilder = new DbContextOptionsBuilder<StorageDbContext>();
+                    var optionsBuilder = new DbContextOptionsBuilder<CloudStorageDbContext>();
                     var storageConfiguration = GetConfiguration(storageType);
                     storageConfiguration.Configure(optionsBuilder);
-                    using var context = new StorageDbContext(optionsBuilder.Options);
+                    var cloudStorageOptions = new CloudStorageOptions
+                    {
+                        ConnectionString = "UseDevelopmentStorage=true",
+                        ContainerName = "sampleapp-container"
+                    };
+                    var storageProvider = new AzureBlobStorageProvider(cloudStorageOptions);
+                    using var context = new StorageDbContext(optionsBuilder.Options, cloudStorageOptions);
                     await RunSample(context);
                 }
                 else
