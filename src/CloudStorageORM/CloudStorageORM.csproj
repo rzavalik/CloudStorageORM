@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <!-- NuGet package metadata -->
     <PackageId>CloudStorageORM</PackageId>
-    <Version>0.1.0-beta</Version>
+    <Version>0.1.4-beta</Version>
     <Authors>Rodrigo Zavalik Castro</Authors>
     <RepositoryUrl>https://github.com/rzavalik/CloudStorageORM</RepositoryUrl>
     <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>

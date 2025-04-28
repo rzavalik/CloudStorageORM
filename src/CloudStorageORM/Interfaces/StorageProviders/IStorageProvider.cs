@@ -1,4 +1,4 @@
-﻿namespace CloudStorageORM.Abstractions
+﻿namespace CloudStorageORM.Interfaces.StorageProviders
 {
     using System.Collections.Generic;
     using System.Threading.Tasks;
