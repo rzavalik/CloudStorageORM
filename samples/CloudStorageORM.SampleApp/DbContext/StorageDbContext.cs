@@ -1,10 +1,6 @@
 ﻿namespace SampleApp.DbContext
 {
-    using CloudStorageORM.DbContext;
-    using CloudStorageORM.Enums;
     using CloudStorageORM.Interfaces.StorageProviders;
-    using CloudStorageORM.Options;
-    using CloudStorageORM.StorageProviders;
     using Microsoft.EntityFrameworkCore;
     using SampleApp.Models;
 
@@ -12,24 +8,20 @@
     {
         private readonly IStorageProvider _storageProvider;
 
-        public DbSet<User> Users => Set<User>();
-
         public StorageDbContext(
-            DbContextOptions<CloudStorageDbContext> options,
-            CloudStorageOptions storageOptions)
+            DbContextOptions<StorageDbContext> options, 
+            IStorageProvider storageProvider)
             : base(options)
         {
-            _storageProvider = CreateStorageProvider(storageOptions);
+            _storageProvider = storageProvider;
         }
 
-        private IStorageProvider CreateStorageProvider(CloudStorageOptions storageOptions)
+        public DbSet<User> Users => Set<User>();
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            return storageOptions.Provider switch
-            {
-                CloudProvider.Azure => new AzureBlobStorageProvider(storageOptions),
-                // Add more providers as needed (e.g., Amazon S3, Google Cloud Storage)
-                _ => throw new NotSupportedException($"Cloud provider {storageOptions.Provider} is not supported yet.")
-            };
+            base.OnModelCreating(modelBuilder);
+            // Add any additional model configurations if needed
         }
     }
 }

@@ -7,7 +7,6 @@
     using Microsoft.EntityFrameworkCore.Metadata;
     using Microsoft.EntityFrameworkCore.Storage;
     using Microsoft.Extensions.DependencyInjection;
-    using CloudStorageORM.DbContext;
 
     public class CloudStorageDbContextServices : IDbContextServices
     {

@@ -55,7 +55,7 @@
 
                 if (storageType == StorageType.CloudStorageORM)
                 {
-                    var optionsBuilder = new DbContextOptionsBuilder<CloudStorageDbContext>();
+                    var optionsBuilder = new DbContextOptionsBuilder<StorageDbContext>();
                     var storageConfiguration = GetConfiguration(storageType);
                     storageConfiguration.Configure(optionsBuilder);
                     var cloudStorageOptions = new CloudStorageOptions
@@ -64,7 +64,7 @@
                         ContainerName = "sampleapp-container"
                     };
                     var storageProvider = new AzureBlobStorageProvider(cloudStorageOptions);
-                    using var context = new StorageDbContext(optionsBuilder.Options, cloudStorageOptions);
+                    using var context = new StorageDbContext(optionsBuilder.Options, storageProvider);
                     await RunSample(context);
                 }
                 else
