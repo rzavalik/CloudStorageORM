@@ -1,49 +1,60 @@
 ﻿namespace CloudStorageORM.Extensions
 {
-    using CloudStorageORM.DbContext;
+    using Azure.Storage.Blobs;
     using CloudStorageORM.Enums;
     using CloudStorageORM.Infrastructure;
     using CloudStorageORM.Interfaces.StorageProviders;
     using CloudStorageORM.Options;
     using CloudStorageORM.StorageProviders;
+    using Microsoft.EntityFrameworkCore.Diagnostics;
     using Microsoft.EntityFrameworkCore.Infrastructure;
     using Microsoft.EntityFrameworkCore.Internal;
+    using Microsoft.EntityFrameworkCore.Metadata.Conventions.Infrastructure;
+    using Microsoft.EntityFrameworkCore.Query;
     using Microsoft.EntityFrameworkCore.Storage;
+    using Microsoft.EntityFrameworkCore.Storage.Internal;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.DependencyInjection.Extensions;
+    using Microsoft.EntityFrameworkCore.Infrastructure.Internal;
 
     public static class CloudStorageOrmServiceCollectionExtensions
     {
         public static IServiceCollection AddEntityFrameworkCloudStorageORM(
-            this IServiceCollection services, 
+            this IServiceCollection services,
             CloudStorageOptions storageOptions)
         {
+            var builder = new EntityFrameworkServicesBuilder(services)
+                .TryAddCoreServices()
+                .TryAdd<IDatabaseProvider, CloudStorageDatabaseProvider>()
+                .TryAdd<IDatabase, CloudStorageDatabase>()
+                .TryAdd<IDatabaseCreator, CloudStorageDatabaseCreator>()
+                .TryAdd<IDbSetInitializer, DbSetInitializer>()
+                .TryAdd<ITypeMappingSource, CloudStorageTypeMappingSource>()
+                .TryAdd<IQueryContextFactory, CloudStorageQueryContextFactory>()
+                .TryAdd<IExecutionStrategyFactory, ExecutionStrategyFactory>()
+                .TryAdd<IModelSource, ModelSource>()
+                .TryAdd<LoggingDefinitions, CloudStorageLoggingDefinitions>();
+
+            services.AddSingleton(storageOptions);
+            services.AddSingleton(provider =>
+            {
+                if (string.IsNullOrEmpty(storageOptions.ConnectionString))
+                {
+                    throw new InvalidOperationException("CloudStorageOptions.ConnectionString must be provided.");
+                }
+
+                return new BlobServiceClient(storageOptions.ConnectionString);
+            });
             services.AddSingleton<IStorageProvider>(provider =>
             {
-                var options = provider.GetRequiredService<CloudStorageOptions>();
-                return new AzureBlobStorageProvider(options);
-            });
-            services.AddDbContext<Microsoft.EntityFrameworkCore.DbContext>((serviceProvider, options) =>
-            {
-                var storageProvider = serviceProvider.GetRequiredService<IStorageProvider>();
-                options.UseCloudStorageORM(builder =>
+                return storageOptions.Provider switch
                 {
-                    builder.Provider = CloudProvider.Azure;
-                    builder.ConnectionString = "UseDevelopmentStorage=true";
-                    builder.ContainerName = "sample-container";
-                });
+                    CloudProvider.Azure => new AzureBlobStorageProvider(storageOptions),
+                    _ => throw new NotSupportedException($"Cloud provider {storageOptions.Provider} is not supported yet.")
+                };
             });
-            services.AddSingleton(storageOptions);
-
-            // Register the necessary services for CloudStorageORM
-            services.TryAddEnumerable(ServiceDescriptor.Singleton<IDatabaseProvider, CloudStorageDatabaseProvider>());
-            services.TryAddSingleton<IDbContextServices, CloudStorageDbContextServices>();
-            services.TryAddSingleton<IDbContextTransactionManager, CloudStorageTransactionManager>();
-            services.TryAddSingleton<IDatabaseCreator, CloudStorageDatabaseCreator>();
-            services.TryAddSingleton<IModelSource, ModelSource>();
-            services.TryAddSingleton<IModelRuntimeInitializer, ModelRuntimeInitializer>();
-            services.TryAddSingleton<IDbSetInitializer, CloudStorageDbSetInitializer>();
-            services.TryAddSingleton<ISingletonOptionsInitializer, SingletonOptionsInitializer>();
+            services.AddSingleton<ISingletonOptionsInitializer, CloudStorageSingletonOptionsInitializer>();
+            services.TryAddSingleton<IProviderConventionSetBuilder, RelationalConventionSetBuilder>();
 
             return services;
         }

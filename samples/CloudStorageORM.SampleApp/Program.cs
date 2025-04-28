@@ -2,14 +2,15 @@
 {
     using Microsoft.EntityFrameworkCore;
     using SampleApp.Models;
-    using SampleApp.Configuration;
-    using CloudStorageORM.DbContext;
     using System;
     using System.Threading.Tasks;
     using SampleApp.DbContext;
-    using Microsoft.Extensions.Options;
-    using CloudStorageORM.StorageProviders;
     using CloudStorageORM.Options;
+    using CloudStorageORM.Enums;
+    using Microsoft.Extensions.DependencyInjection;
+    using CloudStorageORM.Interfaces.StorageProviders;
+    using CloudStorageORM.StorageProviders;
+    using CloudStorageORM.Extensions;
 
     public class Program
     {
@@ -22,7 +23,7 @@
         public static async Task Main(string[] args)
         {
             Console.OutputEncoding = System.Text.Encoding.UTF8;
-            
+
             Console.WriteLine("🚀 CloudStorageORM SampleApp Starting...");
             Console.WriteLine("");
             await Execute(StorageType.InMemory);
@@ -32,49 +33,74 @@
             Console.WriteLine($"🏁 SampleApp Finished.");
         }
 
-        private static IStorageConfigurationProvider GetConfiguration(StorageType storageType)
-        {
-            return storageType switch
-            {
-                StorageType.InMemory => new InMemoryStorageConfiguration("TestDatabase"),
-                StorageType.CloudStorageORM => new CloudStorageOrmConfiguration(new CloudStorageORM.Options.CloudStorageOptions
-                {
-                    Provider = CloudStorageORM.Enums.CloudProvider.Azure,
-                    ConnectionString = "UseDevelopmentStorage=true",
-                    ContainerName = "sampleapp-container"
-                }),
-                _ => throw new NotSupportedException()
-            };
-        }
-
         private static async Task Execute(StorageType storageType)
         {
             try
             {
                 Console.WriteLine($"🚀 Running using {storageType:G}...");
 
+                Microsoft.EntityFrameworkCore.DbContext dbContext;
+                var services = new ServiceCollection();
+
+                // Register the IStorageProvider for CloudStorageORM
                 if (storageType == StorageType.CloudStorageORM)
                 {
-                    var optionsBuilder = new DbContextOptionsBuilder<StorageDbContext>();
-                    var storageConfiguration = GetConfiguration(storageType);
-                    storageConfiguration.Configure(optionsBuilder);
+                    // Register the IStorageProvider
                     var cloudStorageOptions = new CloudStorageOptions
                     {
+                        Provider = CloudProvider.Azure,
                         ConnectionString = "UseDevelopmentStorage=true",
                         ContainerName = "sampleapp-container"
                     };
-                    var storageProvider = new AzureBlobStorageProvider(cloudStorageOptions);
-                    using var context = new StorageDbContext(optionsBuilder.Options, storageProvider);
-                    await RunSample(context);
+
+                    services.AddSingleton<CloudStorageOptions>(cloudStorageOptions);
+                    services.AddSingleton<IStorageProvider, AzureBlobStorageProvider>();
+                    services.AddEntityFrameworkCloudStorageORM(cloudStorageOptions);
+
+                    // Register DbContext for CloudStorageORM
+                    services.AddDbContext<MyAppDbContextCloudStorage>(options =>
+                    {
+                        // Pass CloudStorageOptions to configure the DbContext
+                        options.UseCloudStorageORM(opt =>
+                        {
+                            opt.Provider = cloudStorageOptions.Provider;
+                            opt.ConnectionString = cloudStorageOptions.ConnectionString;
+                            opt.ContainerName = cloudStorageOptions.ContainerName;
+                        });
+                    });
                 }
                 else
                 {
-                    var optionsBuilder = new DbContextOptionsBuilder<InMemoryDbContext>();
-                    var storageConfiguration = GetConfiguration(storageType);
-                    storageConfiguration.Configure(optionsBuilder);
-                    using var context = new InMemoryDbContext(optionsBuilder.Options);
-                    await RunSample(context);
+                    // Register DbContext for InMemory with correct options
+                    services.AddDbContext<MyAppDbContextInMemory>(options =>
+                    {
+                        // Use In-Memory for this DbContext
+                        options.UseInMemoryDatabase("InMemoryDb"); 
+                    });
                 }
+
+                var provider = services.BuildServiceProvider();
+
+                // For CloudStorageORM, initialize the container in the cloud
+                if (storageType == StorageType.CloudStorageORM)
+                {
+                    var storageProvider = provider.GetRequiredService<IStorageProvider>();
+                    await storageProvider.DeleteContainerAsync();
+                    await storageProvider.CreateContainerIfNotExistsAsync();
+                }
+
+                // Create a scope and resolve the appropriate DbContext
+                using var scope = provider.CreateScope();
+                if (storageType == StorageType.CloudStorageORM)
+                {
+                    dbContext = scope.ServiceProvider.GetRequiredService<MyAppDbContextCloudStorage>();
+                }
+                else
+                {
+                    dbContext = scope.ServiceProvider.GetRequiredService<MyAppDbContextInMemory>();
+                }
+
+                await RunSample(dbContext);
             }
             catch (Exception ex)
             {
@@ -82,13 +108,11 @@
             }
         }
 
-        private static async Task RunSample<T>(T context)
-            where T: Microsoft.EntityFrameworkCore.DbContext
+        private static async Task RunSample(Microsoft.EntityFrameworkCore.DbContext context)
         {
             var repository = context.Set<User>();
             var userId = Guid.NewGuid().ToString();
 
-            // 1. Create
             Console.WriteLine("➕ Creating a new user...");
             var newUser = new User
             {
@@ -100,7 +124,6 @@
             await context.SaveChangesAsync();
             Console.WriteLine($"✅ User {newUser.Name} created.");
 
-            // 2. List
             Console.WriteLine("\n📃 Listing users...");
             var users = await repository.ToListAsync();
             foreach (var user in users)
@@ -108,9 +131,8 @@
                 Console.WriteLine($"- {user.Id}: {user.Name} ({user.Email})");
             }
 
-            // 3. Update
             Console.WriteLine("\n✏️ Updating the user...");
-            var usersList = (List<User>)await repository.ToListAsync();
+            var usersList = await repository.ToListAsync();
             var userToUpdate = usersList.FirstOrDefault(u => u.Id == userId);
             if (userToUpdate != null)
             {
@@ -121,9 +143,8 @@
                 Console.WriteLine($"✅ User {userToUpdate.Name} updated.");
             }
 
-            // 4. Find
             Console.WriteLine("\n🔎 Finding the updated user...");
-            usersList = (List<User>)await repository.ToListAsync();
+            usersList = await repository.ToListAsync();
             var foundUser = usersList.FirstOrDefault(u => u.Id == userId);
             if (foundUser != null)
             {
@@ -134,7 +155,6 @@
                 Console.WriteLine("❌ User not found.");
             }
 
-            // 5. Delete
             Console.WriteLine("\n🗑️ Deleting the user...");
             if (foundUser != null)
             {
@@ -143,7 +163,6 @@
                 Console.WriteLine("✅ User deleted.");
             }
 
-            // 6. List again
             Console.WriteLine("\n📃 Listing users after deletion...");
             var usersAfterDelete = await repository.ToListAsync();
             foreach (var user in usersAfterDelete)

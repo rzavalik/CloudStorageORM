@@ -1,9 +1,7 @@
 ﻿namespace CloudStorageORM.Extensions
 {
-    using CloudStorageORM.Enums;
-    using CloudStorageORM.Interfaces.StorageProviders;
+    using CloudStorageORM.Infrastructure;
     using CloudStorageORM.Options;
-    using CloudStorageORM.StorageProviders;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.EntityFrameworkCore.Infrastructure;
 
@@ -14,17 +12,7 @@
             Action<CloudStorageOptions> configureOptions)
             where TContext : DbContext
         {
-            var options = new CloudStorageOptions();
-            configureOptions.Invoke(options);
-
-            IStorageProvider storageProvider = options.Provider switch
-            {
-                CloudProvider.Azure => new AzureBlobStorageProvider(options),
-                _ => throw new NotSupportedException($"Cloud provider {options.Provider} is not supported yet.")
-            };
-
-            builder.WithOptionExtension(new CloudStorageOrmOptionsExtension(storageProvider, options));
-            return builder;
+            return (DbContextOptionsBuilder<TContext>)builder.UseCloudStorageORM(configureOptions);
         }
 
         public static DbContextOptionsBuilder UseCloudStorageORM(
@@ -32,24 +20,13 @@
             Action<CloudStorageOptions> configureOptions)
         {
             var options = new CloudStorageOptions();
-            configureOptions.Invoke(options);
+            configureOptions?.Invoke(options);
 
-            IStorageProvider storageProvider = options.Provider switch
-            {
-                CloudProvider.Azure => new AzureBlobStorageProvider(options),
-                _ => throw new NotSupportedException($"Cloud provider {options.Provider} is not supported yet.")
-            };
+            var extension = builder.Options.FindExtension<CloudStorageOrmOptionsExtension>()
+                ?? new CloudStorageOrmOptionsExtension(options);
 
-            builder.WithOptionExtension(new CloudStorageOrmOptionsExtension(storageProvider, options));
-            return builder;
-        }
+            ((IDbContextOptionsBuilderInfrastructure)builder).AddOrUpdateExtension(extension);
 
-        private static DbContextOptionsBuilder WithOptionExtension(
-            this DbContextOptionsBuilder builder,
-            IDbContextOptionsExtension extension)
-        {
-            var infrastructure = (IDbContextOptionsBuilderInfrastructure)builder;
-            infrastructure.AddOrUpdateExtension(extension);
             return builder;
         }
     }

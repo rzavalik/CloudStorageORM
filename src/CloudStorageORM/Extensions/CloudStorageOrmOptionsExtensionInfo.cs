@@ -1,6 +1,7 @@
 ﻿namespace CloudStorageORM.Extensions
 {
     using System.Collections.Generic;
+    using CloudStorageORM.Infrastructure;
     using CloudStorageORM.Options;
     using Microsoft.EntityFrameworkCore.Infrastructure;
 
@@ -26,7 +27,7 @@
 
         public override bool ShouldUseSameServiceProvider(DbContextOptionsExtensionInfo other)
         {
-            return true;
+            return false;
         }
     }
 }
