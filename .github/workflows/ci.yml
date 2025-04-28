@@ -1,44 +1,37 @@
-name: Build and Test
+name: Build and Test (All Branches)
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
+      - feature/**
+      - bug/**
+      - hotfix/**
   pull_request:
-    branches: [ "main" ]
+    branches:
+      - main
+      - feature/**
+      - bug/**
+      - hotfix/**
 
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
+    - name: Checkout code
       uses: actions/checkout@v4
-
-    - name: Cache NuGet packages
-      uses: actions/cache@v4
-      with:
-        path: ~/.nuget/packages
-        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
-        restore-keys: |
-          ${{ runner.os }}-nuget-
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 8.0.x
 
-    - name: Install dependencies
-      run: dotnet restore
+    - name: Restore dependencies
+      run: dotnet restore CloudStorageORM.sln
 
-    - name: Build
-      run: dotnet build --no-restore --verbosity normal
+    - name: Build solution
+      run: dotnet build CloudStorageORM.sln --configuration Release --no-restore
 
-    - name: Run Azurite Emulator
-      run: |
-        docker run -d -p 10000:10000 -p 10001:10001 -p 10002:10002 --name azurite mcr.microsoft.com/azure-storage/azurite
-
-    - name: Wait for Azurite to be ready
-      run: sleep 5
-
-    - name: Test
-      run: dotnet test --no-build --verbosity normal
+    - name: Run tests
+      run: dotnet test CloudStorageORM.sln --configuration Release --no-build --logger "trx"

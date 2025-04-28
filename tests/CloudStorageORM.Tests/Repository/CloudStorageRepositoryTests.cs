@@ -25,8 +25,8 @@
             // Arrange
             var user = new User { Id = "1", Name = "John Doe" };
             _storageProviderMock
-                .Setup(x => x.ReadAsync<User>("user/1.json"))
-                .ReturnsAsync((User)null); // Entity does not exist
+                .Setup(x => x.ReadAsync<User?>("user/1.json"))
+                .ReturnsAsync((User?)null); // Entity does not exist
 
             // Act
             await _repository.AddAsync("1", user);
@@ -41,7 +41,7 @@
             // Arrange
             var existingUser = new User { Id = "1", Name = "Existing User" };
             _storageProviderMock
-                .Setup(x => x.ReadAsync<User>("user/1.json"))
+                .Setup(x => x.ReadAsync<User?>("user/1.json"))
                 .ReturnsAsync(existingUser); // Entity already exists
 
             var user = new User { Id = "1", Name = "New User" };
@@ -58,7 +58,8 @@
         {
             // Arrange
             var user = new User { Id = "1", Name = "John Updated" };
-            _storageProviderMock.Setup(x => x.ReadAsync<User>("user/1.json"))
+            _storageProviderMock
+                .Setup(x => x.ReadAsync<User?>("user/1.json"))
                 .ReturnsAsync(new User { Id = "1", Name = "Existing User" });
 
             // Act
@@ -72,8 +73,9 @@
         public async Task UpdateAsync_ShouldThrowException_WhenEntityDoesNotExist()
         {
             // Arrange
-            _storageProviderMock.Setup(x => x.ReadAsync<User>("user/1.json"))
-                .ReturnsAsync((User)null);
+            _storageProviderMock
+                .Setup(x => x.ReadAsync<User?>("user/1.json"))
+                .ReturnsAsync((User?)null);
 
             var user = new User { Id = "1", Name = "New User" };
 
@@ -89,7 +91,8 @@
         {
             // Arrange
             var existingUser = new User { Id = "1", Name = "John Doe" };
-            _storageProviderMock.Setup(x => x.ReadAsync<User>("user/1.json"))
+            _storageProviderMock
+                .Setup(x => x.ReadAsync<User?>("user/1.json"))
                 .ReturnsAsync(existingUser);
 
             // Act
@@ -104,8 +107,9 @@
         public async Task FindAsync_ShouldReturnNull_WhenNotFound()
         {
             // Arrange
-            _storageProviderMock.Setup(x => x.ReadAsync<User>("user/2.json"))
-                .ReturnsAsync((User)null);
+            _storageProviderMock
+                .Setup(x => x.ReadAsync<User?>("user/2.json"))
+                .ReturnsAsync((User?)null);
 
             // Act
             var result = await _repository.FindAsync("2");
@@ -119,13 +123,16 @@
         {
             // Arrange
             var paths = new List<string> { "user/1.json", "user/2.json" };
-            _storageProviderMock.Setup(x => x.ListAsync("user"))
+            _storageProviderMock
+                .Setup(x => x.ListAsync("user"))
                 .ReturnsAsync(paths);
 
-            _storageProviderMock.Setup(x => x.ReadAsync<User>("user/1.json"))
+            _storageProviderMock
+                .Setup(x => x.ReadAsync<User?>("user/1.json"))
                 .ReturnsAsync(new User { Id = "1", Name = "User 1" });
 
-            _storageProviderMock.Setup(x => x.ReadAsync<User>("user/2.json"))
+            _storageProviderMock
+                .Setup(x => x.ReadAsync<User?>("user/2.json"))
                 .ReturnsAsync(new User { Id = "2", Name = "User 2" });
 
             // Act
@@ -153,7 +160,7 @@
 
     public class User
     {
-        public string Id { get; set; }
-        public string Name { get; set; }
+        public string Id { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
     }
 }
