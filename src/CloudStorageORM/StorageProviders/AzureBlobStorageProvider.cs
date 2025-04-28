@@ -76,5 +76,15 @@
             }
             return result;
         }
+
+        public async Task DeleteContainerAsync()
+        {
+            await _containerClient.DeleteIfExistsAsync();
+        }
+
+        public async Task CreateContainerIfNotExistsAsync()
+        {
+            await _containerClient.CreateIfNotExistsAsync();
+        }
     }
 }

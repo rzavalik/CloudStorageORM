@@ -1,14 +1,17 @@
 ﻿namespace CloudStorageORM.Repositories
 {
-    using CloudStorageORM.Interfaces.Repositories;
     using CloudStorageORM.Interfaces.StorageProviders;
+    using Microsoft.EntityFrameworkCore;
+    using Microsoft.EntityFrameworkCore.Metadata;
     using System.Collections.Generic;
     using System.Threading.Tasks;
 
-    public class CloudStorageRepository<TEntity> : ICloudStorageRepository<TEntity> where TEntity : class
+    public class CloudStorageRepository<TEntity> : DbSet<TEntity> where TEntity : class
     {
         private readonly IStorageProvider _storageProvider;
         private readonly string _folderName;
+
+        public override IEntityType EntityType => throw new NotSupportedException("Custom metadata is not supported in this implementation.");
 
         public CloudStorageRepository(IStorageProvider storageProvider)
         {
