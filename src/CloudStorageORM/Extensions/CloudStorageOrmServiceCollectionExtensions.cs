@@ -15,7 +15,6 @@
     using Microsoft.EntityFrameworkCore.Storage.Internal;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.DependencyInjection.Extensions;
-    using Microsoft.EntityFrameworkCore.Infrastructure.Internal;
 
     public static class CloudStorageOrmServiceCollectionExtensions
     {
@@ -23,6 +22,9 @@
             this IServiceCollection services,
             CloudStorageOptions storageOptions)
         {
+            if (services == null) throw new ArgumentNullException(nameof(services));
+            if (storageOptions == null) throw new ArgumentNullException(nameof(storageOptions));
+
             var builder = new EntityFrameworkServicesBuilder(services)
                 .TryAddCoreServices()
                 .TryAdd<IDatabaseProvider, CloudStorageDatabaseProvider>()

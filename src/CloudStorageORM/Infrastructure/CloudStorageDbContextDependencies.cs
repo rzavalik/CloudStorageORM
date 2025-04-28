@@ -37,15 +37,23 @@
             IDiagnosticsLogger<DbLoggerCategory.Infrastructure> infrastructureLogger)
         {
             _model = model ?? throw new ArgumentNullException(nameof(model));
-            _changeDetector = changeDetector;
-            _setSource = setSource;
-            _entityGraphAttacher = entityGraphAttacher;
-            _queryProvider = queryProvider;
-            _stateManager = stateManager;
-            _exceptionDetector = exceptionDetector;
-            _updateLogger = updateLogger;
-            _infrastructureLogger = infrastructureLogger;
-            _entityFinderFactory = new EntityFinderFactory(entityFinderSource, stateManager, setSource, currentContext.Context);
+            if (currentContext == null) throw new ArgumentNullException(nameof(currentContext));
+            _changeDetector = changeDetector ?? throw new ArgumentNullException(nameof(changeDetector));
+            _setSource = setSource ?? throw new ArgumentNullException(nameof(setSource));
+            if (entityFinderSource == null) throw new ArgumentNullException(nameof(entityFinderSource));
+            _entityGraphAttacher = entityGraphAttacher ?? throw new ArgumentNullException(nameof(entityGraphAttacher));
+            _queryProvider = queryProvider ?? throw new ArgumentNullException(nameof(queryProvider));
+            _stateManager = stateManager ?? throw new ArgumentNullException(nameof(stateManager));
+            _exceptionDetector = exceptionDetector ?? throw new ArgumentNullException(nameof(exceptionDetector));
+            _updateLogger = updateLogger ?? throw new ArgumentNullException(nameof(updateLogger));
+            _infrastructureLogger = infrastructureLogger ?? throw new ArgumentNullException(nameof(infrastructureLogger));
+
+            _entityFinderFactory = new EntityFinderFactory(
+                entityFinderSource,
+                stateManager,
+                setSource,
+                currentContext.Context
+            );
         }
 
         public IDbContextTransactionManager TransactionManager => new CloudStorageTransactionManager();

@@ -5,6 +5,7 @@
     using Moq;
     using Shouldly;
     using System;
+    using System.Collections.Generic;
     using System.Threading.Tasks;
     using Xunit;
 
@@ -22,106 +23,93 @@
         [Fact]
         public async Task AddAsync_ShouldSaveEntity_WhenEntityDoesNotExist()
         {
-            // Arrange
             var user = new User { Id = "1", Name = "John Doe" };
             _storageProviderMock
                 .Setup(x => x.ReadAsync<User?>("user/1.json"))
-                .ReturnsAsync((User?)null); // Entity does not exist
+                .ReturnsAsync((User?)null);
 
-            // Act
             await _repository.AddAsync("1", user);
 
-            // Assert
             _storageProviderMock.Verify(x => x.SaveAsync("user/1.json", user), Times.Once);
         }
 
         [Fact]
-        public async Task AddAsync_ShouldThrowException_WhenEntityAlreadyExists()
+        public async Task AddAsync_ShouldThrowExceptionWithMessage_WhenEntityAlreadyExists()
         {
-            // Arrange
             var existingUser = new User { Id = "1", Name = "Existing User" };
             _storageProviderMock
                 .Setup(x => x.ReadAsync<User?>("user/1.json"))
-                .ReturnsAsync(existingUser); // Entity already exists
+                .ReturnsAsync(existingUser);
 
             var user = new User { Id = "1", Name = "New User" };
 
-            // Act & Assert
-            await Should.ThrowAsync<Exception>(async () =>
+            var exception = await Should.ThrowAsync<Exception>(async () =>
             {
                 await _repository.AddAsync("1", user);
             });
+
+            exception.Message.ShouldContain("already exists");
         }
 
         [Fact]
         public async Task UpdateAsync_ShouldUpdateEntity_WhenEntityExists()
         {
-            // Arrange
             var user = new User { Id = "1", Name = "John Updated" };
             _storageProviderMock
                 .Setup(x => x.ReadAsync<User?>("user/1.json"))
                 .ReturnsAsync(new User { Id = "1", Name = "Existing User" });
 
-            // Act
             await _repository.UpdateAsync("1", user);
 
-            // Assert
             _storageProviderMock.Verify(x => x.SaveAsync("user/1.json", user), Times.Once);
         }
 
         [Fact]
         public async Task UpdateAsync_ShouldThrowException_WhenEntityDoesNotExist()
         {
-            // Arrange
             _storageProviderMock
                 .Setup(x => x.ReadAsync<User?>("user/1.json"))
                 .ReturnsAsync((User?)null);
 
             var user = new User { Id = "1", Name = "New User" };
 
-            // Act & Assert
-            await Should.ThrowAsync<Exception>(async () =>
+            var exception = await Should.ThrowAsync<Exception>(async () =>
             {
                 await _repository.UpdateAsync("1", user);
             });
+
+            exception.Message.ShouldContain("does not exist");
         }
 
         [Fact]
         public async Task FindAsync_ShouldReturnEntity_WhenExists()
         {
-            // Arrange
             var existingUser = new User { Id = "1", Name = "John Doe" };
             _storageProviderMock
                 .Setup(x => x.ReadAsync<User?>("user/1.json"))
                 .ReturnsAsync(existingUser);
 
-            // Act
             var result = await _repository.FindAsync("1");
 
-            // Assert
             result.ShouldNotBeNull();
-            result.Name.ShouldBe("John Doe");
+            result!.Name.ShouldBe("John Doe");
         }
 
         [Fact]
         public async Task FindAsync_ShouldReturnNull_WhenNotFound()
         {
-            // Arrange
             _storageProviderMock
                 .Setup(x => x.ReadAsync<User?>("user/2.json"))
                 .ReturnsAsync((User?)null);
 
-            // Act
             var result = await _repository.FindAsync("2");
 
-            // Assert
             result.ShouldBeNull();
         }
 
         [Fact]
         public async Task ListAsync_ShouldReturnAllEntities()
         {
-            // Arrange
             var paths = new List<string> { "user/1.json", "user/2.json" };
             _storageProviderMock
                 .Setup(x => x.ListAsync("user"))
@@ -135,27 +123,34 @@
                 .Setup(x => x.ReadAsync<User?>("user/2.json"))
                 .ReturnsAsync(new User { Id = "2", Name = "User 2" });
 
-            // Act
             var result = await _repository.ListAsync();
 
-            // Assert
             result.ShouldNotBeNull();
             result.Count.ShouldBe(2);
+            result.ShouldContain(x => x.Id == "1" && x.Name == "User 1");
+            result.ShouldContain(x => x.Id == "2" && x.Name == "User 2");
         }
 
         [Fact]
         public async Task RemoveAsync_ShouldCallDelete()
         {
-            // Arrange
             var id = "1";
 
-            // Act
             await _repository.RemoveAsync(id);
 
-            // Assert
             _storageProviderMock.Verify(x => x.DeleteAsync("user/1.json"), Times.Once);
         }
 
+        [Fact]
+        public void EntityType_ShouldThrowNotSupportedException()
+        {
+            var exception = Should.Throw<NotSupportedException>(() =>
+            {
+                var _ = _repository.EntityType;
+            });
+
+            exception.Message.ShouldContain("Custom metadata is not supported");
+        }
     }
 
     public class User
