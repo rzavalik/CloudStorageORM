@@ -4,10 +4,12 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+
     <!-- NuGet package metadata -->
     <PackageId>CloudStorageORM</PackageId>
     <Version>0.1.4-beta</Version>
     <Authors>Rodrigo Zavalik Castro</Authors>
+    <!-- Opcional -->
     <RepositoryUrl>https://github.com/rzavalik/CloudStorageORM</RepositoryUrl>
     <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/rzavalik/CloudStorageORM</PackageProjectUrl>
@@ -17,6 +19,7 @@
 
   <ItemGroup>
     <PackageReference Include="Azure.Storage.Blobs" Version="12.24.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.4" />
   </ItemGroup>
 
 </Project>

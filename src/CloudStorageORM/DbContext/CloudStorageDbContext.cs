@@ -1,29 +1,55 @@
 ﻿namespace CloudStorageORM.DbContext
 {
     using CloudStorageORM.Interfaces.StorageProviders;
-    using CloudStorageORM.Options;
     using CloudStorageORM.Repositories;
+    using Microsoft.EntityFrameworkCore;
+    using System.Collections.Generic;
     using System.Threading.Tasks;
+    using System;
 
-    public class CloudStorageDbContext
+    public class CloudStorageDbContext : DbContext
     {
-        private readonly CloudStorageOptions _options;
         private readonly IStorageProvider _storageProvider;
+        private readonly Dictionary<Type, object> _repositories = new();
 
-        public CloudStorageDbContext(CloudStorageOptions options, IStorageProvider storageProvider)
+        public CloudStorageDbContext(DbContextOptions<CloudStorageDbContext> options)
+            : base(options)
         {
-            _options = options;
-            _storageProvider = storageProvider;
         }
 
-        public CloudStorageRepository<TEntity> Set<TEntity>() where TEntity : class
+        public new CloudStorageRepository<TEntity> Set<TEntity>() where TEntity : class
         {
-            return new CloudStorageRepository<TEntity>(_storageProvider);
+            if (!_repositories.TryGetValue(typeof(TEntity), out var repository))
+            {
+                repository = new CloudStorageRepository<TEntity>(_storageProvider);
+                _repositories[typeof(TEntity)] = repository;
+            }
+
+            return (CloudStorageRepository<TEntity>)repository;
         }
 
-        public Task<int> SaveChangesAsync()
+        public new void Add<TEntity>(TEntity entity) where TEntity : class
         {
-            return Task.FromResult(0);
+            var repository = Set<TEntity>();
+            repository.AddAsync(Guid.NewGuid().ToString(), entity).Wait();
+        }
+
+        public new void Update<TEntity>(TEntity entity) where TEntity : class
+        {
+            var repository = Set<TEntity>();
+            repository.UpdateAsync(Guid.NewGuid().ToString(), entity).Wait();
+        }
+
+        public new void Remove<TEntity>(TEntity entity) where TEntity : class
+        {
+            var repository = Set<TEntity>();
+            repository.RemoveAsync(Guid.NewGuid().ToString()).Wait();
+        }
+
+        public async Task<int> SaveChangesAsync()
+        {
+            // No-op for now, as changes are directly applied in Add/Update/Remove
+            return await Task.FromResult(0);
         }
     }
 }
