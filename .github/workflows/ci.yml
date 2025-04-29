@@ -47,6 +47,7 @@ jobs:
 
     - name: Run Unit Tests - All Unit Tests
       run: |
+        mkdir -p TestResults
         for proj in $(find src -name "*.Tests.csproj"); do
           dotnet test "$proj" --no-build --configuration Release \
             --logger "trx;LogFileName=$(basename $proj .csproj).trx" \
@@ -57,12 +58,18 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: test-results
-        path: TestResults
+        path: TestResults/*.trx
 
-    - name: Publish Test Report
+    - name: Publish Test Report as PR Comment
       uses: dorny/test-reporter@v1
-      if: always()
+      if: github.event_name == 'pull_request'
       with:
         name: Tests Report
-        path: '**/*.trx'
+        path: TestResults/*.trx
         reporter: dotnet-trx
+
+    - name: Publish Test Results to GitHub Actions UI
+      uses: EnricoMi/publish-unit-test-result-action@v2
+      if: always()
+      with:
+        files: TestResults/*.trx
