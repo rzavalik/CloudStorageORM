@@ -55,11 +55,12 @@ jobs:
         mkdir -p TestResults
         for proj in $(find src -name "*.Tests.csproj"); do
           proj_dir=$(dirname "$proj")
-          dotnet test "$proj" --no-build --configuration Release \
-            --logger "trx;LogFileName=$(basename $proj .csproj).trx" \
-            --results-directory "$proj_dir/TestResults"
-          cp $proj_dir/TestResults/*.trx TestResults/
+          cd "$proj_dir"
+          dotnet test --no-build --configuration Release \
+            --logger "trx;LogFileName=$(basename $proj .csproj).trx"
+          cd -
         done
+        find src -name "*.trx" -exec cp {} TestResults/ \;
 
     - name: Upload TRX Test Results
       uses: actions/upload-artifact@v4
