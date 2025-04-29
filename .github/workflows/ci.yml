@@ -53,7 +53,7 @@ jobs:
     - name: Run Unit Tests - All Unit Tests
       run: |
         mkdir -p TestResults
-        for proj in $(find src -name "*.Tests.csproj"); do
+        for proj in $(find src -type f -iname "*.Tests.csproj"); do
           proj_dir=$(dirname "$proj")
           cd "$proj_dir"
           dotnet test --no-build --configuration Release \
