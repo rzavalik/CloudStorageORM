@@ -57,7 +57,10 @@ jobs:
           proj_dir=$(dirname "$proj")
           cd "$proj_dir"
           dotnet test --no-build --configuration Release \
-            --logger "trx;LogFileName=$(basename $proj .csproj).trx"
+            --logger "trx;LogFileName=$(basename $proj .csproj).trx" \
+            /p:CollectCoverage=true \
+            /p:CoverletOutputFormat=cobertura \
+            /p:CoverletOutput=../../TestResults/coverage-$(basename $proj .csproj).xml
           cd -
         done
         find . -name "*.trx" -exec cp {} TestResults/ \;
@@ -81,3 +84,15 @@ jobs:
       if: always()
       with:
         files: TestResults/*.trx
+
+    - name: Upload Coverage Reports
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-reports
+        path: TestResults/*.xml
+
+    - name: Publish Coverage to GitHub Summary
+      uses: 5monkeys/cobertura-action@v13
+      with:
+        path: TestResults/*.xml
+        minimum_coverage: 0
