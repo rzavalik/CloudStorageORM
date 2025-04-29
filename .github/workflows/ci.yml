@@ -44,3 +44,9 @@ jobs:
 
     - name: Test
       run: dotnet test CloudStorageORM.sln --no-build --configuration Release --verbosity normal --logger "trx"
+
+    - name: Publish Test Results
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results
+        path: '**/*.trx'
