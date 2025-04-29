@@ -10,7 +10,12 @@ on:
       - feature/**
       - bug/**
       - hotfix/**
-
+      
+permissions:
+  checks: write
+  pull-requests: write
+  contents: read
+  
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
