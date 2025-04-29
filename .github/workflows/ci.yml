@@ -53,21 +53,24 @@ jobs:
     - name: Run Unit Tests - All Unit Tests
       run: |
         mkdir -p TestResults
-        for proj in $(find src -name "*.Tests.csproj"); do
-          dotnet test "$proj" --no-build --configuration Release \
-            --logger "trx;LogFileName=$(basename $proj .csproj).trx" \
-            --results-directory TestResults
+        for proj in $(find . -type f -iname "*.Tests.csproj"); do
+          proj_dir=$(dirname "$proj")
+          cd "$proj_dir"
+          dotnet test --no-build --configuration Release \
+            --logger "trx;LogFileName=$(basename $proj .csproj).trx"
+          cd -
         done
+        find . -name "*.trx" -exec cp {} TestResults/ \;
 
     - name: Upload TRX Test Results
       uses: actions/upload-artifact@v4
       with:
-        name: test-results
+        name: Test Results (.trx files)
         path: TestResults/*.trx
 
     - name: Publish Test Report as PR Comment
       uses: dorny/test-reporter@v1
-      if: github.event_name == 'pull_request'
+      if: github.event_name == 'pull_request' && always()
       with:
         name: Tests Report
         path: TestResults/*.trx
