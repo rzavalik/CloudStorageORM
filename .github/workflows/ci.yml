@@ -18,6 +18,7 @@ permissions:
   
 jobs:
   build-and-test:
+    name: Build, Test, and Coverage
     runs-on: ubuntu-latest
 
     steps:
@@ -52,15 +53,15 @@ jobs:
 
     - name: Run Unit Tests - All Unit Tests
       run: |
-        mkdir -p TestResults
+        mkdir -p TestResults/Coverage
         for proj in $(find . -type f -iname "*.Tests.csproj"); do
-          proj_dir=$(dirname "$proj")
-          cd "$proj_dir"
-          dotnet test --no-build --configuration Release \
-            --logger "trx;LogFileName=$(basename $proj .csproj).trx"
-          cd -
+          name=$(basename "$proj" .csproj)
+          dotnet test "$proj" --configuration Release \
+            --logger "trx;LogFileName=${name}.trx" \
+            --collect:"XPlat Code Coverage"
+          find . -name "${name}.trx" -exec cp {} TestResults/ \;
+          find . -name "coverage.cobertura.xml" -exec cp {} TestResults/Coverage/${name}.xml \;
         done
-        find . -name "*.trx" -exec cp {} TestResults/ \;
 
     - name: Upload TRX Test Results
       uses: actions/upload-artifact@v4
@@ -81,3 +82,19 @@ jobs:
       if: always()
       with:
         files: TestResults/*.trx
+
+    - name: Upload Coverage Reports
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-reports
+        path: TestResults/Coverage/*.xml
+
+    - name: Publish Coverage to GitHub Summary
+      uses: 5monkeys/cobertura-action@v13
+      with:
+        path: TestResults/Coverage/*.xml
+        minimum_coverage: 0
+
+    - name: Cleanup Azurite Container
+      if: always()
+      run: docker rm -f azurite || true
