@@ -9,8 +9,8 @@
     using CloudStorageORM.Enums;
     using Microsoft.Extensions.DependencyInjection;
     using CloudStorageORM.Interfaces.StorageProviders;
-    using CloudStorageORM.StorageProviders;
     using CloudStorageORM.Extensions;
+    using CloudStorageORM.Azure.StorageProviders;
 
     public class Program
     {

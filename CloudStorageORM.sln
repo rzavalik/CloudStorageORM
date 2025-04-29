@@ -21,7 +21,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "others", "others", "{02EA68
 		.gitignore = .gitignore
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CloudStorageORM.IntegrationTests", "tests\CloudStorageORM.IntegrationTests\CloudStorageORM.IntegrationTests.csproj", "{20691632-7AF3-69CD-33BA-83927ABCD491}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CloudStorageORM.IntegrationTests.Azure", "tests\CloudStorageORM.IntegrationTests\CloudStorageORM.IntegrationTests.Azure.csproj", "{20691632-7AF3-69CD-33BA-83927ABCD491}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

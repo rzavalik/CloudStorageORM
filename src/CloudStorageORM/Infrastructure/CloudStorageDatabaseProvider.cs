@@ -1,7 +1,6 @@
 ﻿namespace CloudStorageORM.Infrastructure
 {
-    using Azure.Storage.Blobs;
-    using CloudStorageORM.Extensions;
+    using global::Azure.Storage.Blobs;
     using CloudStorageORM.Options;
     using Microsoft.EntityFrameworkCore.Infrastructure;
     using Microsoft.EntityFrameworkCore.Metadata;

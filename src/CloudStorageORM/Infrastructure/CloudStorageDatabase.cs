@@ -1,7 +1,6 @@
 ﻿namespace CloudStorageORM.Infrastructure
 {
     using Microsoft.EntityFrameworkCore.Storage;
-    using Microsoft.EntityFrameworkCore.Infrastructure;
     using Microsoft.EntityFrameworkCore.Metadata;
     using System.Threading;
     using System.Threading.Tasks;
@@ -10,13 +9,10 @@
     using System;
     using Microsoft.EntityFrameworkCore.Query;
     using System.Linq.Expressions;
-    using Azure.Storage.Blobs;
+    using global::Azure.Storage.Blobs;
     using System.Text.Json;
     using System.Linq;
-    using Microsoft.EntityFrameworkCore;
     using CloudStorageORM.Options;
-    using System.Reflection;
-    using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
     public class CloudStorageDatabase : IDatabase
     {

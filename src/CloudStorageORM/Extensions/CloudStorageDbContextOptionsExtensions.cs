@@ -5,7 +5,7 @@
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.DependencyInjection.Extensions;
     using CloudStorageORM.Infrastructure;
-    using Azure.Storage.Blobs;
+    using global::Azure.Storage.Blobs;
     using CloudStorageORM.Options;
     using Microsoft.EntityFrameworkCore.Internal;
 

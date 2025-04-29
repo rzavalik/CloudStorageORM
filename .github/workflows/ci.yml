@@ -66,12 +66,31 @@ jobs:
     - name: Upload TRX Test Results
       uses: actions/upload-artifact@v4
       with:
-        name: Test Results (.trx files)
+        name: test-results
         path: TestResults/*.trx
+
+    - name: Upload Coverage XML Files
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-xml
+        path: TestResults/Coverage/*.xml
+
+    - name: Generate HTML Coverage Report
+      uses: danielpalme/ReportGenerator-GitHub-Action@5.1.26
+      with:
+        reports: TestResults/Coverage/*.xml
+        targetdir: TestResults/CoverageReport
+        reporttypes: HtmlInline_AzurePipelines;Cobertura
+
+    - name: Upload HTML Coverage Report
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-html
+        path: TestResults/CoverageReport
 
     - name: Publish Test Report as PR Comment
       uses: dorny/test-reporter@v1
-      if: github.event_name == 'pull_request' && always()
+      if: github.event_name == 'pull_request'
       with:
         name: Tests Report
         path: TestResults/*.trx
@@ -82,18 +101,6 @@ jobs:
       if: always()
       with:
         files: TestResults/*.trx
-
-    - name: Upload Coverage Reports
-      uses: actions/upload-artifact@v4
-      with:
-        name: coverage-reports
-        path: TestResults/Coverage/*.xml
-
-    - name: Publish Coverage to GitHub Summary
-      uses: 5monkeys/cobertura-action@v13
-      with:
-        path: TestResults/Coverage/*.xml
-        minimum_coverage: 0
 
     - name: Cleanup Azurite Container
       if: always()

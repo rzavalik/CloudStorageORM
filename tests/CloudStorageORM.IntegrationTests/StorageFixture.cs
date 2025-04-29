@@ -1,7 +1,7 @@
-﻿namespace CloudStorageORM.IntegrationTests
+﻿namespace CloudStorageORM.IntegrationTests.Azure
 {
     using System.Threading.Tasks;
-    using Azure.Storage.Blobs;
+    using global::Azure.Storage.Blobs;
 
     public class StorageFixture : IAsyncLifetime
     {

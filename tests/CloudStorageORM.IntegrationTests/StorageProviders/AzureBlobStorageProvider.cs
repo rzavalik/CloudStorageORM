@@ -1,9 +1,11 @@
-﻿namespace CloudStorageORM.IntegrationTests.StorageProviders
+﻿namespace CloudStorageORM.IntegrationTests.StorageProviders.Azure
 {
     using System.Threading.Tasks;
-    using CloudStorageORM.StorageProviders;
+    using CloudStorageORM.Azure.StorageProviders;
+    using CloudStorageORM.IntegrationTests.Azure;
     using Shouldly;
     using Xunit;
+
     public class AzureBlobStorageProviderTests : IClassFixture<StorageFixture>
     {
         private readonly AzureBlobStorageProvider _provider;

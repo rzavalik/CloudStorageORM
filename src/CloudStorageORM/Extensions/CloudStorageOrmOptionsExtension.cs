@@ -4,15 +4,14 @@
     using Microsoft.Extensions.DependencyInjection;
     using CloudStorageORM.Options;
     using CloudStorageORM.Interfaces.StorageProviders;
-    using CloudStorageORM.StorageProviders;
+    using CloudStorageORM.Azure.StorageProviders;
     using CloudStorageORM.Enums;
     using Microsoft.EntityFrameworkCore.Internal;
     using Microsoft.EntityFrameworkCore.Storage;
     using Microsoft.Extensions.DependencyInjection.Extensions;
     using Microsoft.EntityFrameworkCore.Diagnostics;
     using Microsoft.EntityFrameworkCore.Query;
-    using Microsoft.EntityFrameworkCore.Infrastructure.Internal;
-    using Azure.Storage.Blobs;
+    using global::Azure.Storage.Blobs;
 
     public class CloudStorageOrmOptionsExtension : IDbContextOptionsExtension
     {
