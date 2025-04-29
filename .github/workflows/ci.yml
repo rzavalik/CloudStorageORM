@@ -18,6 +18,7 @@ permissions:
   
 jobs:
   build-and-test:
+    name: Build, Test, and Coverage
     runs-on: ubuntu-latest
 
     steps:
@@ -96,3 +97,7 @@ jobs:
       with:
         path: TestResults/*.xml
         minimum_coverage: 0
+
+    - name: Cleanup Azurite Container
+      if: always()
+      run: docker rm -f azurite || true
