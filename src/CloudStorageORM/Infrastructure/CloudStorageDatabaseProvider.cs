@@ -12,7 +12,7 @@
         public string Name => "CloudStorageORM.Provider";
 
         public bool IsConfigured(IDbContextOptions options)
-             => options.FindExtension<CloudStorageOrmOptionsExtension>() != null;
+             => true;
 
         public IDatabase Create(IDatabaseFacadeDependencies dependencies)
         {

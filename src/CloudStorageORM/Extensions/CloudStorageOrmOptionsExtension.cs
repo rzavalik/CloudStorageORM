@@ -30,10 +30,10 @@
 
         public void ApplyServices(IServiceCollection services)
         {
+            services.AddSingleton(_options);
+
             var builder = new EntityFrameworkServicesBuilder(services)
                 .TryAddCoreServices();
-
-            services.AddSingleton(_options);
 
             services.AddSingleton<IStorageProvider>(provider =>
             {
@@ -46,28 +46,28 @@
 
             services.TryAddSingleton<BlobServiceClient>(provider =>
             {
-                var options = provider.GetRequiredService<CloudStorageOptions>();
-
-                if (string.IsNullOrEmpty(options.ConnectionString))
+                if (string.IsNullOrEmpty(_options.ConnectionString))
                 {
                     throw new InvalidOperationException("CloudStorageOptions.ConnectionString must be provided.");
                 }
 
-                return new BlobServiceClient(options.ConnectionString);
+                return new BlobServiceClient(_options.ConnectionString);
             });
 
-            services.TryAddSingleton<ITypeMappingSource, CloudStorageTypeMappingSource>();
-            services.TryAddSingleton<IDatabaseProvider, CloudStorageDatabaseProvider>();
-            services.TryAddSingleton<IDbContextTransactionManager, CloudStorageTransactionManager>();
-            services.TryAddSingleton<IDatabaseCreator, CloudStorageDatabaseCreator>();
-            services.TryAddSingleton<IModelSource, ModelSource>();
-            services.TryAddSingleton<IModelRuntimeInitializer, ModelRuntimeInitializer>();
-            services.TryAddSingleton<IDbSetInitializer, DbSetInitializer>();
-            services.TryAddSingleton<ISingletonOptionsInitializer, CloudStorageSingletonOptionsInitializer>();
+            services.AddScoped<IDatabase, CloudStorageDatabase>();
+            services.AddScoped<LoggingDefinitions, CloudStorageLoggingDefinitions>();
+            services.AddScoped<IQueryContextFactory, CloudStorageQueryContextFactory>();
 
-            services.TryAddScoped<IDatabase, CloudStorageDatabase>();
-            services.TryAddScoped<LoggingDefinitions, CloudStorageLoggingDefinitions>();
-            services.TryAddScoped<IQueryContextFactory, CloudStorageQueryContextFactory>();
+            services.AddSingleton<ITypeMappingSource, CloudStorageTypeMappingSource>();
+            services.AddSingleton<IDbContextTransactionManager, CloudStorageTransactionManager>();
+            services.AddSingleton<IDatabaseCreator, CloudStorageDatabaseCreator>();
+            services.AddSingleton<IModelSource, ModelSource>();
+            services.AddSingleton<IModelRuntimeInitializer, ModelRuntimeInitializer>();
+            services.AddSingleton<IDbSetInitializer, DbSetInitializer>();
+            services.AddSingleton<ISingletonOptionsInitializer, CloudStorageSingletonOptionsInitializer>();
+            services.AddSingleton<IDatabaseProvider, CloudStorageDatabaseProvider>();
+
+            services.AddEntityFrameworkCloudStorageORM(_options);
         }
 
         public void Validate(IDbContextOptions options)

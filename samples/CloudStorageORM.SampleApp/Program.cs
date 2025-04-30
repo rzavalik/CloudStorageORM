@@ -53,10 +53,6 @@
                         ContainerName = "sampleapp-container"
                     };
 
-                    services.AddSingleton<CloudStorageOptions>(cloudStorageOptions);
-                    services.AddSingleton<IStorageProvider, AzureBlobStorageProvider>();
-                    services.AddEntityFrameworkCloudStorageORM(cloudStorageOptions);
-
                     // Register DbContext for CloudStorageORM
                     services.AddDbContext<MyAppDbContextCloudStorage>(options =>
                     {
@@ -80,16 +76,6 @@
                 }
 
                 var provider = services.BuildServiceProvider();
-
-                // For CloudStorageORM, initialize the container in the cloud
-                if (storageType == StorageType.CloudStorageORM)
-                {
-                    var storageProvider = provider.GetRequiredService<IStorageProvider>();
-                    await storageProvider.DeleteContainerAsync();
-                    await storageProvider.CreateContainerIfNotExistsAsync();
-                }
-
-                // Create a scope and resolve the appropriate DbContext
                 using var scope = provider.CreateScope();
                 if (storageType == StorageType.CloudStorageORM)
                 {
