@@ -4,7 +4,6 @@ namespace CloudStorageORM.Validators
 {
     using System;
     using CloudStorageORM.Abstractions;
-    using Microsoft.EntityFrameworkCore;
     using Microsoft.EntityFrameworkCore.Metadata;
 
     public sealed class ModelValidator
@@ -16,29 +15,27 @@ namespace CloudStorageORM.Validators
 
         public IBlobValidator BlobValidator { get; set; }
 
-        public void Validate(ModelBuilder modelBuilder)
+        public void Validate(IModel model)
         {
-            foreach (var entity in modelBuilder.Model.GetEntityTypes())
+            foreach (var entity in model.GetEntityTypes())
             {
                 var clrType = entity.ClrType;
+
                 var attributes = clrType.GetCustomAttributes(typeof(BlobSettingsAttribute), false)
-                                      .Cast<ModelAttribute>()
-                                      .ToList();
+                                        .Cast<ModelAttribute>()
+                                        .ToList();
 
                 foreach (var attribute in attributes)
                 {
-                    if (attribute is BlobSettingsAttribute)
+                    if (attribute is BlobSettingsAttribute blobSettings)
                     {
-                        var blobSettings = (BlobSettingsAttribute)attribute;
-
-                        // execute all validations for BlobSettingsAttribute
                         ValidateBlobSettings(blobSettings, entity);
                     }
                 }
             }
         }
 
-        private void ValidateBlobSettings(BlobSettingsAttribute attribute, IMutableEntityType entity)
+        private void ValidateBlobSettings(BlobSettingsAttribute attribute, IEntityType entity)
         {
             if (!BlobValidator.IsBlobNameValid(entity.Name))
             {

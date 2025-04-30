@@ -1,19 +1,16 @@
 ﻿namespace CloudStorageORM.Validators
 {
     using CloudStorageORM.Enums;
-    using Microsoft.EntityFrameworkCore;
+    using Microsoft.EntityFrameworkCore.Metadata;
 
-    public static class CloudStorageModelValidator
+    public static class CloudStorageModelValidator 
     {
-        public static ModelBuilder Validate(this ModelBuilder modelBuilder, CloudProvider provider)
+        public static void Validate(this IModel model, CloudProvider provider)
         {
             var cloudValidator = BlobValidatorFactory.Create(provider);
-
             var modelValidator = new ModelValidator(cloudValidator);
 
-            modelValidator.Validate(modelBuilder);
-
-            return modelBuilder;
+            modelValidator.Validate(model);
         }
     }
 }

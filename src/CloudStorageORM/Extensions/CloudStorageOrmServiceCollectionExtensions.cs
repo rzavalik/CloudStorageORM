@@ -35,6 +35,8 @@
                 .TryAdd<IQueryContextFactory, CloudStorageQueryContextFactory>()
                 .TryAdd<IExecutionStrategyFactory, ExecutionStrategyFactory>()
                 .TryAdd<IModelSource, ModelSource>()
+                .TryAdd<ISingletonOptionsInitializer, CloudStorageSingletonOptionsInitializer>()
+                .TryAdd<IProviderConventionSetBuilder, RelationalConventionSetBuilder>()
                 .TryAdd<LoggingDefinitions, CloudStorageLoggingDefinitions>();
 
             services.AddSingleton(storageOptions);
@@ -55,8 +57,6 @@
                     _ => throw new NotSupportedException($"Cloud provider {storageOptions.Provider} is not supported yet.")
                 };
             });
-            services.AddSingleton<ISingletonOptionsInitializer, CloudStorageSingletonOptionsInitializer>();
-            services.TryAddSingleton<IProviderConventionSetBuilder, RelationalConventionSetBuilder>();
 
             return services;
         }

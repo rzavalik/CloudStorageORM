@@ -13,6 +13,14 @@
         }
 
         public DbSet<User> Users { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<User>()
+                .HasKey(u => u.Id);
+
+            base.OnModelCreating(modelBuilder);
+        }
     }
 
     public class MyAppDbContextCloudStorage : DbContext
@@ -25,8 +33,22 @@
            : base(options)
         {
             _cloudStorageOptions = cloudStorageOptions;
+
+            var optionsExtensions = options.Extensions.ToList();
+            foreach (var ext in optionsExtensions)
+            {
+                Console.WriteLine($"➡️ Extension registered: {ext.GetType().FullName}");
+            }
         }
 
         public DbSet<User> Users { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<User>()
+                .HasKey(u => u.Id);
+
+            base.OnModelCreating(modelBuilder);
+        }
     }
 }

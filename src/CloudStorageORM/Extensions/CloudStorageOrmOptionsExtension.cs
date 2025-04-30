@@ -12,6 +12,7 @@
     using Microsoft.EntityFrameworkCore.Diagnostics;
     using Microsoft.EntityFrameworkCore.Query;
     using global::Azure.Storage.Blobs;
+    using CloudStorageORM.Extensions;
 
     public class CloudStorageOrmOptionsExtension : IDbContextOptionsExtension
     {
@@ -21,7 +22,7 @@
         public CloudStorageOrmOptionsExtension(CloudStorageOptions options)
         {
             _options = options;
-            _info = new ExtensionInfo(this);
+            _info = new CloudStorageOrmOptionsExtensionInfo(this);
         }
 
         public CloudStorageOptions Options => _options;
@@ -55,10 +56,7 @@
                 return new BlobServiceClient(options.ConnectionString);
             });
 
-            services.TryAddScoped<IDatabase, CloudStorageDatabase>();
-            services.TryAddScoped<LoggingDefinitions, CloudStorageLoggingDefinitions>(); 
-            services.TryAddScoped<IQueryContextFactory, CloudStorageQueryContextFactory>();
-            services.AddSingleton<ITypeMappingSource, CloudStorageTypeMappingSource>();
+            services.TryAddSingleton<ITypeMappingSource, CloudStorageTypeMappingSource>();
             services.TryAddSingleton<IDatabaseProvider, CloudStorageDatabaseProvider>();
             services.TryAddSingleton<IDbContextTransactionManager, CloudStorageTransactionManager>();
             services.TryAddSingleton<IDatabaseCreator, CloudStorageDatabaseCreator>();
@@ -66,20 +64,14 @@
             services.TryAddSingleton<IModelRuntimeInitializer, ModelRuntimeInitializer>();
             services.TryAddSingleton<IDbSetInitializer, DbSetInitializer>();
             services.TryAddSingleton<ISingletonOptionsInitializer, CloudStorageSingletonOptionsInitializer>();
+
+            services.TryAddScoped<IDatabase, CloudStorageDatabase>();
+            services.TryAddScoped<LoggingDefinitions, CloudStorageLoggingDefinitions>();
+            services.TryAddScoped<IQueryContextFactory, CloudStorageQueryContextFactory>();
         }
 
-        public void Validate(IDbContextOptions options) { }
-
-        private class ExtensionInfo : DbContextOptionsExtensionInfo
+        public void Validate(IDbContextOptions options)
         {
-            public ExtensionInfo(IDbContextOptionsExtension extension)
-                : base(extension) { }
-
-            public override bool IsDatabaseProvider => true;
-            public override string LogFragment => "using CloudStorageORM";
-            public override int GetServiceProviderHashCode() => 0;
-            public override void PopulateDebugInfo(IDictionary<string, string> debugInfo) { }
-            public override bool ShouldUseSameServiceProvider(DbContextOptionsExtensionInfo other) => true;
         }
     }
 }
