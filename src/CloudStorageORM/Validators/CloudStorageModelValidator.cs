@@ -1,21 +1,23 @@
 ﻿namespace CloudStorageORM.Validators
 {
-    using CloudStorageORM.Enums;
+    using CloudStorageORM.Infrastructure;
+    using CloudStorageORM.Interfaces.StorageProviders;
     using Microsoft.EntityFrameworkCore.Metadata;
 
     public class CloudStorageModelValidator
     {
-        private readonly CloudProvider _cloudProvider;
+        private readonly IStorageProvider _storageProvider;
 
-        public CloudStorageModelValidator(CloudProvider cloudProvider)
+        public CloudStorageModelValidator(
+            IStorageProvider storageProvider)
         {
-            _cloudProvider = cloudProvider;
+            _storageProvider = storageProvider ?? throw new ArgumentNullException(nameof(storageProvider));
         }
 
         public void Validate(IMutableModel model)
         {
-            var cloudValidator = BlobValidatorFactory.Create(_cloudProvider);
-            var modelValidator = new ModelValidator(cloudValidator);
+            var cloudValidator = BlobValidatorFactory.Create(_storageProvider.CloudProvider);
+            var modelValidator = new ModelValidator(cloudValidator, new BlobPathResolver(_storageProvider));
 
             modelValidator.Validate(model);
         }

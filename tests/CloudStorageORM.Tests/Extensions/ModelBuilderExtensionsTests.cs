@@ -8,6 +8,8 @@
 
     public class ModelBuilderExtensionsTests
     {
+        private const string AnnotationsConstantBlobName = "CloudStorageORM:BlobName";
+
         [BlobSettings(Name = "__ModelA")]
         private class ModelA { }
         private class ModelB { }
@@ -46,7 +48,7 @@
             }
 
             entityType
-                .GetAnnotation("CloudStorageORM:BlobName")
+                .GetAnnotation(AnnotationsConstantBlobName)
                     .Value
                     .ShouldBe(expectedBlobName);
         }
@@ -64,17 +66,17 @@
             modelBuilder.Model.GetEntityTypes().Count().ShouldBe(3);
 
             modelBuilder.Model.FindEntityType(typeof(ModelA))!
-                .GetAnnotation("CloudStorageORM:BlobName")
+                .GetAnnotation(AnnotationsConstantBlobName)
                 .Value
                 .ShouldBe("__modela");
 
             modelBuilder.Model.FindEntityType(typeof(ModelB))!
-                .GetAnnotation("CloudStorageORM:BlobName")
+                .GetAnnotation(AnnotationsConstantBlobName)
                 .Value
                 .ShouldBe("modelb");
 
             modelBuilder.Model.FindEntityType(typeof(ModelC))!
-                .GetAnnotation("CloudStorageORM:BlobName")
+                .GetAnnotation(AnnotationsConstantBlobName)
                 .Value
                 .ShouldBe("modelc");
         }

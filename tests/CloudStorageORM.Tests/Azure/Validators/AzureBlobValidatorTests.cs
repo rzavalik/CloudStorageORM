@@ -1,6 +1,6 @@
 ﻿namespace CloudStorageORM.Tests.Azure.Validators
 {
-    using CloudStorageORM.Azure.Validators;
+    using CloudStorageORM.Providers.Azure.Validators;
     using Shouldly;
 
     public class AzureBlobValidatorTests
