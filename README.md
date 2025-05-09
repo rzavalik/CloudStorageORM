@@ -33,7 +33,7 @@ Built with .NET 8, following Clean Architecture and SOLID principles, it empower
 Install via CLI:
 
 ```bash
-dotnet add package CloudStorageORM --version 0.1.7-beta
+dotnet add package CloudStorageORM --version 1.0.7
 ```
 
 Or search for `CloudStorageORM` in the NuGet Package Manager inside Visual Studio.
