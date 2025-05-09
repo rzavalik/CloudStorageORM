@@ -6,7 +6,7 @@ This document outlines the planned evolution of CloudStorageORM over time.
 
 ## 🚀 Version Plan
 
-### v0.1 (Current - In Progress)
+### v1.0.7 (Current - In Progress)
 - Azure Blob Storage provider (basic CRUD support)
 - Core abstractions (IStorageProvider, Repository, Options)
 - Unit tests for Azure provider and repository
@@ -14,7 +14,7 @@ This document outlines the planned evolution of CloudStorageORM over time.
 
 ---
 
-### v0.2 (Next)
+### v1.1.0 (Next)
 - Add Lock and Unlock support in Storage Providers
 - Implement concurrency control mechanisms
 - Extend Azure provider to support lease-based locking
@@ -22,7 +22,7 @@ This document outlines the planned evolution of CloudStorageORM over time.
 
 ---
 
-### v0.3
+### v1.2.0
 - AWS S3 Storage Provider
 - Implement Save, Read, Delete, List operations on AWS
 - Integrate AWS provider into existing abstraction layer
@@ -30,7 +30,7 @@ This document outlines the planned evolution of CloudStorageORM over time.
 
 ---
 
-### v0.4
+### v1.3.0
 - Google Cloud Storage Provider
 - Implement Save, Read, Delete, List operations on Google Cloud
 - Support multiple provider selection at runtime
@@ -38,14 +38,14 @@ This document outlines the planned evolution of CloudStorageORM over time.
 
 ---
 
-### v0.5
+### v1.4.0
 - Implement Snapshot and Versioning support
 - Allow creating point-in-time snapshots of entities
 - Integrate snapshotting with Azure, AWS, and Google (where supported)
 
 ---
 
-### v1.0 (First Major Release)
+### v1.5 (First Major Release)
 - Complete CRUD, Lock, and Snapshot features for Azure, AWS, and Google
 - Finalize production-quality documentation
 - Publish stable NuGet package
