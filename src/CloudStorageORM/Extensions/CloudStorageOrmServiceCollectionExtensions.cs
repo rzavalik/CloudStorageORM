@@ -1,11 +1,10 @@
 ﻿namespace CloudStorageORM.Extensions
 {
-    using Azure.Storage.Blobs;
+    using global::Azure.Storage.Blobs;
     using CloudStorageORM.Enums;
     using CloudStorageORM.Infrastructure;
     using CloudStorageORM.Interfaces.StorageProviders;
     using CloudStorageORM.Options;
-    using CloudStorageORM.StorageProviders;
     using Microsoft.EntityFrameworkCore.Diagnostics;
     using Microsoft.EntityFrameworkCore.Infrastructure;
     using Microsoft.EntityFrameworkCore.Internal;
@@ -15,6 +14,7 @@
     using Microsoft.EntityFrameworkCore.Storage.Internal;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.DependencyInjection.Extensions;
+    using CloudStorageORM.Azure.StorageProviders;
 
     public static class CloudStorageOrmServiceCollectionExtensions
     {
@@ -35,6 +35,8 @@
                 .TryAdd<IQueryContextFactory, CloudStorageQueryContextFactory>()
                 .TryAdd<IExecutionStrategyFactory, ExecutionStrategyFactory>()
                 .TryAdd<IModelSource, ModelSource>()
+                .TryAdd<ISingletonOptionsInitializer, CloudStorageSingletonOptionsInitializer>()
+                .TryAdd<IProviderConventionSetBuilder, RelationalConventionSetBuilder>()
                 .TryAdd<LoggingDefinitions, CloudStorageLoggingDefinitions>();
 
             services.AddSingleton(storageOptions);
@@ -55,8 +57,6 @@
                     _ => throw new NotSupportedException($"Cloud provider {storageOptions.Provider} is not supported yet.")
                 };
             });
-            services.AddSingleton<ISingletonOptionsInitializer, CloudStorageSingletonOptionsInitializer>();
-            services.TryAddSingleton<IProviderConventionSetBuilder, RelationalConventionSetBuilder>();
 
             return services;
         }

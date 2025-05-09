@@ -1,7 +1,6 @@
 ﻿namespace CloudStorageORM.Infrastructure
 {
     using Microsoft.EntityFrameworkCore.Storage;
-    using Microsoft.EntityFrameworkCore.Infrastructure;
     using Microsoft.EntityFrameworkCore.Metadata;
     using System.Threading;
     using System.Threading.Tasks;
@@ -10,18 +9,20 @@
     using System;
     using Microsoft.EntityFrameworkCore.Query;
     using System.Linq.Expressions;
-    using Azure.Storage.Blobs;
-    using System.Text.Json;
     using System.Linq;
-    using Microsoft.EntityFrameworkCore;
     using CloudStorageORM.Options;
-    using System.Reflection;
-    using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+    using Microsoft.EntityFrameworkCore;
+    using CloudStorageORM.Interfaces.StorageProviders;
+    using CloudStorageORM.Abstractions;
+    using Microsoft.EntityFrameworkCore.ChangeTracking;
+    using Microsoft.EntityFrameworkCore.Infrastructure;
+    using Microsoft.Extensions.DependencyInjection;
 
     public class CloudStorageDatabase : IDatabase
     {
-        private readonly BlobServiceClient _blobServiceClient;
         private readonly CloudStorageOptions _options;
+        private readonly IStorageProvider _storageProvider;
+        private readonly DbContext _context;
 
         public IModel Model { get; }
         public IDatabaseCreator Creator { get; }
@@ -31,14 +32,17 @@
             IModel model,
             IDatabaseCreator databaseCreator,
             IExecutionStrategyFactory executionStrategyFactory,
-            BlobServiceClient blobServiceClient,
-            CloudStorageOptions options)
+            IStorageProvider storageProvider,
+            CloudStorageOptions options,
+            ICurrentDbContext currentDbContext)
         {
             Model = model;
             Creator = databaseCreator;
             ExecutionStrategyFactory = executionStrategyFactory;
-            _blobServiceClient = blobServiceClient;
+
             _options = options;
+            _storageProvider = storageProvider;
+            _context = currentDbContext.Context;
         }
 
         public Task EnsureCreatedAsync(CancellationToken cancellationToken = default)
@@ -49,12 +53,124 @@
 
         public int SaveChanges(IList<IUpdateEntry> entries)
         {
-            return 0;
+            var request = ProcessChangesAsync(entries);
+            request.Wait();
+            return request.Result;
         }
 
-        public Task<int> SaveChangesAsync(IList<IUpdateEntry> entries, CancellationToken cancellationToken = default)
+        private static string GetBlobName(Type type)
         {
-            return Task.FromResult(0);
+            var blobAttr = type.GetCustomAttributes(typeof(BlobSettingsAttribute), false)
+                                     .Cast<BlobSettingsAttribute>()
+                                     .FirstOrDefault();
+            return blobAttr?.Name ?? type.Name.ToLowerInvariant().Trim();
+        }
+
+        private static string GetPath(IUpdateEntry entry)
+        {
+            var blobName = GetBlobName(entry.EntityType.ClrType);
+            var keyProperty = entry.EntityType.FindPrimaryKey()?.Properties.FirstOrDefault();
+            var keyValue = entry.GetCurrentValue(keyProperty!);
+
+            if (string.IsNullOrWhiteSpace(keyValue?.ToString()))
+            {
+                throw new InvalidOperationException($"Cannot persist entity '{entry.EntityType.Name}' without a valid key value.");
+            }
+
+            return $"{blobName}/{keyValue}.json";
+        }
+
+        public async Task<int> SaveChangesAsync(IList<IUpdateEntry> entries, CancellationToken cancellationToken = default)
+        {
+            return await ProcessChangesAsync(entries);
+        }
+
+        private async Task<int> ProcessChangesAsync(IList<IUpdateEntry> entries)
+        {
+            var changes = 0;
+
+            foreach (var entry in entries)
+            {
+                var entity = ((Microsoft.EntityFrameworkCore.ChangeTracking.Internal.InternalEntityEntry)entry).Entity;
+                var path = GetPath(entry);
+
+                // Verifica se há um outro objeto já rastreado com a mesma chave
+                var entityType = entry.EntityType.ClrType;
+                var key = entry.EntityType.FindPrimaryKey();
+                var keyProps = key?.Properties;
+
+                if (keyProps != null)
+                {
+                    var existingTracked = entry.Context?.ChangeTracker.Entries()
+                        .FirstOrDefault(e =>
+                            e.Entity != null &&
+                            e.Entity.GetType() == entityType &&
+                            !ReferenceEquals(e.Entity, entity) &&
+                            keyProps.All(p =>
+                                Equals(
+                                    p.PropertyInfo?.GetValue(e.Entity),
+                                    p.PropertyInfo?.GetValue(entity))));
+
+                    if (existingTracked != null)
+                    {
+                        // Desanexa a instância antiga para permitir que a nova seja usada
+                        entry.Context.Entry(existingTracked.Entity).State = EntityState.Detached;
+                    }
+                }
+
+                // Verifica se ainda está rastreado após resolver o conflito
+                var tracked = entry.Context?.ChangeTracker
+                    .Entries()
+                    .Any(e =>
+                        e.Entity != null &&
+                        e.Entity.GetType() == entity.GetType() &&
+                        KeysMatch(e, entry));
+
+                if (tracked != true)
+                {
+                    continue;
+                }
+
+                switch (entry.EntityState)
+                {
+                    case EntityState.Added:
+                    case EntityState.Modified:
+                        await _storageProvider.SaveAsync(path, entity);
+                        changes++;
+                        break;
+
+                    case EntityState.Deleted:
+                        await _storageProvider.DeleteAsync(path);
+                        changes++;
+                        break;
+                }
+            }
+
+            return changes;
+        }
+
+        private bool KeysMatch(EntityEntry trackedEntry, IUpdateEntry newEntry)
+        {
+            var keyProps = newEntry.EntityType.FindPrimaryKey()?.Properties;
+            if (keyProps == null)
+            {
+                return false;
+            }
+
+            var entity = ((Microsoft.EntityFrameworkCore.ChangeTracking.Internal.InternalEntityEntry)newEntry).Entity;
+
+            foreach (var keyProp in keyProps)
+            {
+                var trackedValue = keyProp.PropertyInfo?.GetValue(trackedEntry.Entity);
+                var newValue = keyProp.PropertyInfo?.GetValue(entity);
+
+                if (!object.Equals(trackedValue, newValue))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         Func<QueryContext, TResult> IDatabase.CompileQuery<TResult>(Expression query, bool async)
@@ -82,109 +198,86 @@
             };
         }
 
-        //Func<QueryContext, TResult> IDatabase.CompileQuery<TResult>(Expression query, bool async)
-        //{
-        //    return queryContext =>
-        //    {
-        //        Type entityType;
-        //        var expectsAsync = false;
-
-        //        if (typeof(TResult).IsGenericType &&
-        //            typeof(TResult).GetGenericTypeDefinition() == typeof(IAsyncEnumerable<>))
-        //        {
-        //            entityType = typeof(TResult).GetGenericArguments()[0];
-        //            expectsAsync = true;
-        //        }
-        //        else
-        //        {
-        //            entityType = typeof(TResult);
-        //        }
-
-        //        var methodInfo = typeof(CloudStorageDatabase)
-        //            .GetMethod(nameof(LoadEntitiesAsync), BindingFlags.NonPublic | BindingFlags.Instance)!
-        //            .MakeGenericMethod(entityType);
-
-        //        var task = (Task)methodInfo.Invoke(this, Array.Empty<object>())!;
-        //        task.Wait();
-
-        //        var resultProperty = task.GetType().GetProperty("Result")!;
-        //        var loadedEntities = resultProperty.GetValue(task)!;
-
-        //        if (expectsAsync)
-        //        {
-        //            var toAsyncEnumerableMethod = typeof(CloudStorageDatabase)
-        //                .GetMethod(nameof(ToAsyncEnumerable), BindingFlags.NonPublic | BindingFlags.Instance)!
-        //                .MakeGenericMethod(entityType);
-
-        //            var asyncEnumerable = toAsyncEnumerableMethod.Invoke(this, new object[] { loadedEntities });
-
-        //            return (TResult)asyncEnumerable!;
-        //        }
-        //        else
-        //        {
-        //            var asQueryableMethod = typeof(Queryable)
-        //                .GetMethods(BindingFlags.Public | BindingFlags.Static)
-        //                .First(m => m.Name == nameof(Queryable.AsQueryable)
-        //                         && m.IsGenericMethodDefinition
-        //                         && m.GetParameters().Length == 1
-        //                         && m.GetParameters()[0].ParameterType.IsGenericType
-        //                         && m.GetParameters()[0].ParameterType.GetGenericTypeDefinition() == typeof(IEnumerable<>))
-        //                .MakeGenericMethod(entityType);
-
-        //            var queryable = asQueryableMethod.Invoke(null, new object[] { loadedEntities });
-
-        //            return (TResult)queryable!;
-        //        }
-        //    };
-        //}
-
-        internal async Task<List<TEntity>> LoadEntitiesAsync<TEntity>()
+        internal async Task<IList<TEntity>> InternalListAsync<TEntity>(string path, DbContext context)
+            where TEntity : class
         {
-            var containerClient = _blobServiceClient.GetBlobContainerClient(_options.ContainerName);
-
+            var files = await _storageProvider.ListAsync(path);
             var results = new List<TEntity>();
 
-            await foreach (var blobItem in containerClient.GetBlobsAsync())
+            foreach (var file in files)
             {
-                var blobClient = containerClient.GetBlobClient(blobItem.Name);
-                var download = await blobClient.DownloadContentAsync();
+                var entity = await _storageProvider.ReadAsync<TEntity>(file);
 
-                var entity = JsonSerializer.Deserialize<TEntity>(download.Value.Content.ToStream());
-
-                if (entity != null)
+                if (context != null)
                 {
-                    results.Add(entity);
+                    var key = Model.FindEntityType(typeof(TEntity))?.FindPrimaryKey();
+                    if (key != null)
+                    {
+                        var tracked = context.ChangeTracker.Entries<TEntity>()
+                            .FirstOrDefault(e =>
+                                key.Properties.All(p =>
+                                    Equals(
+                                        EF.Property<object>(e.Entity, p.Name),
+                                        EF.Property<object>(entity, p.Name))));
+
+                        if (tracked != null)
+                        {
+                            context.Entry(tracked.Entity).State = EntityState.Detached;
+                        }
+                    }
+
+                    context.Attach(entity);
                 }
+
+                results.Add(entity);
             }
 
             return results;
         }
 
-        private async IAsyncEnumerable<TEntity> ToAsyncEnumerable<TEntity>(IQueryable source)
+        internal async Task<IList<TEntity>> LoadEntitiesAsync<TEntity>(DbContext context)
+            where TEntity : class
         {
-            foreach (var item in source)
-            {
-                yield return (TEntity)item!;
-            }
-            await Task.CompletedTask;
+            return await InternalListAsync<TEntity>(GetBlobName(typeof(TEntity)), context);
         }
 
-        public async Task<List<TEntity>> ToListAsync<TEntity>(string containerName)
+        public async Task<IList<TEntity>> ToListAsync<TEntity>(string containerName)
         {
-            var list = new List<TEntity>();
-            var containerClient = _blobServiceClient.GetBlobContainerClient(containerName);
+            var files = await _storageProvider.ListAsync(containerName);
+            var results = new List<TEntity>();
 
-            await foreach (var blobItem in containerClient.GetBlobsAsync())
+            var entityType = _context.Model.FindEntityType(typeof(TEntity));
+            var keyProperties = entityType?.FindPrimaryKey()?.Properties;
+
+            foreach (var file in files)
             {
-                var blobClient = containerClient.GetBlobClient(blobItem.Name);
-                var downloadInfo = await blobClient.DownloadContentAsync();
+                var entity = await _storageProvider.ReadAsync<TEntity>(file);
+                if (entity is null)
+                {
+                    continue;
+                }
 
-                var entity = JsonSerializer.Deserialize<TEntity>(downloadInfo.Value.Content.ToStream());
-                if (entity != null)
-                    list.Add(entity);
+                var existingTracked = _context.ChangeTracker.Entries()
+                    .FirstOrDefault(e =>
+                        keyProperties != null &&
+                        keyProperties.All(p =>
+                            Equals(
+                                p.PropertyInfo?.GetValue(e.Entity),
+                                p.PropertyInfo?.GetValue(entity)
+                            )
+                        ));
+
+                if (existingTracked != null)
+                {
+                    _context.Entry(existingTracked.Entity).State = EntityState.Detached;
+                }
+
+                _context.Attach(entity);
+
+                results.Add(entity);
             }
 
-            return list;
+            return results;
         }
 
         public Expression<Func<QueryContext, TResult>> CompileQueryExpression<TResult>(Expression query, bool async, IReadOnlySet<string> nonNullableReferenceTypeParameters)

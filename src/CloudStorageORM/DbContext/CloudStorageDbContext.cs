@@ -6,6 +6,9 @@
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using System;
+    using CloudStorageORM.Enums;
+    using CloudStorageORM.Extensions;
+    using CloudStorageORM.Validators;
 
     public class CloudStorageDbContext : DbContext
     {
@@ -15,6 +18,15 @@
         public CloudStorageDbContext(DbContextOptions<CloudStorageDbContext> options)
             : base(options)
         {
+        }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.ApplyBlobSettingsConventions();
+
+            //CloudStorageModelValidator.Validate(modelBuilder);
         }
 
         public new CloudStorageRepository<TEntity> Set<TEntity>() where TEntity : class
@@ -48,7 +60,6 @@
 
         public async Task<int> SaveChangesAsync()
         {
-            // No-op for now, as changes are directly applied in Add/Update/Remove
             return await Task.FromResult(0);
         }
     }

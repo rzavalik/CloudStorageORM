@@ -12,7 +12,7 @@
             Action<CloudStorageOptions> configureOptions)
             where TContext : DbContext
         {
-            return (DbContextOptionsBuilder<TContext>)builder.UseCloudStorageORM(configureOptions);
+            return (DbContextOptionsBuilder<TContext>)UseCloudStorageORM((DbContextOptionsBuilder)builder, configureOptions);
         }
 
         public static DbContextOptionsBuilder UseCloudStorageORM(

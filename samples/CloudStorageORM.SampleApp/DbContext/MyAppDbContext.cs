@@ -1,6 +1,7 @@
 ﻿namespace SampleApp.DbContext
 {
-    using CloudStorageORM.Options;
+    using CloudStorageORM.Enums;
+    using CloudStorageORM.Extensions;
     using Microsoft.EntityFrameworkCore;
     using SampleApp.Models;
 
@@ -13,20 +14,32 @@
         }
 
         public DbSet<User> Users { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<User>()
+                .HasKey(u => u.Id);
+        }
     }
 
     public class MyAppDbContextCloudStorage : DbContext
     {
-        private readonly CloudStorageOptions _cloudStorageOptions;
-
         public MyAppDbContextCloudStorage(
-            DbContextOptions<MyAppDbContextCloudStorage> options, 
-            CloudStorageOptions cloudStorageOptions)
+            DbContextOptions<MyAppDbContextCloudStorage> options)
            : base(options)
         {
-            _cloudStorageOptions = cloudStorageOptions;
         }
 
         public DbSet<User> Users { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<User>()
+                .HasKey(u => u.Id);
+
+            modelBuilder
+                .ApplyBlobSettingsConventions()
+                .Validate(CloudProvider.Azure);
+        }
     }
 }

@@ -4,6 +4,6 @@
     {
         Azure,
         AWS,
-        Google
+        GCP
     }
 }
