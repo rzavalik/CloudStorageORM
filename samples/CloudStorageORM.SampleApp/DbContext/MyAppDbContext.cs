@@ -1,6 +1,7 @@
 ﻿namespace SampleApp.DbContext
 {
-    using CloudStorageORM.Options;
+    using CloudStorageORM.Enums;
+    using CloudStorageORM.Extensions;
     using Microsoft.EntityFrameworkCore;
     using SampleApp.Models;
 
@@ -18,8 +19,6 @@
         {
             modelBuilder.Entity<User>()
                 .HasKey(u => u.Id);
-
-            base.OnModelCreating(modelBuilder);
         }
     }
 
@@ -38,7 +37,9 @@
             modelBuilder.Entity<User>()
                 .HasKey(u => u.Id);
 
-            base.OnModelCreating(modelBuilder);
+            modelBuilder
+                .ApplyBlobSettingsConventions()
+                .Validate(CloudProvider.Azure);
         }
     }
 }

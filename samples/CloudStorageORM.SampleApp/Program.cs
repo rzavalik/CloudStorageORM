@@ -37,7 +37,8 @@
         {
             try
             {
-                Console.WriteLine($"🚀 Running using {storageType:G}...");
+                Console.WriteLine($"🚀 Running using EF {storageType:G} Provider...");
+                Console.WriteLine("|");
 
                 Microsoft.EntityFrameworkCore.DbContext dbContext;
                 var services = new ServiceCollection();
@@ -90,7 +91,7 @@
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ An error occurred: {ex}");
+                Console.WriteLine($"  ❌ An error occurred: {ex}");
             }
         }
 
@@ -99,7 +100,22 @@
             var repository = context.Set<User>();
             var userId = Guid.NewGuid().ToString();
 
-            Console.WriteLine("➕ Creating a new user...");
+            Console.WriteLine("| 📃 Listing users...");
+            var users = await repository.ToListAsync();
+            if ((users?.Any() ?? false))
+            {
+                foreach (var user in users)
+                {
+                    Console.WriteLine($"|   {user.Id}: {user.Name} ({user.Email})");
+                }
+            }
+            else
+            {
+                Console.WriteLine("| ❌ No users found.");
+            }
+
+            Console.WriteLine("|");
+            Console.WriteLine("| ➕ Creating a new user...");
             var newUser = new User
             {
                 Id = userId,
@@ -108,16 +124,18 @@
             };
             context.Add(newUser);
             await context.SaveChangesAsync();
-            Console.WriteLine($"✅ User {newUser.Name} created.");
+            Console.WriteLine($"| ✅ User {newUser.Name} created (Id {newUser.Id}).");
+            Console.WriteLine("|");
 
-            Console.WriteLine("\n📃 Listing users...");
-            var users = await repository.ToListAsync();
+            Console.WriteLine("| 📃 Listing users...");
+            users = await repository.ToListAsync();
             foreach (var user in users)
             {
-                Console.WriteLine($"- {user.Id}: {user.Name} ({user.Email})");
+                Console.WriteLine($"|   {user.Id}: {user.Name} ({user.Email})" + (newUser.Id == user.Id ? " ✅" : ""));
             }
 
-            Console.WriteLine("\n✏️ Updating the user...");
+            Console.WriteLine("|");
+            Console.WriteLine("| ✏️ Updating the user...");
             var usersList = await repository.ToListAsync();
             var userToUpdate = usersList.FirstOrDefault(u => u.Id == userId);
             if (userToUpdate != null)
@@ -126,41 +144,45 @@
                 userToUpdate.Email = "john.doe.updated@example.com";
                 context.Update(userToUpdate);
                 await context.SaveChangesAsync();
-                Console.WriteLine($"✅ User {userToUpdate.Name} updated.");
+                Console.WriteLine($"| ✅ User {userToUpdate.Name} updated (Id {userToUpdate.Id}).");
             }
 
-            Console.WriteLine("\n🔎 Finding the updated user...");
+            Console.WriteLine("|");
+            Console.WriteLine("| 🔎 Finding the updated user...");
             usersList = await repository.ToListAsync();
             var foundUser = usersList.FirstOrDefault(u => u.Id == userId);
             if (foundUser != null)
             {
-                Console.WriteLine($"🎯 Found: {foundUser.Id} - {foundUser.Name} ({foundUser.Email})");
+                Console.WriteLine($"| 🎯 Found: {foundUser.Id} - {foundUser.Name} ({foundUser.Email})");
             }
             else
             {
-                Console.WriteLine("❌ User not found.");
+                Console.WriteLine("| ❌ User not found.");
             }
 
-            Console.WriteLine("\n🗑️ Deleting the user...");
+            Console.WriteLine("|");
+            Console.WriteLine("| 🗑️ Deleting the user...");
             if (foundUser != null)
             {
                 context.Remove(foundUser);
                 await context.SaveChangesAsync();
-                Console.WriteLine("✅ User deleted.");
+                Console.WriteLine($"| ✅ User deleted (Id {foundUser.Id}).");
             }
 
-            Console.WriteLine("\n📃 Listing users after deletion...");
+            Console.WriteLine("|");
+            Console.WriteLine("| 📃 Listing users after deletion...");
             var usersAfterDelete = await repository.ToListAsync();
             foreach (var user in usersAfterDelete)
             {
-                Console.WriteLine($"- {user.Id}: {user.Name} ({user.Email})");
+                Console.WriteLine($"|   {user.Id}: {user.Name} ({user.Email})" + (newUser.Id == user.Id ? " ✅" : ""));
             }
 
             if (usersAfterDelete.Count == 0)
             {
-                Console.WriteLine("✅ No users found. Deletion confirmed.");
+                Console.WriteLine("| ✅ No users found. Deletion confirmed.");
             }
 
+            Console.WriteLine("|");
             Console.WriteLine($"🏁 SampleApp Finished for {context.GetType().Name}.");
         }
     }

@@ -19,6 +19,7 @@
             _containerClient = new BlobContainerClient(
                 options.ConnectionString,
                 options.ContainerName);
+            _containerClient.CreateIfNotExists();
         }
 
         public AzureBlobStorageProvider(
@@ -27,6 +28,7 @@
         {
             _options = options;
             _containerClient = blobServiceClient;
+            _containerClient.CreateIfNotExists();
         }
 
         public AzureBlobStorageProvider(
@@ -39,6 +41,7 @@
                 ContainerName = containerName
             };
             _containerClient = new BlobContainerClient(connectionString, containerName);
+            _containerClient.CreateIfNotExists();
         }
 
         public async Task SaveAsync<T>(string path, T entity)

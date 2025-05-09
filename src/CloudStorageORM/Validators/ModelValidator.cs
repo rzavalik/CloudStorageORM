@@ -15,7 +15,7 @@ namespace CloudStorageORM.Validators
 
         public IBlobValidator BlobValidator { get; set; }
 
-        public void Validate(IModel model)
+        public void Validate(IMutableModel model)
         {
             foreach (var entity in model.GetEntityTypes())
             {
@@ -25,21 +25,35 @@ namespace CloudStorageORM.Validators
                                         .Cast<ModelAttribute>()
                                         .ToList();
 
+                // check each attribute per entity
                 foreach (var attribute in attributes)
                 {
                     if (attribute is BlobSettingsAttribute blobSettings)
                     {
-                        ValidateBlobSettings(blobSettings, entity);
+                        ValidateBlobName(blobSettings.Name, entity);
                     }
                 }
+
+                // check generic / global requirements
+                var blobName = entity.GetAnnotation("CloudStorageORM:BlobName")?.Value as string;
+                ValidateBlobName(blobName, entity);
+                ValidateHasKey(entity);
             }
         }
 
-        private void ValidateBlobSettings(BlobSettingsAttribute attribute, IEntityType entity)
+        private void ValidateBlobName(string? blobName, IMutableEntityType entity)
         {
-            if (!BlobValidator.IsBlobNameValid(entity.Name))
+            if (!BlobValidator.IsBlobNameValid(blobName))
             {
                 throw new InvalidOperationException($"Invalid blob name '{entity.Name}' for entity type '{entity.ClrType.Name}'.");
+            }
+        }
+
+        private void ValidateHasKey(IMutableEntityType entity)
+        {
+            if (entity.FindPrimaryKey() == null)
+            {
+                throw new InvalidOperationException($"Entity type '{entity.ClrType.Name}' does not have a primary key defined.");
             }
         }
     }

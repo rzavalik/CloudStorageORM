@@ -3,11 +3,18 @@
     using CloudStorageORM.Enums;
     using Microsoft.EntityFrameworkCore.Metadata;
 
-    public static class CloudStorageModelValidator 
+    public class CloudStorageModelValidator 
     {
-        public static void Validate(this IModel model, CloudProvider provider)
+        private readonly CloudProvider _cloudProvider;
+
+        public CloudStorageModelValidator(CloudProvider cloudProvider)
         {
-            var cloudValidator = BlobValidatorFactory.Create(provider);
+            _cloudProvider = cloudProvider;
+        }
+
+        public void Validate(IMutableModel model)
+        {
+            var cloudValidator = BlobValidatorFactory.Create(_cloudProvider);
             var modelValidator = new ModelValidator(cloudValidator);
 
             modelValidator.Validate(model);
