@@ -1,6 +1,6 @@
 ﻿namespace CloudStorageORM.Tests.Infrastructure
 {
-    using CloudStorageORM.Infrastructure;
+    using global::CloudStorageORM.Infrastructure;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
     using Microsoft.EntityFrameworkCore.Diagnostics;

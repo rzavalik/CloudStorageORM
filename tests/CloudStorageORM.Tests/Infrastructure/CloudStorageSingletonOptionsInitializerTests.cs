@@ -1,6 +1,6 @@
 ﻿namespace CloudStorageORM.Tests.Infrastructure
 {
-    using CloudStorageORM.Infrastructure;
+    using global::CloudStorageORM.Infrastructure;
     using Microsoft.EntityFrameworkCore.Infrastructure;
     using Moq;
     using Shouldly;

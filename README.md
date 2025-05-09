@@ -33,7 +33,7 @@ Built with .NET 8, following Clean Architecture and SOLID principles, it empower
 Install via CLI:
 
 ```bash
-dotnet add package CloudStorageORM --version 0.1.4-beta
+dotnet add package CloudStorageORM --version 0.1.7-beta
 ```
 
 Or search for `CloudStorageORM` in the NuGet Package Manager inside Visual Studio.
@@ -57,7 +57,7 @@ var context = new CloudStorageDbContext(options, storageProvider);
 var users = await context.Set<User>().ToListAsync();
 ```
 
-![SampleApp](https://github.com/user-attachments/assets/4184b418-23bf-4371-a636-7cef41b8f1f9)
+![SampleApp](https://github.com/user-attachments/assets/4727df94-c149-46ae-a359-da159fe5c8b6)
 ```csharp
 using CloudStorageORM.DbContext;
 using CloudStorageORM.Enums;
