@@ -1,18 +1,19 @@
 ﻿namespace CloudStorageORM.Infrastructure
 {
-    using Microsoft.EntityFrameworkCore.Infrastructure;
-    using Microsoft.Extensions.DependencyInjection;
-    using CloudStorageORM.Options;
-    using CloudStorageORM.Interfaces.StorageProviders;
     using CloudStorageORM.Azure.StorageProviders;
     using CloudStorageORM.Enums;
-    using Microsoft.EntityFrameworkCore.Internal;
-    using Microsoft.EntityFrameworkCore.Storage;
-    using Microsoft.Extensions.DependencyInjection.Extensions;
-    using Microsoft.EntityFrameworkCore.Diagnostics;
-    using Microsoft.EntityFrameworkCore.Query;
-    using global::Azure.Storage.Blobs;
     using CloudStorageORM.Extensions;
+    using CloudStorageORM.Interfaces.Infrastructure;
+    using CloudStorageORM.Interfaces.StorageProviders;
+    using CloudStorageORM.Options;
+    using global::Azure.Storage.Blobs;
+    using Microsoft.EntityFrameworkCore.Diagnostics;
+    using Microsoft.EntityFrameworkCore.Infrastructure;
+    using Microsoft.EntityFrameworkCore.Internal;
+    using Microsoft.EntityFrameworkCore.Query;
+    using Microsoft.EntityFrameworkCore.Storage;
+    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.DependencyInjection.Extensions;
 
     public class CloudStorageOrmOptionsExtension : IDbContextOptionsExtension
     {
@@ -58,6 +59,7 @@
             services.AddScoped<LoggingDefinitions, CloudStorageLoggingDefinitions>();
             services.AddScoped<IQueryContextFactory, CloudStorageQueryContextFactory>();
 
+            services.AddSingleton<IBlobPathResolver, BlobPathResolver>();
             services.AddSingleton<ITypeMappingSource, CloudStorageTypeMappingSource>();
             services.AddSingleton<IDbContextTransactionManager, CloudStorageTransactionManager>();
             services.AddSingleton<IDatabaseCreator, CloudStorageDatabaseCreator>();

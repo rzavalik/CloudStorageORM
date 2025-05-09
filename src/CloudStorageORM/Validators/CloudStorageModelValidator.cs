@@ -3,7 +3,7 @@
     using CloudStorageORM.Enums;
     using Microsoft.EntityFrameworkCore.Metadata;
 
-    public class CloudStorageModelValidator 
+    public class CloudStorageModelValidator
     {
         private readonly CloudProvider _cloudProvider;
 

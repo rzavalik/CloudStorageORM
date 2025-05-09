@@ -1,12 +1,12 @@
 ﻿namespace CloudStorageORM.Tests.Repositories
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Threading.Tasks;
     using CloudStorageORM.Interfaces.StorageProviders;
     using CloudStorageORM.Repositories;
     using Moq;
     using Shouldly;
-    using System;
-    using System.Collections.Generic;
-    using System.Threading.Tasks;
     using Xunit;
 
     public class CloudStorageRepositoryTests

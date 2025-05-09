@@ -5,7 +5,6 @@
     using CloudStorageORM.Options;
     using CloudStorageORM.Validators;
     using Microsoft.EntityFrameworkCore.Storage;
-    using Microsoft.Extensions.Options;
 
     public class CloudStorageTypeMappingSource : TypeMappingSource
     {

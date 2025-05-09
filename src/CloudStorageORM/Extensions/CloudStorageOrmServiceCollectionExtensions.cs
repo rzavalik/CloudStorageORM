@@ -1,10 +1,11 @@
 ﻿namespace CloudStorageORM.Extensions
 {
-    using global::Azure.Storage.Blobs;
+    using CloudStorageORM.Azure.StorageProviders;
     using CloudStorageORM.Enums;
     using CloudStorageORM.Infrastructure;
     using CloudStorageORM.Interfaces.StorageProviders;
     using CloudStorageORM.Options;
+    using global::Azure.Storage.Blobs;
     using Microsoft.EntityFrameworkCore.Diagnostics;
     using Microsoft.EntityFrameworkCore.Infrastructure;
     using Microsoft.EntityFrameworkCore.Internal;
@@ -13,8 +14,6 @@
     using Microsoft.EntityFrameworkCore.Storage;
     using Microsoft.EntityFrameworkCore.Storage.Internal;
     using Microsoft.Extensions.DependencyInjection;
-    using Microsoft.Extensions.DependencyInjection.Extensions;
-    using CloudStorageORM.Azure.StorageProviders;
 
     public static class CloudStorageOrmServiceCollectionExtensions
     {

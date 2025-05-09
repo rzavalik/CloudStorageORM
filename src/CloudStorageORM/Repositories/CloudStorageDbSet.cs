@@ -1,6 +1,5 @@
 ﻿namespace CloudStorageORM.Repositories
 {
-    using CloudStorageORM.Interfaces.StorageProviders;
     using System;
     using System.Collections;
     using System.Collections.Generic;
@@ -8,6 +7,7 @@
     using System.Linq.Expressions;
     using System.Threading;
     using System.Threading.Tasks;
+    using CloudStorageORM.Interfaces.StorageProviders;
 
     public class CloudStorageDbSet<TEntity> : IQueryable<TEntity>, IAsyncEnumerable<TEntity> where TEntity : class
     {

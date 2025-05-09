@@ -1,14 +1,12 @@
 ﻿namespace CloudStorageORM.Tests.Extensions
 {
+    using CloudStorageORM.Enums;
     using CloudStorageORM.Extensions;
-    using Microsoft.EntityFrameworkCore.Infrastructure;
+    using CloudStorageORM.Options;
+    using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.DependencyInjection;
     using Shouldly;
     using Xunit;
-    using System.Linq;
-    using CloudStorageORM.Enums;
-    using CloudStorageORM.Options;
-    using Microsoft.EntityFrameworkCore;
 
     public class CloudStorageORMServiceCollectionExtensionsTests
     {

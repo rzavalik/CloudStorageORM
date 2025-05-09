@@ -1,16 +1,14 @@
 ﻿namespace SampleApp
 {
-    using Microsoft.EntityFrameworkCore;
-    using SampleApp.Models;
     using System;
     using System.Threading.Tasks;
-    using SampleApp.DbContext;
-    using CloudStorageORM.Options;
     using CloudStorageORM.Enums;
-    using Microsoft.Extensions.DependencyInjection;
-    using CloudStorageORM.Interfaces.StorageProviders;
     using CloudStorageORM.Extensions;
-    using CloudStorageORM.Azure.StorageProviders;
+    using CloudStorageORM.Options;
+    using Microsoft.EntityFrameworkCore;
+    using Microsoft.Extensions.DependencyInjection;
+    using SampleApp.DbContext;
+    using SampleApp.Models;
 
     public class Program
     {
@@ -72,7 +70,7 @@
                     services.AddDbContext<MyAppDbContextInMemory>(options =>
                     {
                         // Use In-Memory for this DbContext
-                        options.UseInMemoryDatabase("InMemoryDb"); 
+                        options.UseInMemoryDatabase("InMemoryDb");
                     });
                 }
 

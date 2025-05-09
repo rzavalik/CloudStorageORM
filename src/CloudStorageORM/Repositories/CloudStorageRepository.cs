@@ -1,10 +1,10 @@
 ﻿namespace CloudStorageORM.Repositories
 {
+    using System.Collections.Generic;
+    using System.Threading.Tasks;
     using CloudStorageORM.Interfaces.StorageProviders;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.EntityFrameworkCore.Metadata;
-    using System.Collections.Generic;
-    using System.Threading.Tasks;
 
     public class CloudStorageRepository<TEntity> : DbSet<TEntity> where TEntity : class
     {

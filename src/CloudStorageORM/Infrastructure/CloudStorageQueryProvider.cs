@@ -1,44 +1,27 @@
 ﻿namespace CloudStorageORM.Infrastructure
 {
     using System.Linq.Expressions;
-    using CloudStorageORM.Abstractions;
+    using CloudStorageORM.Interfaces.Infrastructure;
     using Microsoft.EntityFrameworkCore.Query;
-    using Microsoft.EntityFrameworkCore.Update;
 
     public class CloudStorageQueryProvider : IAsyncQueryProvider
     {
         private readonly CloudStorageDatabase _database;
+        private readonly IBlobPathResolver _blobPathResolver;
 
-        public CloudStorageQueryProvider(CloudStorageDatabase database)
+        public CloudStorageQueryProvider(
+            CloudStorageDatabase database,
+            IBlobPathResolver blobPathResolver)
         {
             _database = database;
+            _blobPathResolver = blobPathResolver;
         }
 
         public Task<IList<T>> LoadEntitiesAsync<T>()
         {
-            return _database.ToListAsync<T>(GetBlobName(typeof(T)));
-        }
-
-        private static string GetBlobName(Type type)
-        {
-            var blobAttr = type.GetCustomAttributes(typeof(BlobSettingsAttribute), false)
-                                     .Cast<BlobSettingsAttribute>()
-                                     .FirstOrDefault();
-            return blobAttr?.Name ?? type.Name.ToLowerInvariant().Trim();
-        }
-
-        private static string GetPath(IUpdateEntry entry)
-        {
-            var blobName = GetBlobName(entry.EntityType.ClrType);
-            var keyProperty = entry.EntityType.FindPrimaryKey()?.Properties.FirstOrDefault();
-            var keyValue = entry.GetCurrentValue(keyProperty!);
-
-            if (string.IsNullOrWhiteSpace(keyValue?.ToString()))
-            {
-                throw new InvalidOperationException($"Cannot persist entity '{entry.EntityType.Name}' without a valid key value.");
-            }
-
-            return $"{blobName}/{keyValue}.json";
+            return _database.ToListAsync<T>(
+                _blobPathResolver.GetBlobName(typeof(T))
+            );
         }
 
         public IQueryable CreateQuery(Expression expression)

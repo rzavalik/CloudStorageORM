@@ -83,8 +83,8 @@
         public void ApplyBlobSettingsConventions_DuplicateEntities_ShouldNotThrow()
         {
             var modelBuilder = MakeModelBuilderWith(
-                typeof(ModelA), 
-                typeof(ModelA), 
+                typeof(ModelA),
+                typeof(ModelA),
                 typeof(ModelB));
 
             var ex = Record.Exception(() => modelBuilder.ApplyBlobSettingsConventions());
