@@ -3,9 +3,9 @@
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
-    using CloudStorageORM.Azure.StorageProviders;
     using CloudStorageORM.Enums;
     using CloudStorageORM.Options;
+    using CloudStorageORM.Providers.Azure.StorageProviders;
     using global::Azure;
     using global::Azure.Storage.Blobs;
     using global::Azure.Storage.Blobs.Models;

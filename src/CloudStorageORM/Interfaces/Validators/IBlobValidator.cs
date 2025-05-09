@@ -2,6 +2,6 @@
 {
     public interface IBlobValidator
     {
-        bool IsBlobNameValid(string blobName);
+        bool IsBlobNameValid(string? blobName);
     }
 }

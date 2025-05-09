@@ -1,8 +1,8 @@
 ﻿namespace CloudStorageORM.IntegrationTests.StorageProviders.Azure
 {
     using System.Threading.Tasks;
-    using CloudStorageORM.Azure.StorageProviders;
     using CloudStorageORM.IntegrationTests.Azure;
+    using CloudStorageORM.Providers.Azure.StorageProviders;
     using Shouldly;
     using Xunit;
 

@@ -1,11 +1,11 @@
-﻿namespace CloudStorageORM.Azure.Validators
+﻿namespace CloudStorageORM.Providers.Azure.Validators
 {
     using System.Linq;
     using CloudStorageORM.Interfaces.Validators;
 
     public class AzureBlobValidator : IBlobValidator
     {
-        public bool IsBlobNameValid(string blobName)
+        public bool IsBlobNameValid(string? blobName)
         {
             if (string.IsNullOrWhiteSpace(blobName) || blobName.Length > 1024)
             {

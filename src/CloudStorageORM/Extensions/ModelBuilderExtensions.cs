@@ -1,7 +1,8 @@
 ﻿namespace CloudStorageORM.Extensions
 {
     using CloudStorageORM.Abstractions;
-    using CloudStorageORM.Enums;
+    using CloudStorageORM.Constants;
+    using CloudStorageORM.Interfaces.StorageProviders;
     using CloudStorageORM.Validators;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.EntityFrameworkCore.Metadata;
@@ -18,7 +19,7 @@
                     throw new InvalidOperationException($"The entity {entity.Name} has no Blob name.");
                 }
 
-                entity.SetAnnotation("CloudStorageORM:BlobName", blobName);
+                entity.SetAnnotation(AnnotationsConstants.BlobNameAnnotation, blobName);
             }
 
             return modelBuilder;
@@ -42,7 +43,7 @@
             return blobName;
         }
 
-        public static ModelBuilder Validate(this ModelBuilder modelBuilder, CloudProvider provider)
+        public static ModelBuilder Validate(this ModelBuilder modelBuilder, IStorageProvider provider)
         {
             var validator = new CloudStorageModelValidator(provider);
             validator.Validate(modelBuilder.Model);

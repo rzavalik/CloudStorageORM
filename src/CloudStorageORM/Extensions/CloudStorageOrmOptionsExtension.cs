@@ -1,11 +1,10 @@
 ﻿namespace CloudStorageORM.Infrastructure
 {
-    using CloudStorageORM.Azure.StorageProviders;
-    using CloudStorageORM.Enums;
     using CloudStorageORM.Extensions;
     using CloudStorageORM.Interfaces.Infrastructure;
     using CloudStorageORM.Interfaces.StorageProviders;
     using CloudStorageORM.Options;
+    using CloudStorageORM.Providers;
     using global::Azure.Storage.Blobs;
     using Microsoft.EntityFrameworkCore.Diagnostics;
     using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -38,11 +37,7 @@
 
             services.AddSingleton<IStorageProvider>(provider =>
             {
-                return _options.Provider switch
-                {
-                    CloudProvider.Azure => new AzureBlobStorageProvider(_options),
-                    _ => throw new NotSupportedException($"Provider {_options.Provider} not supported.")
-                };
+                return ProviderFactory.GetStorageProvider(_options);
             });
 
             services.TryAddSingleton<BlobServiceClient>(provider =>

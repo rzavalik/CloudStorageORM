@@ -1,9 +1,10 @@
-﻿namespace CloudStorageORM.Azure.StorageProviders
+﻿namespace CloudStorageORM.Providers.Azure.StorageProviders
 {
     using System.Collections.Generic;
     using System.Text;
     using System.Text.Json;
     using System.Threading.Tasks;
+    using CloudStorageORM.Enums;
     using CloudStorageORM.Interfaces.StorageProviders;
     using CloudStorageORM.Options;
     using global::Azure.Storage.Blobs;
@@ -45,11 +46,13 @@
             _containerClient.CreateIfNotExists();
         }
 
+        public CloudProvider CloudProvider => CloudProvider.Azure;
+
         public async Task SaveAsync<T>(string path, T entity)
         {
             var blobClient = _containerClient.GetBlobClient(path);
             var json = JsonSerializer.Serialize(entity);
-            using var stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(json));
+            using var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
             await blobClient.UploadAsync(stream, overwrite: true);
         }
 
