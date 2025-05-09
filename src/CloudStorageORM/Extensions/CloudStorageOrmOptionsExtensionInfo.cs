@@ -2,7 +2,6 @@
 {
     using System.Collections.Generic;
     using CloudStorageORM.Infrastructure;
-    using CloudStorageORM.Options;
     using Microsoft.EntityFrameworkCore.Infrastructure;
 
     public class CloudStorageOrmOptionsExtensionInfo : DbContextOptionsExtensionInfo

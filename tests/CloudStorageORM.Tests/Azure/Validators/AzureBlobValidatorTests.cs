@@ -3,7 +3,7 @@
     using CloudStorageORM.Azure.Validators;
     using Shouldly;
 
-    public class AzureBlobValidatorTests 
+    public class AzureBlobValidatorTests
     {
         private AzureBlobValidator MakeSut()
         {

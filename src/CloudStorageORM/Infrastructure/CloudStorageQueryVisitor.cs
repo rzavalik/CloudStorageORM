@@ -1,7 +1,7 @@
 ﻿namespace CloudStorageORM.Infrastructure
 {
-    using Microsoft.EntityFrameworkCore.Query;
     using System.Linq.Expressions;
+    using Microsoft.EntityFrameworkCore.Query;
 
     public class CloudStorageQueryVisitor : ExpressionVisitor
     {

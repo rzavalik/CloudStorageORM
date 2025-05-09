@@ -1,11 +1,12 @@
 ﻿namespace CloudStorageORM.Infrastructure
 {
+    using CloudStorageORM.Interfaces.Infrastructure;
+    using CloudStorageORM.Interfaces.StorageProviders;
     using CloudStorageORM.Options;
     using Microsoft.EntityFrameworkCore.Infrastructure;
     using Microsoft.EntityFrameworkCore.Metadata;
     using Microsoft.EntityFrameworkCore.Storage;
     using Microsoft.Extensions.DependencyInjection;
-    using CloudStorageORM.Interfaces.StorageProviders;
 
     public class CloudStorageDatabaseProvider : IDatabaseProvider
     {
@@ -26,6 +27,7 @@
             var cloudOptions = serviceProvider.GetRequiredService<CloudStorageOptions>();
             var model = serviceProvider.GetRequiredService<IModel>();
             var currentDbContext = serviceProvider.GetRequiredService<ICurrentDbContext>();
+            var blobPathResolver = serviceProvider.GetRequiredService<IBlobPathResolver>();
 
             return new CloudStorageDatabase(
                 model,
@@ -33,7 +35,8 @@
                 executionStrategyFactory,
                 storageProvider,
                 cloudOptions,
-                currentDbContext);
+                currentDbContext,
+                blobPathResolver);
         }
     }
 }

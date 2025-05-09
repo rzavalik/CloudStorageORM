@@ -1,28 +1,28 @@
 ﻿namespace CloudStorageORM.Infrastructure
 {
-    using Microsoft.EntityFrameworkCore.Storage;
-    using Microsoft.EntityFrameworkCore.Metadata;
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Linq.Expressions;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Collections.Generic;
-    using Microsoft.EntityFrameworkCore.Update;
-    using System;
-    using Microsoft.EntityFrameworkCore.Query;
-    using System.Linq.Expressions;
-    using System.Linq;
+    using CloudStorageORM.Interfaces.Infrastructure;
+    using CloudStorageORM.Interfaces.StorageProviders;
     using CloudStorageORM.Options;
     using Microsoft.EntityFrameworkCore;
-    using CloudStorageORM.Interfaces.StorageProviders;
-    using CloudStorageORM.Abstractions;
     using Microsoft.EntityFrameworkCore.ChangeTracking;
     using Microsoft.EntityFrameworkCore.Infrastructure;
-    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.EntityFrameworkCore.Metadata;
+    using Microsoft.EntityFrameworkCore.Query;
+    using Microsoft.EntityFrameworkCore.Storage;
+    using Microsoft.EntityFrameworkCore.Update;
 
     public class CloudStorageDatabase : IDatabase
     {
+        private readonly DbContext _context;
         private readonly CloudStorageOptions _options;
         private readonly IStorageProvider _storageProvider;
-        private readonly DbContext _context;
+        private readonly IBlobPathResolver _blobPathResolver;
 
         public IModel Model { get; }
         public IDatabaseCreator Creator { get; }
@@ -34,15 +34,17 @@
             IExecutionStrategyFactory executionStrategyFactory,
             IStorageProvider storageProvider,
             CloudStorageOptions options,
-            ICurrentDbContext currentDbContext)
+            ICurrentDbContext currentDbContext,
+            IBlobPathResolver blobPathResolver)
         {
-            Model = model;
-            Creator = databaseCreator;
-            ExecutionStrategyFactory = executionStrategyFactory;
+            Model = model ?? throw new ArgumentNullException(nameof(model));
+            Creator = databaseCreator ?? throw new ArgumentNullException(nameof(databaseCreator));
+            ExecutionStrategyFactory = executionStrategyFactory ?? throw new ArgumentNullException(nameof(executionStrategyFactory));
 
-            _options = options;
-            _storageProvider = storageProvider;
-            _context = currentDbContext.Context;
+            _options = options ?? throw new ArgumentNullException(nameof(options));
+            _storageProvider = storageProvider ?? throw new ArgumentNullException(nameof(storageProvider));
+            _context = currentDbContext.Context ?? throw new ArgumentNullException(nameof(currentDbContext));
+            _blobPathResolver = blobPathResolver ?? throw new ArgumentNullException(nameof(blobPathResolver));
         }
 
         public Task EnsureCreatedAsync(CancellationToken cancellationToken = default)
@@ -58,28 +60,6 @@
             return request.Result;
         }
 
-        private static string GetBlobName(Type type)
-        {
-            var blobAttr = type.GetCustomAttributes(typeof(BlobSettingsAttribute), false)
-                                     .Cast<BlobSettingsAttribute>()
-                                     .FirstOrDefault();
-            return blobAttr?.Name ?? type.Name.ToLowerInvariant().Trim();
-        }
-
-        private static string GetPath(IUpdateEntry entry)
-        {
-            var blobName = GetBlobName(entry.EntityType.ClrType);
-            var keyProperty = entry.EntityType.FindPrimaryKey()?.Properties.FirstOrDefault();
-            var keyValue = entry.GetCurrentValue(keyProperty!);
-
-            if (string.IsNullOrWhiteSpace(keyValue?.ToString()))
-            {
-                throw new InvalidOperationException($"Cannot persist entity '{entry.EntityType.Name}' without a valid key value.");
-            }
-
-            return $"{blobName}/{keyValue}.json";
-        }
-
         public async Task<int> SaveChangesAsync(IList<IUpdateEntry> entries, CancellationToken cancellationToken = default)
         {
             return await ProcessChangesAsync(entries);
@@ -92,7 +72,7 @@
             foreach (var entry in entries)
             {
                 var entity = ((Microsoft.EntityFrameworkCore.ChangeTracking.Internal.InternalEntityEntry)entry).Entity;
-                var path = GetPath(entry);
+                var path = _blobPathResolver.GetPath(entry);
 
                 // Verifica se há um outro objeto já rastreado com a mesma chave
                 var entityType = entry.EntityType.ClrType;
@@ -189,7 +169,7 @@
                     entityType = typeof(TResult);
                 }
 
-                var provider = new CloudStorageQueryProvider(this);
+                var provider = new CloudStorageQueryProvider(this, _blobPathResolver);
                 var queryableType = typeof(CloudStorageQueryable<>).MakeGenericType(entityType);
 
                 var queryable = (IQueryable)Activator.CreateInstance(queryableType, provider)!;
@@ -238,7 +218,9 @@
         internal async Task<IList<TEntity>> LoadEntitiesAsync<TEntity>(DbContext context)
             where TEntity : class
         {
-            return await InternalListAsync<TEntity>(GetBlobName(typeof(TEntity)), context);
+            return await InternalListAsync<TEntity>(
+                _blobPathResolver.GetBlobName(typeof(TEntity)),
+                context);
         }
 
         public async Task<IList<TEntity>> ToListAsync<TEntity>(string containerName)

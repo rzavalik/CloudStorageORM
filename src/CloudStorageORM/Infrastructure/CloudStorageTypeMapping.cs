@@ -1,9 +1,9 @@
 ﻿namespace CloudStorageORM.Infrastructure
 {
-    using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-    using Microsoft.EntityFrameworkCore.Storage;
     using Microsoft.EntityFrameworkCore.ChangeTracking;
+    using Microsoft.EntityFrameworkCore.Storage;
     using Microsoft.EntityFrameworkCore.Storage.Json;
+    using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
     public class CloudStorageTypeMapping : CoreTypeMapping
     {

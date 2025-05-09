@@ -1,16 +1,16 @@
 ﻿namespace CloudStorageORM.Tests.Azure.StorageProviders
 {
-    using global::Azure;
-    using global::Azure.Storage.Blobs;
-    using global::Azure.Storage.Blobs.Models;
-    using CloudStorageORM.Azure.StorageProviders;
-    using CloudStorageORM.Enums;
-    using CloudStorageORM.Options;
-    using Moq;
-    using Shouldly;
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
+    using CloudStorageORM.Azure.StorageProviders;
+    using CloudStorageORM.Enums;
+    using CloudStorageORM.Options;
+    using global::Azure;
+    using global::Azure.Storage.Blobs;
+    using global::Azure.Storage.Blobs.Models;
+    using Moq;
+    using Shouldly;
     using Xunit;
 
     public class AzureBlobStorageProviderTests

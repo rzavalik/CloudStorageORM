@@ -3,9 +3,9 @@
     using System.Collections.Generic;
     using System.Text.Json;
     using System.Threading.Tasks;
-    using global::Azure.Storage.Blobs;
     using CloudStorageORM.Interfaces.StorageProviders;
     using CloudStorageORM.Options;
+    using global::Azure.Storage.Blobs;
 
     public class AzureBlobStorageProvider : IStorageProvider
     {
@@ -32,7 +32,7 @@
         }
 
         public AzureBlobStorageProvider(
-            string connectionString, 
+            string connectionString,
             string containerName)
         {
             _options = new CloudStorageOptions
