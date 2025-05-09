@@ -11,5 +11,6 @@
         Task<T> ReadAsync<T>(string path);
         Task DeleteAsync(string path);
         Task<List<string>> ListAsync(string folderPath);
+        string SanitizeBlobName(string rawName);
     }
 }

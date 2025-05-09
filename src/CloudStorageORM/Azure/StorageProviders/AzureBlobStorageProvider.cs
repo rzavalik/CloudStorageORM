@@ -1,6 +1,7 @@
 ﻿namespace CloudStorageORM.Azure.StorageProviders
 {
     using System.Collections.Generic;
+    using System.Text;
     using System.Text.Json;
     using System.Threading.Tasks;
     using CloudStorageORM.Interfaces.StorageProviders;
@@ -88,6 +89,19 @@
         public async Task CreateContainerIfNotExistsAsync()
         {
             await _containerClient.CreateIfNotExistsAsync();
+        }
+
+        public string SanitizeBlobName(string rawName)
+        {
+            var invalidChars = new[] { '\\', '/', '?', '#', '[', ']', ' ', '+', '`', '"' };
+            var sanitizedName = new StringBuilder(rawName.Length);
+
+            foreach (var c in rawName)
+            {
+                sanitizedName.Append(invalidChars.Contains(c) ? '_' : c);
+            }
+
+            return sanitizedName.ToString().ToLowerInvariant();
         }
     }
 }
