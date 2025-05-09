@@ -59,12 +59,7 @@
                 throw new ArgumentNullException(nameof(name));
             }
 
-            if (_storageProvider != null)
-            {
-                return _storageProvider.SanitizeBlobName(SanitizeLocally(name));
-            }
-
-            return SanitizeLocally(name);
+            return _storageProvider.SanitizeBlobName(SanitizeLocally(name));
         }
 
         private static string SanitizeLocally(string name)
