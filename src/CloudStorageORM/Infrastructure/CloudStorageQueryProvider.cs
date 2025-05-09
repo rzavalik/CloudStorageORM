@@ -13,8 +13,8 @@
             CloudStorageDatabase database,
             IBlobPathResolver blobPathResolver)
         {
-            _database = database;
-            _blobPathResolver = blobPathResolver;
+            _database = database ?? throw new ArgumentNullException(nameof(database));
+            _blobPathResolver = blobPathResolver ?? throw new ArgumentNullException(nameof(blobPathResolver));
         }
 
         public Task<IList<T>> LoadEntitiesAsync<T>()

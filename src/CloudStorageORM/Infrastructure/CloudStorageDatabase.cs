@@ -37,13 +37,14 @@
             ICurrentDbContext currentDbContext,
             IBlobPathResolver blobPathResolver)
         {
-            Model = model;
-            Creator = databaseCreator;
-            ExecutionStrategyFactory = executionStrategyFactory;
+            Model = model ?? throw new ArgumentNullException(nameof(model));
+            Creator = databaseCreator ?? throw new ArgumentNullException(nameof(databaseCreator));
+            ExecutionStrategyFactory = executionStrategyFactory ?? throw new ArgumentNullException(nameof(executionStrategyFactory));
 
-            _options = options;
-            _storageProvider = storageProvider;
-            _context = currentDbContext.Context;
+            _options = options ?? throw new ArgumentNullException(nameof(options));
+            _storageProvider = storageProvider ?? throw new ArgumentNullException(nameof(storageProvider));
+            _context = currentDbContext.Context ?? throw new ArgumentNullException(nameof(currentDbContext));
+            _blobPathResolver = blobPathResolver ?? throw new ArgumentNullException(nameof(blobPathResolver));
         }
 
         public Task EnsureCreatedAsync(CancellationToken cancellationToken = default)
