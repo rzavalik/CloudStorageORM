@@ -208,11 +208,15 @@
                 if (mc.Arguments.Count == 2)
                 {
                     var lambda = (LambdaExpression)((UnaryExpression)mc.Arguments[1]).Operand;
-                    var evaluated = EvaluateClosureLambda(lambda);
-                    var parameters = evaluated.Parameters.ToArray();
-                    var rewrittenLambda = Expression.Lambda(evaluated.Body, parameters);
-                    var compiled = rewrittenLambda.Compile();
-                    return list.FirstOrDefault(e => (bool)compiled.DynamicInvoke(e)!);
+                    var inlined = PartialEvaluator.Evaluate(lambda);
+                    var compiled = inlined.Compile();
+                    foreach (var item in list)
+                    {
+                        var result = compiled.DynamicInvoke(item);
+                        if (result is bool b && b)
+                            return item;
+                    }
+                    return null;
                 }
                 else
                 {
@@ -268,32 +272,190 @@
 
         private static LambdaExpression EvaluateClosureLambda(LambdaExpression lambda)
         {
-            var visited = new ClosureEvaluator().Visit(lambda);
-            return (LambdaExpression)visited!;
+            var constants = new Dictionary<string, object?>();
+            new ClosureExtractor(constants).Visit(lambda.Body);
+            var replaced = new ClosureReplacer(constants).Visit(lambda.Body);
+
+            var usedParams = ExpressionExtensions.GetFreeVariables(replaced);
+            var lambdaParams = lambda.Parameters.Where(p => usedParams.Contains(p)).ToList();
+
+            return Expression.Lambda(replaced, lambdaParams);
         }
 
-        private class ClosureEvaluator : ExpressionVisitor
+        public static class ExpressionExtensions
         {
+            public static IEnumerable<ParameterExpression> GetFreeVariables(Expression expression)
+            {
+                var visitor = new FreeVariableVisitor();
+                visitor.Visit(expression);
+                return visitor.Parameters;
+            }
+
+            private class FreeVariableVisitor : ExpressionVisitor
+            {
+                public HashSet<ParameterExpression> Parameters { get; } = new();
+
+                protected override Expression VisitParameter(ParameterExpression node)
+                {
+                    Parameters.Add(node);
+                    return node;
+                }
+
+                protected override Expression VisitLambda<T>(Expression<T> node)
+                {
+                    foreach (var p in node.Parameters)
+                        Parameters.Remove(p);
+
+                    return base.VisitLambda(node);
+                }
+            }
+        }
+
+        public static class PartialEvaluator
+        {
+            public static LambdaExpression Evaluate(LambdaExpression expression)
+            {
+                var constantMap = new Dictionary<Expression, object?>();
+                new ClosureExtractor(constantMap).Visit(expression.Body);
+
+                var rewritten = new ClosureRewriter(constantMap).Visit(expression.Body);
+
+                var declaredParams = expression.Parameters.ToHashSet();
+                var usedParams = GetUsedParameters(rewritten);
+
+                return Expression.Lambda(rewritten, usedParams);
+            }
+
+            private static HashSet<ParameterExpression> GetUsedParameters(Expression expr)
+            {
+                var visitor = new UsedParameterVisitor();
+                visitor.Visit(expr);
+                return visitor.Parameters;
+            }
+
+            private class UsedParameterVisitor : ExpressionVisitor
+            {
+                public HashSet<ParameterExpression> Parameters { get; } = new();
+
+                protected override Expression VisitParameter(ParameterExpression node)
+                {
+                    Parameters.Add(node);
+                    return base.VisitParameter(node);
+                }
+            }
+
+            private class ClosureExtractor : ExpressionVisitor
+            {
+                private readonly Dictionary<Expression, object?> _map;
+
+                public ClosureExtractor(Dictionary<Expression, object?> map)
+                {
+                    _map = map;
+                }
+
+                protected override Expression VisitMember(MemberExpression node)
+                {
+                    if (node.Expression is ConstantExpression closure)
+                    {
+                        var value = node.Member switch
+                        {
+                            System.Reflection.FieldInfo f => f.GetValue(closure.Value),
+                            System.Reflection.PropertyInfo p => p.GetValue(closure.Value),
+                            _ => throw new NotSupportedException()
+                        };
+
+                        _map[node] = value;
+                    }
+
+                    return base.VisitMember(node);
+                }
+            }
+
+            private class ClosureRewriter : ExpressionVisitor
+            {
+                private readonly Dictionary<Expression, object?> _map;
+
+                public ClosureRewriter(Dictionary<Expression, object?> map)
+                {
+                    _map = map;
+                }
+
+                protected override Expression VisitMember(MemberExpression node)
+                {
+                    if (_map.TryGetValue(node, out var value))
+                    {
+                        return Expression.Constant(value, node.Type);
+                    }
+
+                    return base.VisitMember(node);
+                }
+            }
+        }
+
+        private class ClosureExtractor : ExpressionVisitor
+        {
+            private readonly Dictionary<string, object?> _values;
+
+            public ClosureExtractor(Dictionary<string, object?> values)
+            {
+                _values = values;
+            }
+
             protected override Expression VisitMember(MemberExpression node)
             {
                 if (node.Expression is ConstantExpression closure)
                 {
                     var value = node.Member switch
                     {
-                        System.Reflection.FieldInfo field => field.GetValue(closure.Value),
-                        System.Reflection.PropertyInfo prop => prop.GetValue(closure.Value),
-                        _ => throw new NotSupportedException($"Unsupported member type: {node.Member.MemberType}")
+                        System.Reflection.FieldInfo f => f.GetValue(closure.Value),
+                        System.Reflection.PropertyInfo p => p.GetValue(closure.Value),
+                        _ => throw new NotSupportedException()
                     };
 
+                    // Usa o nome completo da expressão como chave (ex: value(__closure).__p_0)
+                    _values[node.ToString()!] = value;
+                }
+
+                return base.VisitMember(node);
+            }
+        }
+
+        private class ClosureReplacer : ExpressionVisitor
+        {
+            private readonly Dictionary<string, object?> _values;
+
+            public ClosureReplacer(Dictionary<string, object?> values)
+            {
+                _values = values;
+            }
+
+            protected override Expression VisitMember(MemberExpression node)
+            {
+                if (node.Expression is ConstantExpression && _values.TryGetValue(node.ToString()!, out var value))
+                {
                     return Expression.Constant(value, node.Type);
                 }
 
                 return base.VisitMember(node);
             }
+        }
+
+        private class CapturedParameterRewriter : ExpressionVisitor
+        {
+            private readonly Dictionary<ParameterExpression, object?> _captured;
+
+            public CapturedParameterRewriter(Dictionary<ParameterExpression, object?> captured)
+            {
+                _captured = captured;
+            }
 
             protected override Expression VisitParameter(ParameterExpression node)
             {
-                // Permanece inalterado se estiver nos parâmetros da lambda
+                if (_captured.TryGetValue(node, out var value))
+                {
+                    return Expression.Constant(value, node.Type);
+                }
+
                 return base.VisitParameter(node);
             }
         }
