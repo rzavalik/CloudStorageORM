@@ -22,7 +22,9 @@
             var options = new CloudStorageOptions();
             configureOptions?.Invoke(options);
 
-            var extension = builder.Options.FindExtension<CloudStorageOrmOptionsExtension>()
+            var extension = builder
+                .Options
+                .FindExtension<CloudStorageOrmOptionsExtension>()
                 ?? new CloudStorageOrmOptionsExtension(options);
 
             ((IDbContextOptionsBuilderInfrastructure)builder).AddOrUpdateExtension(extension);

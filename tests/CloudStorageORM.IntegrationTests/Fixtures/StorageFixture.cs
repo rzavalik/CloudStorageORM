@@ -1,4 +1,4 @@
-﻿namespace CloudStorageORM.IntegrationTests.Azure
+﻿namespace CloudStorageORM.IntegrationTests.Azure.Helpers
 {
     using System.Threading.Tasks;
     using global::Azure.Storage.Blobs;

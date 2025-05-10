@@ -73,9 +73,14 @@
                 .Replace("]", "_");
         }
 
+        public string GetPath(Type entity)
+        {
+            var blobName = GetBlobName(entity);
+            return $"{blobName}/";
+        }
+
         public string GetPath(IUpdateEntry entry)
         {
-            var blobName = GetBlobName(entry.EntityType.ClrType);
             var keyProperty = entry.EntityType.FindPrimaryKey()?.Properties.FirstOrDefault();
             var keyValue = entry.GetCurrentValue(keyProperty!);
 
@@ -84,7 +89,13 @@
                 throw new InvalidOperationException($"Cannot persist entity '{entry.EntityType.Name}' without a valid key value.");
             }
 
-            return $"{blobName}/{keyValue}.json";
+            return GetPath(entry.EntityType.ClrType, keyValue);
+        }
+
+        public string GetPath(Type entity, object id)
+        {
+            var blobName = GetBlobName(entity);
+            return $"{blobName}/{id}.json";
         }
     }
 }

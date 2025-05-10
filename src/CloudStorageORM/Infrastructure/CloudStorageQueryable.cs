@@ -5,13 +5,14 @@
     using System.Linq;
     using System.Linq.Expressions;
     using System.Threading;
+    using Microsoft.EntityFrameworkCore.Query;
 
     public class CloudStorageQueryable<T> : IQueryable<T>, IAsyncEnumerable<T>
     {
         public CloudStorageQueryable(CloudStorageQueryProvider provider)
         {
             Provider = provider;
-            Expression = Expression.Constant(this);
+            Expression = Expression.Constant(this, typeof(IQueryable<T>));
         }
 
         public CloudStorageQueryable(CloudStorageQueryProvider provider, Expression expression)
@@ -21,15 +22,20 @@
         }
 
         public Type ElementType => typeof(T);
+
         public Expression Expression { get; }
+
         public IQueryProvider Provider { get; }
 
         public async IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default)
         {
-            var cloudProvider = (CloudStorageQueryProvider)Provider;
-            var list = await cloudProvider.LoadEntitiesAsync<T>();
+            var asyncProvider = (IAsyncQueryProvider)Provider;
 
-            foreach (var item in list)
+            var resultTask = asyncProvider.ExecuteAsync<Task<IEnumerable<T>>>(Expression, cancellationToken);
+
+            var result = await resultTask;
+
+            foreach (var item in result)
             {
                 yield return item;
             }
@@ -37,15 +43,10 @@
 
         public IEnumerator<T> GetEnumerator()
         {
-            var task = ((CloudStorageQueryProvider)Provider).LoadEntitiesAsync<T>();
-            task.Wait();
-            var list = task.Result;
-            return list.GetEnumerator();
+            var result = Provider.Execute<IEnumerable<T>>(Expression);
+            return result.GetEnumerator();
         }
 
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 }

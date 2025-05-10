@@ -34,17 +34,15 @@
             IExecutionStrategyFactory executionStrategyFactory,
             IStorageProvider storageProvider,
             CloudStorageOptions options,
-            ICurrentDbContext currentDbContext,
-            IBlobPathResolver blobPathResolver)
+            ICurrentDbContext currentDbContext)
         {
             Model = model ?? throw new ArgumentNullException(nameof(model));
             Creator = databaseCreator ?? throw new ArgumentNullException(nameof(databaseCreator));
             ExecutionStrategyFactory = executionStrategyFactory ?? throw new ArgumentNullException(nameof(executionStrategyFactory));
-
             _options = options ?? throw new ArgumentNullException(nameof(options));
             _storageProvider = storageProvider ?? throw new ArgumentNullException(nameof(storageProvider));
             _context = currentDbContext.Context ?? throw new ArgumentNullException(nameof(currentDbContext));
-            _blobPathResolver = blobPathResolver ?? throw new ArgumentNullException(nameof(blobPathResolver));
+            _blobPathResolver = new BlobPathResolver(_storageProvider);
         }
 
         public Task EnsureCreatedAsync(CancellationToken cancellationToken = default)
@@ -74,7 +72,6 @@
                 var entity = ((Microsoft.EntityFrameworkCore.ChangeTracking.Internal.InternalEntityEntry)entry).Entity;
                 var path = _blobPathResolver.GetPath(entry);
 
-                // Verifica se há um outro objeto já rastreado com a mesma chave
                 var entityType = entry.EntityType.ClrType;
                 var key = entry.EntityType.FindPrimaryKey();
                 var keyProps = key?.Properties;
@@ -87,18 +84,14 @@
                             e.Entity.GetType() == entityType &&
                             !ReferenceEquals(e.Entity, entity) &&
                             keyProps.All(p =>
-                                Equals(
-                                    p.PropertyInfo?.GetValue(e.Entity),
-                                    p.PropertyInfo?.GetValue(entity))));
+                                Equals(p.PropertyInfo?.GetValue(e.Entity), p.PropertyInfo?.GetValue(entity))));
 
                     if (existingTracked != null)
                     {
-                        // Desanexa a instância antiga para permitir que a nova seja usada
                         entry.Context.Entry(existingTracked.Entity).State = EntityState.Detached;
                     }
                 }
 
-                // Verifica se ainda está rastreado após resolver o conflito
                 var tracked = entry.Context?.ChangeTracker
                     .Entries()
                     .Any(e =>
@@ -153,74 +146,95 @@
             return true;
         }
 
-        Func<QueryContext, TResult> IDatabase.CompileQuery<TResult>(Expression query, bool async)
+        public Func<QueryContext, TResult> CompileQuery<TResult>(Expression query, bool async)
         {
-            return queryContext =>
-            {
-                Type entityType;
+            return _ => ExecuteCompiledQuery<TResult>(query);
+        }
 
-                if (typeof(TResult).IsGenericType &&
-                    typeof(TResult).GetGenericTypeDefinition() == typeof(IAsyncEnumerable<>))
+        public Expression<Func<QueryContext, TResult>> CompileQueryExpression<TResult>(Expression query, bool async, IReadOnlySet<string> nonNullableReferenceTypeParameters)
+        {
+            return _ => ExecuteCompiledQuery<TResult>(query);
+        }
+
+        private TResult ExecuteCompiledQuery<TResult>(Expression query)
+        {
+            var resultType = typeof(TResult);
+
+            if (resultType.IsGenericType)
+            {
+                var genericDef = resultType.GetGenericTypeDefinition();
+                var elementType = resultType.GetGenericArguments()[0];
+
+                if (genericDef == typeof(Task<>))
                 {
-                    entityType = typeof(TResult).GetGenericArguments()[0];
+                    var blobName = _blobPathResolver.GetBlobName(elementType);
+                    var method = typeof(CloudStorageDatabase).GetMethod(nameof(ToListAsync))!.MakeGenericMethod(elementType);
+                    var task = (Task)method.Invoke(this, new object[] { blobName })!;
+                    task.Wait();
+                    var list = (IEnumerable<object>)task.GetType().GetProperty("Result")!.GetValue(task)!;
+                    var result = ExecuteQuery(query, list, elementType);
+                    var fromResult = typeof(Task).GetMethod(nameof(Task.FromResult))!.MakeGenericMethod(elementType);
+                    return (TResult)fromResult.Invoke(null, new[] { result })!;
+                }
+                else if (genericDef == typeof(IQueryable<>) ||
+                         genericDef == typeof(IEnumerable<>))
+                {
+                    var method = typeof(CloudStorageDatabase).GetMethod(nameof(ToListAsync))!.MakeGenericMethod(elementType);
+                    var task = (Task)method.Invoke(this, new object[] { _blobPathResolver.GetBlobName(elementType) })!;
+                    task.Wait();
+                    return (TResult)task.GetType().GetProperty("Result")!.GetValue(task)!;
+                }
+                else if (genericDef == typeof(IAsyncEnumerable<>))
+                {
+                    var queryableType = typeof(CloudStorageQueryable<>).MakeGenericType(elementType);
+                    return (TResult)Activator.CreateInstance(queryableType, new CloudStorageQueryProvider(this, _blobPathResolver))!;
+                }
+            }
+
+            var singleType = resultType;
+            var blob = _blobPathResolver.GetBlobName(singleType);
+            var singleMethod = typeof(CloudStorageDatabase).GetMethod(nameof(ToListAsync))!.MakeGenericMethod(singleType);
+            var t = (Task)singleMethod.Invoke(this, new object[] { blob })!;
+            t.Wait();
+            var l = (IEnumerable<object>)t.GetType().GetProperty("Result")!.GetValue(t)!;
+            var r = ExecuteQuery(query, l, singleType);
+            return (TResult)r!;
+        }
+
+        private object? ExecuteQuery(Expression query, IEnumerable<object> list, Type elementType)
+        {
+            if (query is MethodCallExpression mc && mc.Method.Name == "FirstOrDefault")
+            {
+                if (mc.Arguments.Count == 2)
+                {
+                    var lambda = (LambdaExpression)((UnaryExpression)mc.Arguments[1]).Operand;
+                    var evaluated = EvaluateClosureLambda(lambda);
+                    var parameters = evaluated.Parameters.ToArray();
+                    var rewrittenLambda = Expression.Lambda(evaluated.Body, parameters);
+                    var compiled = rewrittenLambda.Compile();
+                    return list.FirstOrDefault(e => (bool)compiled.DynamicInvoke(e)!);
                 }
                 else
                 {
-                    entityType = typeof(TResult);
+                    return list.FirstOrDefault();
                 }
-
-                var provider = new CloudStorageQueryProvider(this, _blobPathResolver);
-                var queryableType = typeof(CloudStorageQueryable<>).MakeGenericType(entityType);
-
-                var queryable = (IQueryable)Activator.CreateInstance(queryableType, provider)!;
-
-                return (TResult)(object)queryable;
-            };
-        }
-
-        internal async Task<IList<TEntity>> InternalListAsync<TEntity>(string path, DbContext context)
-            where TEntity : class
-        {
-            var files = await _storageProvider.ListAsync(path);
-            var results = new List<TEntity>();
-
-            foreach (var file in files)
+            }
+            else if (query is MethodCallExpression mc2 && mc2.Method.Name == "SingleOrDefault")
             {
-                var entity = await _storageProvider.ReadAsync<TEntity>(file);
-
-                if (context != null)
+                if (mc2.Arguments.Count == 2)
                 {
-                    var key = Model.FindEntityType(typeof(TEntity))?.FindPrimaryKey();
-                    if (key != null)
-                    {
-                        var tracked = context.ChangeTracker.Entries<TEntity>()
-                            .FirstOrDefault(e =>
-                                key.Properties.All(p =>
-                                    Equals(
-                                        EF.Property<object>(e.Entity, p.Name),
-                                        EF.Property<object>(entity, p.Name))));
-
-                        if (tracked != null)
-                        {
-                            context.Entry(tracked.Entity).State = EntityState.Detached;
-                        }
-                    }
-
-                    context.Attach(entity);
+                    var lambda = (LambdaExpression)((UnaryExpression)mc2.Arguments[1]).Operand;
+                    var evaluated = EvaluateClosureLambda(lambda);
+                    var compiled = evaluated.Compile();
+                    return list.SingleOrDefault(e => (bool)compiled.DynamicInvoke(e)!);
                 }
-
-                results.Add(entity);
+                else
+                {
+                    return list.SingleOrDefault();
+                }
             }
 
-            return results;
-        }
-
-        internal async Task<IList<TEntity>> LoadEntitiesAsync<TEntity>(DbContext context)
-            where TEntity : class
-        {
-            return await InternalListAsync<TEntity>(
-                _blobPathResolver.GetBlobName(typeof(TEntity)),
-                context);
+            throw new NotSupportedException("Query execution not supported for type: " + elementType.Name);
         }
 
         public async Task<IList<TEntity>> ToListAsync<TEntity>(string containerName)
@@ -234,20 +248,11 @@
             foreach (var file in files)
             {
                 var entity = await _storageProvider.ReadAsync<TEntity>(file);
-                if (entity is null)
-                {
-                    continue;
-                }
+                if (entity is null) continue;
 
                 var existingTracked = _context.ChangeTracker.Entries()
-                    .FirstOrDefault(e =>
-                        keyProperties != null &&
-                        keyProperties.All(p =>
-                            Equals(
-                                p.PropertyInfo?.GetValue(e.Entity),
-                                p.PropertyInfo?.GetValue(entity)
-                            )
-                        ));
+                    .FirstOrDefault(e => keyProperties != null && keyProperties.All(p =>
+                        Equals(p.PropertyInfo?.GetValue(e.Entity), p.PropertyInfo?.GetValue(entity))));
 
                 if (existingTracked != null)
                 {
@@ -255,16 +260,141 @@
                 }
 
                 _context.Attach(entity);
-
                 results.Add(entity);
             }
 
             return results;
         }
 
-        public Expression<Func<QueryContext, TResult>> CompileQueryExpression<TResult>(Expression query, bool async, IReadOnlySet<string> nonNullableReferenceTypeParameters)
+        private static LambdaExpression EvaluateClosureLambda(LambdaExpression lambda)
         {
-            throw new NotImplementedException();
+            var visited = new ClosureEvaluator().Visit(lambda);
+            return (LambdaExpression)visited!;
+        }
+
+        private class ClosureEvaluator : ExpressionVisitor
+        {
+            protected override Expression VisitMember(MemberExpression node)
+            {
+                if (node.Expression is ConstantExpression closure)
+                {
+                    var value = node.Member switch
+                    {
+                        System.Reflection.FieldInfo field => field.GetValue(closure.Value),
+                        System.Reflection.PropertyInfo prop => prop.GetValue(closure.Value),
+                        _ => throw new NotSupportedException($"Unsupported member type: {node.Member.MemberType}")
+                    };
+
+                    return Expression.Constant(value, node.Type);
+                }
+
+                return base.VisitMember(node);
+            }
+
+            protected override Expression VisitParameter(ParameterExpression node)
+            {
+                // Permanece inalterado se estiver nos parâmetros da lambda
+                return base.VisitParameter(node);
+            }
+        }
+
+        private class ExpressionVisitorHelper : ExpressionVisitor
+        {
+            private readonly Dictionary<string, object?> _captured;
+
+            public ExpressionVisitorHelper(Dictionary<string, object?> captured)
+            {
+                _captured = captured;
+            }
+
+            protected override Expression VisitMember(MemberExpression node)
+            {
+                if (node.Expression is ConstantExpression closure)
+                {
+                    var value = node.Member switch
+                    {
+                        System.Reflection.FieldInfo field => field.GetValue(closure.Value),
+                        System.Reflection.PropertyInfo prop => prop.GetValue(closure.Value),
+                        _ => throw new NotSupportedException()
+                    };
+
+                    _captured[node.ToString()!] = value;
+                }
+
+                return base.VisitMember(node);
+            }
+        }
+
+        private class ClosureRewriter : ExpressionVisitor
+        {
+            private readonly Dictionary<string, object?> _captured;
+
+            public ClosureRewriter(Dictionary<string, object?> captured)
+            {
+                _captured = captured;
+            }
+
+            protected override Expression VisitMember(MemberExpression node)
+            {
+                if (node.Expression is ConstantExpression && _captured.TryGetValue(node.ToString()!, out var value))
+                {
+                    return Expression.Constant(value, node.Type);
+                }
+
+                return base.VisitMember(node);
+            }
+        }
+
+        private class CapturedVariableExtractor : ExpressionVisitor
+        {
+            private readonly Dictionary<ParameterExpression, object?> _captured;
+            private readonly IReadOnlyList<ParameterExpression> _parameters;
+
+            public CapturedVariableExtractor(Dictionary<ParameterExpression, object?> captured, IReadOnlyList<ParameterExpression> parameters)
+            {
+                _captured = captured;
+                _parameters = parameters;
+            }
+
+            protected override Expression VisitMember(MemberExpression node)
+            {
+                if (node.Expression is ConstantExpression closure)
+                {
+                    var value = node.Member switch
+                    {
+                        System.Reflection.FieldInfo field => field.GetValue(closure.Value),
+                        System.Reflection.PropertyInfo prop => prop.GetValue(closure.Value),
+                        _ => throw new NotSupportedException()
+                    };
+
+                    if (value is ParameterExpression p && !_parameters.Contains(p))
+                    {
+                        _captured[p] = value;
+                    }
+                }
+
+                return base.VisitMember(node);
+            }
+        }
+
+        private class CapturedVariableReplacer : ExpressionVisitor
+        {
+            private readonly Dictionary<ParameterExpression, object?> _captured;
+
+            public CapturedVariableReplacer(Dictionary<ParameterExpression, object?> captured)
+            {
+                _captured = captured;
+            }
+
+            protected override Expression VisitParameter(ParameterExpression node)
+            {
+                if (_captured.TryGetValue(node, out var value) && value != null)
+                {
+                    return Expression.Constant(value, node.Type);
+                }
+
+                return base.VisitParameter(node);
+            }
         }
     }
 }

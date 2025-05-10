@@ -44,7 +44,6 @@
                 // Register the IStorageProvider for CloudStorageORM
                 if (storageType == StorageType.CloudStorageORM)
                 {
-                    // Register the IStorageProvider
                     var cloudStorageOptions = new CloudStorageOptions
                     {
                         Provider = CloudProvider.Azure,
@@ -52,10 +51,13 @@
                         ContainerName = "sampleapp-container"
                     };
 
-                    // Register DbContext for CloudStorageORM
-                    services.AddDbContext<MyAppDbContextCloudStorage>(options =>
+                    // ✅ Registra os serviços do EF e do CloudStorageORM
+                    services.AddEntityFrameworkCloudStorageORM(cloudStorageOptions);
+
+                    // ✅ Registra o DbContext e injeta as opções
+                    services.AddDbContext<MyAppDbContextCloudStorage>((serviceProvider, options) =>
                     {
-                        // Pass CloudStorageOptions to configure the DbContext
+                        options.UseInternalServiceProvider(serviceProvider);
                         options.UseCloudStorageORM(opt =>
                         {
                             opt.Provider = cloudStorageOptions.Provider;
@@ -120,7 +122,7 @@
                 Name = "John Doe",
                 Email = "john.doe@example.com"
             };
-            context.Add(newUser);
+            await context.AddAsync(newUser);
             await context.SaveChangesAsync();
             Console.WriteLine($"| ✅ User {newUser.Name} created (Id {newUser.Id}).");
             Console.WriteLine("|");
@@ -134,8 +136,7 @@
 
             Console.WriteLine("|");
             Console.WriteLine("| ✏️ Updating the user...");
-            var usersList = await repository.ToListAsync();
-            var userToUpdate = usersList.FirstOrDefault(u => u.Id == userId);
+            var userToUpdate = await repository.FindAsync(userId);
             if (userToUpdate != null)
             {
                 userToUpdate.Name = "John Doe Updated";
@@ -147,8 +148,7 @@
 
             Console.WriteLine("|");
             Console.WriteLine("| 🔎 Finding the updated user...");
-            usersList = await repository.ToListAsync();
-            var foundUser = usersList.FirstOrDefault(u => u.Id == userId);
+            var foundUser = await repository.FindAsync(userId);
             if (foundUser != null)
             {
                 Console.WriteLine($"| 🎯 Found: {foundUser.Id} - {foundUser.Name} ({foundUser.Email})");

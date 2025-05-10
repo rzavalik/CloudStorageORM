@@ -1,7 +1,6 @@
 ﻿namespace CloudStorageORM.Infrastructure
 {
     using CloudStorageORM.Extensions;
-    using CloudStorageORM.Interfaces.Infrastructure;
     using CloudStorageORM.Interfaces.StorageProviders;
     using CloudStorageORM.Options;
     using CloudStorageORM.Providers;
@@ -53,16 +52,18 @@
             services.AddScoped<IDatabase, CloudStorageDatabase>();
             services.AddScoped<LoggingDefinitions, CloudStorageLoggingDefinitions>();
             services.AddScoped<IQueryContextFactory, CloudStorageQueryContextFactory>();
+            services.AddScoped<CloudStorageDatabase>();
+            services.AddScoped<IModelSource, ModelSource>();
+            services.AddScoped<IModelRuntimeInitializer, ModelRuntimeInitializer>();
+            services.AddScoped<IDbSetInitializer, DbSetInitializer>();
 
-            services.AddSingleton<IBlobPathResolver, BlobPathResolver>();
             services.AddSingleton<ITypeMappingSource, CloudStorageTypeMappingSource>();
             services.AddSingleton<IDbContextTransactionManager, CloudStorageTransactionManager>();
             services.AddSingleton<IDatabaseCreator, CloudStorageDatabaseCreator>();
-            services.AddSingleton<IModelSource, ModelSource>();
-            services.AddSingleton<IModelRuntimeInitializer, ModelRuntimeInitializer>();
-            services.AddSingleton<IDbSetInitializer, DbSetInitializer>();
             services.AddSingleton<ISingletonOptionsInitializer, CloudStorageSingletonOptionsInitializer>();
             services.AddSingleton<IDatabaseProvider, CloudStorageDatabaseProvider>();
+
+            services.Replace(ServiceDescriptor.Singleton<IDbSetSource, CloudStorageDbSetSource>());
 
             services.AddEntityFrameworkCloudStorageORM(_options);
         }
