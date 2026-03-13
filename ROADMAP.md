@@ -6,7 +6,7 @@ This document outlines the evolution of CloudStorageORM from the current release
 
 ## ✅ Current released version
 
-### v1.0.7
+### v1.0.8
 
 - Targets `.NET 10`
 - Azure Blob Storage provider implemented
@@ -17,13 +17,6 @@ This document outlines the evolution of CloudStorageORM from the current release
 - Unit and integration tests are in place
 - Coverage collection/reporting is wired with Coverlet + ReportGenerator
 - File-scoped namespace style enforced repository-wide
-
----
-
-## 🚀 Next version after merge
-
-### v1.0.8
-
 - Finalize documentation alignment for `.NET 10`
 - Keep roadmap, CI workflows, and package metadata aligned with the current release line
 - Preserve sample app parity between EF InMemory and CloudStorageORM
