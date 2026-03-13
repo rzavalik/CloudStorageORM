@@ -1,7 +1,5 @@
 ﻿namespace CloudStorageORM.Infrastructure
 {
-    using System.Threading;
-    using System.Threading.Tasks;
     using Microsoft.EntityFrameworkCore.Storage;
 
     public class CloudStorageDatabaseCreator : IDatabaseCreator

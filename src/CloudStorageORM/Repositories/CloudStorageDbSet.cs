@@ -1,43 +1,33 @@
 ﻿namespace CloudStorageORM.Repositories
 {
-    using System;
     using System.Collections;
-    using System.Collections.Generic;
-    using System.Linq;
     using System.Linq.Expressions;
-    using System.Threading;
-    using System.Threading.Tasks;
-    using CloudStorageORM.Interfaces.StorageProviders;
+    using Interfaces.StorageProviders;
 
-    public class CloudStorageDbSet<TEntity> : IQueryable<TEntity>, IAsyncEnumerable<TEntity> where TEntity : class
+    public class CloudStorageDbSet<TEntity>(IStorageProvider storageProvider)
+        : IQueryable<TEntity>, IAsyncEnumerable<TEntity>
+        where TEntity : class
     {
-        private readonly IStorageProvider _storageProvider;
         private List<TEntity>? _cache;
-
-        public CloudStorageDbSet(IStorageProvider storageProvider)
-        {
-            _storageProvider = storageProvider;
-        }
 
         public async Task<List<TEntity>> ToListAsync(CancellationToken cancellationToken = default)
         {
-            if (_cache == null)
+            if (_cache != null)
             {
-                var path = typeof(TEntity).Name;
-                var keys = await _storageProvider.ListAsync(path);
-                var list = new List<TEntity>();
-
-                foreach (var key in keys)
-                {
-                    var entity = await _storageProvider.ReadAsync<TEntity>(key);
-                    if (entity != null)
-                    {
-                        list.Add(entity);
-                    }
-                }
-
-                _cache = list;
+                return _cache.ToList();
             }
+
+            var path = typeof(TEntity).Name;
+            var keys = await storageProvider.ListAsync(path);
+            var list = new List<TEntity>();
+
+            foreach (var key in keys)
+            {
+                var entity = await storageProvider.ReadAsync<TEntity>(key);
+                list.Add(entity);
+            }
+
+            _cache = list;
             return _cache.ToList();
         }
 

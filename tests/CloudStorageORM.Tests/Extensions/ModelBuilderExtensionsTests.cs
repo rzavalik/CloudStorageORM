@@ -1,6 +1,5 @@
 ﻿namespace CloudStorageORM.Tests.Extensions
 {
-    using System;
     using CloudStorageORM.Abstractions;
     using CloudStorageORM.Extensions;
     using Microsoft.EntityFrameworkCore;
@@ -10,19 +9,32 @@
     {
         private const string AnnotationsConstantBlobName = "CloudStorageORM:BlobName";
 
-        [BlobSettings(Name = "__ModelA")]
-        private class ModelA { }
-        private class ModelB { }
-        private class ModelC : ModelA { }
+        [BlobSettings("__ModelA")]
+        private class ModelA
+        {
+        }
+
+        [BlobSettings("")]
+        private class ModelWithEmptyBlobName
+        {
+        }
+
+        private class ModelB
+        {
+        }
+
+        private class ModelC : ModelA
+        {
+        }
 
         private static ModelBuilder MakeModelBuilderWith(params Type[] types)
         {
-            var optionsBuilder = new DbContextOptionsBuilder<DbContext>();
             var modelBuilder = new ModelBuilder();
             foreach (var type in types)
             {
                 modelBuilder.Entity(type);
             }
+
             return modelBuilder;
         }
 
@@ -49,8 +61,8 @@
 
             entityType
                 .GetAnnotation(AnnotationsConstantBlobName)
-                    .Value
-                    .ShouldBe(expectedBlobName);
+                .Value
+                .ShouldBe(expectedBlobName);
         }
 
         [Fact]
@@ -96,6 +108,53 @@
                 .GetEntityTypes()
                 .Count(e => e.ClrType == typeof(ModelA))
                 .ShouldBe(1);
+        }
+
+        [Fact]
+        public void ApplyBlobSettingsConventions_WithExplicitBlobSettingName_UsesAttributeValue()
+        {
+            // BlobSettings with explicit Name should use that name
+            var modelBuilder = MakeModelBuilderWith(typeof(ModelA));
+
+            modelBuilder.ApplyBlobSettingsConventions();
+            var entityType = modelBuilder.Model.FindEntityType(typeof(ModelA));
+
+            // ModelA has BlobSettings(Name = "__ModelA")
+            entityType!.GetAnnotation(AnnotationsConstantBlobName).Value.ShouldBe("__modela");
+        }
+
+        [Fact]
+        public void ApplyBlobSettingsConventions_WithEmptyBlobSettingName_ThrowsInvalidOperationException()
+        {
+            // Empty names are rejected after trimming because the resulting blob name is invalid.
+            var modelBuilder = MakeModelBuilderWith(typeof(ModelWithEmptyBlobName));
+
+            var ex = Should.Throw<InvalidOperationException>(() => modelBuilder.ApplyBlobSettingsConventions());
+
+            ex.Message.ShouldContain("has no Blob name");
+        }
+
+        [Fact]
+        public void ApplyBlobSettingsConventions_WithEntityWithNullBlobSettingName_UsesClassNameAsDefault()
+        {
+            // BlobSettings with null Name should use class name
+            var modelBuilder = MakeModelBuilderWith(typeof(ModelB));
+
+            modelBuilder.ApplyBlobSettingsConventions();
+            var entityType = modelBuilder.Model.FindEntityType(typeof(ModelB));
+
+            // ModelB doesn't have BlobSettings, so it should use the class name
+            entityType!.GetAnnotation(AnnotationsConstantBlobName).Value.ShouldBe("modelb");
+        }
+
+        [Fact]
+        public void ApplyBlobSettingsConventions_ReturnsModelBuilderForChaining()
+        {
+            var modelBuilder = MakeModelBuilderWith(typeof(ModelA));
+
+            var result = modelBuilder.ApplyBlobSettingsConventions();
+
+            result.ShouldBeSameAs(modelBuilder);
         }
     }
 }

@@ -1,21 +1,11 @@
-﻿namespace CloudStorageORM.IntegrationTests.StorageProviders.Azure
+﻿namespace CloudStorageORM.IntegrationTests.Azure.StorageProviders
 {
-    using System.Threading.Tasks;
-    using CloudStorageORM.IntegrationTests.Azure;
-    using CloudStorageORM.Providers.Azure.StorageProviders;
+    using Providers.Azure.StorageProviders;
     using Shouldly;
-    using Xunit;
 
-    public class AzureBlobStorageProviderTests : IClassFixture<StorageFixture>
+    public class AzureBlobStorageProviderTests(StorageFixture fixture) : IClassFixture<StorageFixture>
     {
-        private readonly AzureBlobStorageProvider _provider;
-        private readonly StorageFixture _fixture;
-
-        public AzureBlobStorageProviderTests(StorageFixture fixture)
-        {
-            _fixture = fixture;
-            _provider = new AzureBlobStorageProvider(_fixture.ConnectionString, _fixture.ContainerName);
-        }
+        private readonly AzureBlobStorageProvider _provider = new(fixture.ConnectionString, fixture.ContainerName);
 
         [Fact]
         public async Task SaveAsync_ShouldSaveEntity()
@@ -58,7 +48,7 @@
 
     public class TestEntity
     {
-        public string Id { get; set; } = string.Empty;
-        public string Name { get; set; } = string.Empty;
+        public string Id { get; init; } = string.Empty;
+        public string Name { get; init; } = string.Empty;
     }
 }

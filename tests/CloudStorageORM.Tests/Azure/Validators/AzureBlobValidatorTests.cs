@@ -1,11 +1,11 @@
 ﻿namespace CloudStorageORM.Tests.Azure.Validators
 {
-    using CloudStorageORM.Providers.Azure.Validators;
+    using Providers.Azure.Validators;
     using Shouldly;
 
     public class AzureBlobValidatorTests
     {
-        private AzureBlobValidator MakeSut()
+        private static AzureBlobValidator MakeSut()
         {
             return new AzureBlobValidator();
         }
@@ -42,7 +42,7 @@
         [InlineData("folder/blob\"name")] // Invalid char '"'
         [InlineData("folder/blob<name")] // Invalid char '<'
         [InlineData("folder/blob>name")] // Invalid char '>' 
-        public void IsBlobNameValid_InvalidNames_ShouldReturnFalse(string blobName)
+        public void IsBlobNameValid_InvalidNames_ShouldReturnFalse(string? blobName)
         {
             var sut = MakeSut();
 

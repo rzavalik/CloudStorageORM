@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+  Solution-wide run settings for Coverlet coverage collection.
+  Used by:  dotnet test ‑‑settings coverlet.runsettings ‑‑collect:"XPlat Code Coverage"
+  Report generation: reportgenerator (see coverage/run-coverage.sh)
+-->
+<RunSettings>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="XPlat Code Coverage">
+        <Configuration>
+          <!-- Assemblies to include in coverage (the library under test only) -->
+          <Include>[CloudStorageORM]*</Include>
+
+          <!-- Exclude test projects themselves, generated code, migrations, and program entry-points -->
+          <Exclude>
+            [CloudStorageORM.Tests]*,
+            [CloudStorageORM.IntegrationTests*]*,
+            [CloudStorageORM.SampleApp]*,
+            [*]*.obj.*,
+            [*]*Program
+          </Exclude>
+
+          <!-- Exclude auto-generated files -->
+          <ExcludeByFile>**/*.Designer.cs,**/*.g.cs,**/*.generated.cs</ExcludeByFile>
+
+          <!-- Collect branch coverage in addition to line coverage -->
+          <IncludeTestAssembly>false</IncludeTestAssembly>
+          <DeterministicReport>true</DeterministicReport>
+          <Format>cobertura</Format>
+          <SingleHit>false</SingleHit>
+          <UseSourceLink>true</UseSourceLink>
+          <IncludeDirectory></IncludeDirectory>
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+
+  <!-- Enable branch coverage output in Cobertura -->
+  <MSTest>
+    <EnableBranchCoverage>true</EnableBranchCoverage>kd
+  </MSTest>
+</RunSettings>

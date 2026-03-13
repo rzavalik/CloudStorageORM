@@ -1,7 +1,6 @@
 ﻿namespace CloudStorageORM.Providers.Azure.Validators
 {
-    using System.Linq;
-    using CloudStorageORM.Interfaces.Validators;
+    using Interfaces.Validators;
 
     public class AzureBlobValidator : IBlobValidator
     {
@@ -38,7 +37,7 @@
                 return false;
             }
 
-            if (blobName.IndexOfAny(new[] { '?', '%', '*', ':', '|', '"', '<', '>' }) >= 0)
+            if (blobName.IndexOfAny(['?', '%', '*', ':', '|', '"', '<', '>']) >= 0)
             {
                 return false;
             }

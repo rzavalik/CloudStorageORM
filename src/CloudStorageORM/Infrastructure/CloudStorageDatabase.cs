@@ -1,51 +1,43 @@
 ﻿namespace CloudStorageORM.Infrastructure
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
     using System.Linq.Expressions;
-    using System.Threading;
-    using System.Threading.Tasks;
-    using CloudStorageORM.Interfaces.Infrastructure;
-    using CloudStorageORM.Interfaces.StorageProviders;
-    using CloudStorageORM.Options;
+    using Interfaces.Infrastructure;
+    using Interfaces.StorageProviders;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.EntityFrameworkCore.ChangeTracking;
+    using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
     using Microsoft.EntityFrameworkCore.Infrastructure;
     using Microsoft.EntityFrameworkCore.Metadata;
     using Microsoft.EntityFrameworkCore.Query;
     using Microsoft.EntityFrameworkCore.Storage;
     using Microsoft.EntityFrameworkCore.Update;
 
-    public class CloudStorageDatabase : IDatabase
+    public class CloudStorageDatabase(
+        IModel model,
+        IDatabaseCreator databaseCreator,
+        IExecutionStrategyFactory executionStrategyFactory,
+        IStorageProvider storageProvider,
+        ICurrentDbContext currentDbContext,
+        IBlobPathResolver blobPathResolver)
+        : IDatabase
     {
-        private readonly DbContext _context;
-        private readonly CloudStorageOptions _options;
-        private readonly IStorageProvider _storageProvider;
-        private readonly IBlobPathResolver _blobPathResolver;
+        private readonly DbContext _context =
+            currentDbContext.Context ?? throw new ArgumentNullException(nameof(currentDbContext));
 
-        public IModel Model { get; }
-        public IDatabaseCreator Creator { get; }
-        public IExecutionStrategyFactory ExecutionStrategyFactory { get; }
+        private readonly IStorageProvider _storageProvider =
+            storageProvider ?? throw new ArgumentNullException(nameof(storageProvider));
 
-        public CloudStorageDatabase(
-            IModel model,
-            IDatabaseCreator databaseCreator,
-            IExecutionStrategyFactory executionStrategyFactory,
-            IStorageProvider storageProvider,
-            CloudStorageOptions options,
-            ICurrentDbContext currentDbContext,
-            IBlobPathResolver blobPathResolver)
-        {
-            Model = model ?? throw new ArgumentNullException(nameof(model));
-            Creator = databaseCreator ?? throw new ArgumentNullException(nameof(databaseCreator));
-            ExecutionStrategyFactory = executionStrategyFactory ?? throw new ArgumentNullException(nameof(executionStrategyFactory));
+        private readonly IBlobPathResolver _blobPathResolver =
+            blobPathResolver ?? throw new ArgumentNullException(nameof(blobPathResolver));
 
-            _options = options ?? throw new ArgumentNullException(nameof(options));
-            _storageProvider = storageProvider ?? throw new ArgumentNullException(nameof(storageProvider));
-            _context = currentDbContext.Context ?? throw new ArgumentNullException(nameof(currentDbContext));
-            _blobPathResolver = blobPathResolver ?? throw new ArgumentNullException(nameof(blobPathResolver));
-        }
+        public IModel Model { get; } = model ?? throw new ArgumentNullException(nameof(model));
+
+        private IDatabaseCreator Creator { get; } =
+            databaseCreator ?? throw new ArgumentNullException(nameof(databaseCreator));
+
+        public IExecutionStrategyFactory ExecutionStrategyFactory { get; } = executionStrategyFactory ??
+                                                                             throw new ArgumentNullException(
+                                                                                 nameof(executionStrategyFactory));
 
         public Task EnsureCreatedAsync(CancellationToken cancellationToken = default)
             => Creator.EnsureCreatedAsync(cancellationToken);
@@ -60,7 +52,8 @@
             return request.Result;
         }
 
-        public async Task<int> SaveChangesAsync(IList<IUpdateEntry> entries, CancellationToken cancellationToken = default)
+        public async Task<int> SaveChangesAsync(IList<IUpdateEntry> entries,
+            CancellationToken cancellationToken = default)
         {
             return await ProcessChangesAsync(entries);
         }
@@ -71,7 +64,7 @@
 
             foreach (var entry in entries)
             {
-                var entity = ((Microsoft.EntityFrameworkCore.ChangeTracking.Internal.InternalEntityEntry)entry).Entity;
+                var entity = ((InternalEntityEntry)entry).Entity;
                 var path = _blobPathResolver.GetPath(entry);
 
                 // Verifica se há um outro objeto já rastreado com a mesma chave
@@ -81,9 +74,8 @@
 
                 if (keyProps != null)
                 {
-                    var existingTracked = entry.Context?.ChangeTracker.Entries()
+                    var existingTracked = entry.Context.ChangeTracker.Entries()
                         .FirstOrDefault(e =>
-                            e.Entity != null &&
                             e.Entity.GetType() == entityType &&
                             !ReferenceEquals(e.Entity, entity) &&
                             keyProps.All(p =>
@@ -99,10 +91,9 @@
                 }
 
                 // Verifica se ainda está rastreado após resolver o conflito
-                var tracked = entry.Context?.ChangeTracker
+                var tracked = entry.Context.ChangeTracker
                     .Entries()
                     .Any(e =>
-                        e.Entity != null &&
                         e.Entity.GetType() == entity.GetType() &&
                         KeysMatch(e, entry));
 
@@ -129,7 +120,7 @@
             return changes;
         }
 
-        private bool KeysMatch(EntityEntry trackedEntry, IUpdateEntry newEntry)
+        private static bool KeysMatch(EntityEntry trackedEntry, IUpdateEntry newEntry)
         {
             var keyProps = newEntry.EntityType.FindPrimaryKey()?.Properties;
             if (keyProps == null)
@@ -137,14 +128,14 @@
                 return false;
             }
 
-            var entity = ((Microsoft.EntityFrameworkCore.ChangeTracking.Internal.InternalEntityEntry)newEntry).Entity;
+            var entity = ((InternalEntityEntry)newEntry).Entity;
 
             foreach (var keyProp in keyProps)
             {
                 var trackedValue = keyProp.PropertyInfo?.GetValue(trackedEntry.Entity);
                 var newValue = keyProp.PropertyInfo?.GetValue(entity);
 
-                if (!object.Equals(trackedValue, newValue))
+                if (!Equals(trackedValue, newValue))
                 {
                     return false;
                 }
@@ -155,30 +146,68 @@
 
         Func<QueryContext, TResult> IDatabase.CompileQuery<TResult>(Expression query, bool async)
         {
+            var provider = new CloudStorageQueryProvider(this, _blobPathResolver);
+
             return queryContext =>
             {
-                Type entityType;
+                var executableQuery = ReplaceQueryParameters(query, queryContext);
 
-                if (typeof(TResult).IsGenericType &&
-                    typeof(TResult).GetGenericTypeDefinition() == typeof(IAsyncEnumerable<>))
+                var resultType = typeof(TResult);
+                if (!IsSequenceResult(resultType))
                 {
-                    entityType = typeof(TResult).GetGenericArguments()[0];
-                }
-                else
-                {
-                    entityType = typeof(TResult);
+                    return provider.Execute<TResult>(executableQuery);
                 }
 
-                var provider = new CloudStorageQueryProvider(this, _blobPathResolver);
+                var entityType = resultType.GetGenericArguments()[0];
                 var queryableType = typeof(CloudStorageQueryable<>).MakeGenericType(entityType);
+                var queryable = (IQueryable)Activator.CreateInstance(queryableType, provider, executableQuery)!;
+                return (TResult)queryable;
 
-                var queryable = (IQueryable)Activator.CreateInstance(queryableType, provider)!;
-
-                return (TResult)(object)queryable;
             };
         }
 
-        internal async Task<IList<TEntity>> InternalListAsync<TEntity>(string path, DbContext context)
+        private static Expression ReplaceQueryParameters(Expression query, QueryContext queryContext)
+        {
+            return new QueryParameterReplacingVisitor(queryContext.ParameterValues).Visit(query);
+        }
+
+        private static bool IsSequenceResult(Type resultType)
+        {
+            if (!resultType.IsGenericType)
+            {
+                return false;
+            }
+
+            var resultTypeDefinition = resultType.GetGenericTypeDefinition();
+            return resultTypeDefinition == typeof(IQueryable<>)
+                   || resultTypeDefinition == typeof(IEnumerable<>)
+                   || resultTypeDefinition == typeof(IOrderedQueryable<>)
+                   || resultTypeDefinition == typeof(IOrderedEnumerable<>)
+                   || resultTypeDefinition == typeof(IAsyncEnumerable<>);
+        }
+
+        private sealed class QueryParameterReplacingVisitor(IReadOnlyDictionary<string, object?> parameterValues)
+            : ExpressionVisitor
+        {
+            protected override Expression VisitParameter(ParameterExpression node)
+            {
+                if (node.Name is null || !parameterValues.TryGetValue(node.Name, out var value))
+                {
+                    return base.VisitParameter(node);
+                }
+
+                if (value is null)
+                {
+                    return node.Type.IsValueType && Nullable.GetUnderlyingType(node.Type) is null
+                        ? Expression.Default(node.Type)
+                        : Expression.Constant(null, node.Type);
+                }
+
+                return Expression.Constant(value, node.Type);
+            }
+        }
+
+        private async Task<IList<TEntity>> InternalListAsync<TEntity>(string path, DbContext context)
             where TEntity : class
         {
             var files = await _storageProvider.ListAsync(path);
@@ -188,26 +217,7 @@
             {
                 var entity = await _storageProvider.ReadAsync<TEntity>(file);
 
-                if (context != null)
-                {
-                    var key = Model.FindEntityType(typeof(TEntity))?.FindPrimaryKey();
-                    if (key != null)
-                    {
-                        var tracked = context.ChangeTracker.Entries<TEntity>()
-                            .FirstOrDefault(e =>
-                                key.Properties.All(p =>
-                                    Equals(
-                                        EF.Property<object>(e.Entity, p.Name),
-                                        EF.Property<object>(entity, p.Name))));
-
-                        if (tracked != null)
-                        {
-                            context.Entry(tracked.Entity).State = EntityState.Detached;
-                        }
-                    }
-
-                    context.Attach(entity);
-                }
+                AttachOrReplaceTrackedEntity(context, entity);
 
                 results.Add(entity);
             }
@@ -215,7 +225,7 @@
             return results;
         }
 
-        internal async Task<IList<TEntity>> LoadEntitiesAsync<TEntity>(DbContext context)
+        public async Task<IList<TEntity>> LoadEntitiesAsync<TEntity>(DbContext context)
             where TEntity : class
         {
             return await InternalListAsync<TEntity>(
@@ -223,7 +233,18 @@
                 context);
         }
 
+        public async Task<TEntity?> TryLoadByPrimaryKeyAsync<TEntity>(object keyValue, DbContext? context = null)
+            where TEntity : class
+        {
+            var path = _blobPathResolver.GetPath(typeof(TEntity), keyValue);
+            var entity = await _storageProvider.ReadAsync<TEntity>(path);
+
+            AttachOrReplaceTrackedEntity(context ?? _context, entity);
+            return entity;
+        }
+
         public async Task<IList<TEntity>> ToListAsync<TEntity>(string containerName)
+            where TEntity : class
         {
             var files = await _storageProvider.ListAsync(containerName);
             var results = new List<TEntity>();
@@ -233,28 +254,14 @@
 
             foreach (var file in files)
             {
-                var entity = await _storageProvider.ReadAsync<TEntity>(file);
+                var entity = await _storageProvider.ReadAsync<TEntity?>(file);
+
                 if (entity is null)
                 {
                     continue;
                 }
 
-                var existingTracked = _context.ChangeTracker.Entries()
-                    .FirstOrDefault(e =>
-                        keyProperties != null &&
-                        keyProperties.All(p =>
-                            Equals(
-                                p.PropertyInfo?.GetValue(e.Entity),
-                                p.PropertyInfo?.GetValue(entity)
-                            )
-                        ));
-
-                if (existingTracked != null)
-                {
-                    _context.Entry(existingTracked.Entity).State = EntityState.Detached;
-                }
-
-                _context.Attach(entity);
+                AttachOrReplaceTrackedEntity(_context, entity, keyProperties);
 
                 results.Add(entity);
             }
@@ -262,9 +269,36 @@
             return results;
         }
 
-        public Expression<Func<QueryContext, TResult>> CompileQueryExpression<TResult>(Expression query, bool async, IReadOnlySet<string> nonNullableReferenceTypeParameters)
+        public Expression<Func<QueryContext, TResult>> CompileQueryExpression<TResult>(Expression query, bool async,
+            IReadOnlySet<string> nonNullableReferenceTypeParameters)
         {
             throw new NotImplementedException();
+        }
+
+        private void AttachOrReplaceTrackedEntity<TEntity>(DbContext? context, TEntity? entity,
+            IReadOnlyList<IProperty>? keyProperties = null)
+            where TEntity : class
+        {
+            if (context is null || entity is null)
+            {
+                return;
+            }
+
+            keyProperties ??= Model.FindEntityType(typeof(TEntity))?.FindPrimaryKey()?.Properties;
+            var existingTracked = context.ChangeTracker.Entries()
+                .FirstOrDefault(e =>
+                    keyProperties != null &&
+                    keyProperties.All(p =>
+                        Equals(
+                            p.PropertyInfo?.GetValue(e.Entity),
+                            p.PropertyInfo?.GetValue(entity))));
+
+            if (existingTracked != null)
+            {
+                context.Entry(existingTracked.Entity).State = EntityState.Detached;
+            }
+
+            context.Attach(entity);
         }
     }
 }

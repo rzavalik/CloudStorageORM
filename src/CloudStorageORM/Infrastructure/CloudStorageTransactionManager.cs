@@ -1,7 +1,5 @@
 ﻿namespace CloudStorageORM.Infrastructure
 {
-    using System.Threading;
-    using System.Threading.Tasks;
     using Microsoft.EntityFrameworkCore.Storage;
 
     public class CloudStorageTransactionManager : IDbContextTransactionManager
@@ -44,7 +42,7 @@
             throw new NotImplementedException();
         }
 
-        public IDbContextTransaction CurrentTransaction => null;
+        public IDbContextTransaction CurrentTransaction => null!;
     }
 
     public class NoopDbContextTransaction : IDbContextTransaction

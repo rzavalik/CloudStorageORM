@@ -1,24 +1,18 @@
 ﻿namespace CloudStorageORM.Extensions
 {
-    using System.Collections.Generic;
-    using CloudStorageORM.Infrastructure;
+    using Infrastructure;
     using Microsoft.EntityFrameworkCore.Infrastructure;
 
-    public class CloudStorageOrmOptionsExtensionInfo : DbContextOptionsExtensionInfo
+    public class CloudStorageOrmOptionsExtensionInfo(CloudStorageOrmOptionsExtension extension)
+        : DbContextOptionsExtensionInfo(extension)
     {
-        public CloudStorageOrmOptionsExtensionInfo(
-            CloudStorageOrmOptionsExtension extension)
-            : base(extension)
-        {
-        }
-
         public override string LogFragment => $"CloudStorageORM: {Extension.Options.ConnectionString}";
 
         public override bool IsDatabaseProvider => true;
 
-        public CloudStorageOrmOptionsExtension Extension => (CloudStorageOrmOptionsExtension)base.Extension;
+        public new CloudStorageOrmOptionsExtension Extension => (CloudStorageOrmOptionsExtension)base.Extension;
 
-        public override int GetServiceProviderHashCode() => Extension.Options.ConnectionString?.GetHashCode() ?? 0;
+        public override int GetServiceProviderHashCode() => Extension.Options.ConnectionString.GetHashCode();
 
         public override void PopulateDebugInfo(IDictionary<string, string> debugInfo)
         {

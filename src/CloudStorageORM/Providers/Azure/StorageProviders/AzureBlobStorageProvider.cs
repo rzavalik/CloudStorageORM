@@ -1,26 +1,26 @@
 ﻿namespace CloudStorageORM.Providers.Azure.StorageProviders
 {
-    using System.Collections.Generic;
     using System.Text;
     using System.Text.Json;
-    using System.Threading.Tasks;
-    using CloudStorageORM.Enums;
-    using CloudStorageORM.Interfaces.StorageProviders;
-    using CloudStorageORM.Options;
+    using Enums;
     using global::Azure.Storage.Blobs;
+    using Interfaces.StorageProviders;
+    using Options;
 
     public class AzureBlobStorageProvider : IStorageProvider
     {
-        private readonly CloudStorageOptions _options;
         private readonly BlobContainerClient _containerClient;
+
+        private static Func<CloudStorageOptions, BlobContainerClient> OptionsContainerClientFactory { get; set; }
+            = options => new BlobContainerClient(options.ConnectionString, options.ContainerName);
+
+        internal static Func<string, string, BlobContainerClient> ConnectionContainerClientFactory { get; set; }
+            = (connectionString, containerName) => new BlobContainerClient(connectionString, containerName);
 
         public AzureBlobStorageProvider(
            CloudStorageOptions options)
         {
-            _options = options;
-            _containerClient = new BlobContainerClient(
-                options.ConnectionString,
-                options.ContainerName);
+            _containerClient = OptionsContainerClientFactory(options);
             _containerClient.CreateIfNotExists();
         }
 
@@ -28,7 +28,6 @@
             CloudStorageOptions options,
             BlobContainerClient blobServiceClient)
         {
-            _options = options;
             _containerClient = blobServiceClient;
             _containerClient.CreateIfNotExists();
         }
@@ -37,12 +36,12 @@
             string connectionString,
             string containerName)
         {
-            _options = new CloudStorageOptions
+            var cloudStorageOptions = new CloudStorageOptions
             {
                 ConnectionString = connectionString,
                 ContainerName = containerName
             };
-            _containerClient = new BlobContainerClient(connectionString, containerName);
+            _containerClient = ConnectionContainerClientFactory(connectionString, containerName);
             _containerClient.CreateIfNotExists();
         }
 

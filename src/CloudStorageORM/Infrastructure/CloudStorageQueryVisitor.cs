@@ -5,11 +5,9 @@
 
     public class CloudStorageQueryVisitor : ExpressionVisitor
     {
-        private readonly QueryContext _context;
-
         public CloudStorageQueryVisitor(QueryContext context)
         {
-            _context = context;
+            _ = context;
         }
 
         protected override Expression VisitConstant(ConstantExpression node)

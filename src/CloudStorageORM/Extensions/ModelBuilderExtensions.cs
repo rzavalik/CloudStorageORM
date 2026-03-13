@@ -1,11 +1,11 @@
 ﻿namespace CloudStorageORM.Extensions
 {
-    using CloudStorageORM.Abstractions;
-    using CloudStorageORM.Constants;
-    using CloudStorageORM.Interfaces.StorageProviders;
-    using CloudStorageORM.Validators;
+    using Abstractions;
+    using Constants;
+    using Interfaces.StorageProviders;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.EntityFrameworkCore.Metadata;
+    using Validators;
 
     public static class ModelBuilderExtensions
     {
@@ -36,7 +36,7 @@
                 ? blobAttr.Name
                 : clrType.Name;
 
-            blobName = (blobName ?? clrType.Name)
+            blobName = (blobName)
                 .ToLower()
                 .Trim();
 

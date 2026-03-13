@@ -1,23 +1,17 @@
 ﻿namespace CloudStorageORM.Infrastructure
 {
     using System.Collections.Concurrent;
-    using CloudStorageORM.Abstractions;
-    using CloudStorageORM.Options;
-    using CloudStorageORM.Validators;
+    using Abstractions;
     using Microsoft.EntityFrameworkCore.Storage;
+    using Options;
+    using Validators;
 
-    public class CloudStorageTypeMappingSource : TypeMappingSource
+    public class CloudStorageTypeMappingSource(
+        TypeMappingSourceDependencies dependencies,
+        CloudStorageOptions cloudOptions)
+        : TypeMappingSource(dependencies)
     {
-        private static readonly ConcurrentDictionary<Type, CoreTypeMapping> _mappingsCache = new();
-        private readonly CloudStorageOptions _options;
-
-        public CloudStorageTypeMappingSource(
-            TypeMappingSourceDependencies dependencies,
-            CloudStorageOptions cloudOptions)
-                    : base(dependencies)
-        {
-            _options = cloudOptions;
-        }
+        private static readonly ConcurrentDictionary<Type, CoreTypeMapping> MappingsCache = new();
 
         protected override CoreTypeMapping? FindMapping(in TypeMappingInfo mappingInfo)
         {
@@ -33,29 +27,28 @@
                 return base.FindMapping(mappingInfo);
             }
 
-            if (clrType != null && !clrType.IsAbstract && !clrType.IsInterface)
+            if (clrType.IsAbstract || clrType.IsInterface)
             {
-                var hasBlobSettings = clrType
-                    .GetCustomAttributes(typeof(BlobSettingsAttribute), true)
-                    .Any();
-
-                if (hasBlobSettings)
-                {
-                    var validator = BlobValidatorFactory.Create(_options.Provider);
-                    var blobName = clrType.Name.ToLower().Trim();
-                    if (!validator.IsBlobNameValid(blobName))
-                    {
-                        throw new InvalidOperationException($"Entity '{clrType.Name}' must define a valid Blob Name. It has tried to use {blobName}, but it's not valid for {_options.Provider:G}.");
-                    }
-                }
-
-                return _mappingsCache.GetOrAdd(clrType, CreateMapping);
+                return MappingsCache.GetOrAdd(mappingInfo.ClrType, CreateMapping);
             }
 
-            return _mappingsCache.GetOrAdd(mappingInfo.ClrType, CreateMapping);
+            var hasBlobSettings = clrType
+                .GetCustomAttributes(typeof(BlobSettingsAttribute), true)
+                .Any();
+
+            if (!hasBlobSettings)
+            {
+                return MappingsCache.GetOrAdd(clrType, CreateMapping);
+            }
+
+            var validator = BlobValidatorFactory.Create(cloudOptions.Provider);
+            var blobName = clrType.Name.ToLower().Trim();
+            return !validator.IsBlobNameValid(blobName)
+                ? throw new InvalidOperationException($"Entity '{clrType.Name}' must define a valid Blob Name. It has tried to use {blobName}, but it's not valid for {cloudOptions.Provider:G}.")
+                : MappingsCache.GetOrAdd(clrType, CreateMapping);
         }
 
-        private CoreTypeMapping CreateMapping(Type clrType)
+        private static CoreTypeMapping CreateMapping(Type clrType)
         {
             return new CloudStorageTypeMapping(clrType);
         }

@@ -11,7 +11,6 @@
     using Microsoft.EntityFrameworkCore.Storage;
     using Moq;
     using Shouldly;
-    using Xunit;
 
     public class CloudStorageDbContextDependenciesTests
     {
@@ -78,7 +77,7 @@
 
             var exception = Should.Throw<ArgumentNullException>(() =>
                 MakeSut(
-                    null,
+                    null!,
                     dependencies.Item2,
                     dependencies.Item3,
                     dependencies.Item4,
@@ -103,7 +102,7 @@
             var exception = Should.Throw<ArgumentNullException>(() =>
                 MakeSut(
                     dependencies.Item1,
-                    null,
+                    null!,
                     dependencies.Item3,
                     dependencies.Item4,
                     dependencies.Item5,
@@ -128,7 +127,7 @@
                 MakeSut(
                     dependencies.Item1,
                     dependencies.Item2,
-                    null,
+                    null!,
                     dependencies.Item4,
                     dependencies.Item5,
                     dependencies.Item6,
@@ -153,7 +152,7 @@
                     dependencies.Item1,
                     dependencies.Item2,
                     dependencies.Item3,
-                    null,
+                    null!,
                     dependencies.Item5,
                     dependencies.Item6,
                     dependencies.Item7,
@@ -178,7 +177,7 @@
                     dependencies.Item2,
                     dependencies.Item3,
                     dependencies.Item4,
-                    null,
+                    null!,
                     dependencies.Item6,
                     dependencies.Item7,
                     dependencies.Item8,
@@ -203,7 +202,7 @@
                     dependencies.Item3,
                     dependencies.Item4,
                     dependencies.Item5,
-                    null,
+                    null!,
                     dependencies.Item7,
                     dependencies.Item8,
                     dependencies.Item9,
@@ -228,7 +227,7 @@
                     dependencies.Item4,
                     dependencies.Item5,
                     dependencies.Item6,
-                    null,
+                    null!,
                     dependencies.Item8,
                     dependencies.Item9,
                     dependencies.Item10,
@@ -253,7 +252,7 @@
                     dependencies.Item5,
                     dependencies.Item6,
                     dependencies.Item7,
-                    null,
+                    null!,
                     dependencies.Item9,
                     dependencies.Item10,
                     dependencies.Item11
@@ -278,7 +277,7 @@
                     dependencies.Item6,
                     dependencies.Item7,
                     dependencies.Item8,
-                    null,
+                    null!,
                     dependencies.Item10,
                     dependencies.Item11
                 )
@@ -303,7 +302,7 @@
                     dependencies.Item7,
                     dependencies.Item8,
                     dependencies.Item9,
-                    null,
+                    null!,
                     dependencies.Item11
                 )
             );
@@ -328,7 +327,7 @@
                     dependencies.Item8,
                     dependencies.Item9,
                     dependencies.Item10,
-                    null
+                    null!
                 )
             );
 

@@ -1,22 +1,16 @@
 ﻿namespace CloudStorageORM.Infrastructure
 {
-    using System;
-    using System.Linq;
     using System.Security.Cryptography;
     using System.Text;
-    using CloudStorageORM.Interfaces.Infrastructure;
-    using CloudStorageORM.Interfaces.StorageProviders;
+    using Interfaces.Infrastructure;
+    using Interfaces.StorageProviders;
     using Microsoft.EntityFrameworkCore.Update;
 
-    public class BlobPathResolver : IBlobPathResolver
+    public class BlobPathResolver(IStorageProvider storageProvider) : IBlobPathResolver
     {
-        private readonly IStorageProvider _storageProvider;
-
-        public BlobPathResolver(
-            IStorageProvider storageProvider)
-        {
-            _storageProvider = storageProvider ?? throw new ArgumentNullException(nameof(storageProvider));
-        }
+        private readonly IStorageProvider _storageProvider = storageProvider
+                                                             ?? throw new ArgumentNullException(
+                                                                 nameof(storageProvider));
 
         public string GetBlobName(Type type)
         {
@@ -48,18 +42,26 @@
             return BitConverter
                 .ToString(hash)
                 .Replace("-", "")
-                .ToLowerInvariant()
-                .Substring(0, 16);
+                .ToLowerInvariant()[..16];
         }
 
         private string Sanitize(string name)
         {
-            if (string.IsNullOrEmpty(name))
+            return string.IsNullOrEmpty(name)
+                ? throw new ArgumentNullException(nameof(name))
+                : _storageProvider.SanitizeBlobName(SanitizeLocally(name));
+        }
+
+        public string GetPath(Type type, object keyValue)
+        {
+            if (keyValue is null || string.IsNullOrWhiteSpace(keyValue.ToString()))
             {
-                throw new ArgumentNullException(nameof(name));
+                throw new InvalidOperationException(
+                    $"Cannot build path for entity '{type.Name}' without a valid key value.");
             }
 
-            return _storageProvider.SanitizeBlobName(SanitizeLocally(name));
+            var blobName = GetBlobName(type);
+            return $"{blobName}/{keyValue}.json";
         }
 
         private static string SanitizeLocally(string name)
@@ -75,16 +77,13 @@
 
         public string GetPath(IUpdateEntry entry)
         {
-            var blobName = GetBlobName(entry.EntityType.ClrType);
             var keyProperty = entry.EntityType.FindPrimaryKey()?.Properties.FirstOrDefault();
             var keyValue = entry.GetCurrentValue(keyProperty!);
 
-            if (string.IsNullOrWhiteSpace(keyValue?.ToString()))
-            {
-                throw new InvalidOperationException($"Cannot persist entity '{entry.EntityType.Name}' without a valid key value.");
-            }
-
-            return $"{blobName}/{keyValue}.json";
+            return string.IsNullOrWhiteSpace(keyValue?.ToString())
+                ? throw new InvalidOperationException(
+                    $"Cannot persist entity '{entry.EntityType.Name}' without a valid key value.")
+                : GetPath(entry.EntityType.ClrType, keyValue);
         }
     }
 }

@@ -1,9 +1,11 @@
 ﻿namespace SampleApp.Models
 {
+    using System.ComponentModel.DataAnnotations;
+
     public class User
     {
-        public string Id { get; set; } = string.Empty;
-        public string Name { get; set; } = string.Empty;
-        public string Email { get; set; } = string.Empty;
+        [MaxLength(255)] public string Id { get; init; } = string.Empty;
+        [MaxLength(255)] public string Name { get; set; } = string.Empty;
+        [MaxLength(255)] public string Email { get; set; } = string.Empty;
     }
 }

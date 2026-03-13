@@ -1,8 +1,7 @@
 ﻿namespace CloudStorageORM.Infrastructure
 {
-    using CloudStorageORM.Interfaces.Infrastructure;
-    using CloudStorageORM.Interfaces.StorageProviders;
-    using CloudStorageORM.Options;
+    using Interfaces.Infrastructure;
+    using Interfaces.StorageProviders;
     using Microsoft.EntityFrameworkCore.Infrastructure;
     using Microsoft.EntityFrameworkCore.Metadata;
     using Microsoft.EntityFrameworkCore.Storage;
@@ -15,28 +14,27 @@
         public bool IsConfigured(IDbContextOptions options)
              => true;
 
-        public IDatabase Create(IDatabaseFacadeDependencies dependencies)
+        public static IDatabase Create(IDatabaseFacadeDependencies dependencies)
         {
             var databaseCreator = dependencies.DatabaseCreator;
             var executionStrategyFactory = dependencies.ExecutionStrategyFactory;
-            var concurrencyDetector = dependencies.ConcurrencyDetector;
+            //var concurrencyDetector = dependencies.ConcurrencyDetector;
 
             var serviceProvider = ((IInfrastructure<IServiceProvider>)dependencies).Instance;
 
             var storageProvider = serviceProvider.GetRequiredService<IStorageProvider>();
-            var cloudOptions = serviceProvider.GetRequiredService<CloudStorageOptions>();
-            var model = serviceProvider.GetRequiredService<IModel>();
-            var currentDbContext = serviceProvider.GetRequiredService<ICurrentDbContext>();
-            var blobPathResolver = serviceProvider.GetRequiredService<IBlobPathResolver>();
+            //var cloudOptions = serviceProvider?.GetRequiredService<CloudStorageOptions>();
+            var model = serviceProvider?.GetRequiredService<IModel>();
+            var currentDbContext = serviceProvider?.GetRequiredService<ICurrentDbContext>();
+            var blobPathResolver = serviceProvider?.GetRequiredService<IBlobPathResolver>();
 
             return new CloudStorageDatabase(
-                model,
+                model!,
                 databaseCreator,
                 executionStrategyFactory,
-                storageProvider,
-                cloudOptions,
-                currentDbContext,
-                blobPathResolver);
+                storageProvider!,
+                currentDbContext!,
+                blobPathResolver!);
         }
     }
 }

@@ -1,29 +1,30 @@
 ﻿namespace CloudStorageORM.Extensions
 {
-    using CloudStorageORM.Infrastructure;
-    using CloudStorageORM.Options;
+    using Infrastructure;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.EntityFrameworkCore.Infrastructure;
+    using Options;
 
     public static class CloudStorageOrmExtensions
     {
-        public static DbContextOptionsBuilder<TContext> UseCloudStorageORM<TContext>(
+        public static DbContextOptionsBuilder<TContext> UseCloudStorageOrm<TContext>(
             this DbContextOptionsBuilder<TContext> builder,
             Action<CloudStorageOptions> configureOptions)
             where TContext : DbContext
         {
-            return (DbContextOptionsBuilder<TContext>)UseCloudStorageORM((DbContextOptionsBuilder)builder, configureOptions);
+            return (DbContextOptionsBuilder<TContext>)((DbContextOptionsBuilder)builder).UseCloudStorageOrm(
+                configureOptions);
         }
 
-        public static DbContextOptionsBuilder UseCloudStorageORM(
+        public static DbContextOptionsBuilder UseCloudStorageOrm(
             this DbContextOptionsBuilder builder,
             Action<CloudStorageOptions> configureOptions)
         {
             var options = new CloudStorageOptions();
-            configureOptions?.Invoke(options);
+            configureOptions.Invoke(options);
 
             var extension = builder.Options.FindExtension<CloudStorageOrmOptionsExtension>()
-                ?? new CloudStorageOrmOptionsExtension(options);
+                            ?? new CloudStorageOrmOptionsExtension(options);
 
             ((IDbContextOptionsBuilderInfrastructure)builder).AddOrUpdateExtension(extension);
 

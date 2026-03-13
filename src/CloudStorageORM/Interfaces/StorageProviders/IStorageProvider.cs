@@ -1,8 +1,6 @@
 ﻿namespace CloudStorageORM.Interfaces.StorageProviders
 {
-    using System.Collections.Generic;
-    using System.Threading.Tasks;
-    using CloudStorageORM.Enums;
+    using Enums;
 
     public interface IStorageProvider
     {

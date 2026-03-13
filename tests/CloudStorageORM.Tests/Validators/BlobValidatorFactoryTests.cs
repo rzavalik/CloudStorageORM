@@ -1,9 +1,9 @@
 ﻿namespace CloudStorageORM.Tests.Validators
 {
-    using CloudStorageORM.Enums;
-    using CloudStorageORM.Interfaces.Validators;
-    using CloudStorageORM.Providers.Azure.Validators;
     using CloudStorageORM.Validators;
+    using Enums;
+    using Interfaces.Validators;
+    using Providers.Azure.Validators;
     using Shouldly;
 
     public class BlobValidatorFactoryTests
@@ -20,8 +20,8 @@
         }
 
         [Theory]
-        [InlineData(CloudProvider.AWS)]
-        [InlineData(CloudProvider.GCP)]
+        [InlineData(CloudProvider.Aws)]
+        [InlineData(CloudProvider.Gcp)]
         public void Create_WithUnsupportedProvider_ShouldThrowNotSupportedException(CloudProvider provider)
         {
             var ex = Should.Throw<NotSupportedException>(() => BlobValidatorFactory.Create(provider));

@@ -1,7 +1,5 @@
 ﻿namespace CloudStorageORM.Tests.Abstractions
 {
-    using System;
-    using System.Linq;
     using CloudStorageORM.Abstractions;
     using Shouldly;
 
@@ -32,7 +30,7 @@
         public void Constructor_WithNullPrefix_ShouldThrowArgumentNullException()
         {
             var exception = Should.Throw<ArgumentNullException>(
-                static () => new BlobSettingsAttribute(blobName: null));
+                static () => new BlobSettingsAttribute(blobName: null!));
 
             exception.ParamName.ShouldBe("blobName");
         }

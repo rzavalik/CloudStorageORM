@@ -1,25 +1,18 @@
 ﻿namespace CloudStorageORM.Validators
 {
-    using System;
     using System.Text.Json;
-    using CloudStorageORM.Abstractions;
-    using CloudStorageORM.Interfaces.Infrastructure;
-    using CloudStorageORM.Interfaces.Validators;
+    using Abstractions;
+    using Interfaces.Infrastructure;
+    using Interfaces.Validators;
     using Microsoft.EntityFrameworkCore.Metadata;
 
-    public sealed class ModelValidator
+    public sealed class ModelValidator(
+        IBlobValidator blobValidator,
+        IBlobPathResolver blobPathResolver)
     {
-        private readonly IBlobPathResolver _blobPathResolver;
+        private readonly IBlobPathResolver _blobPathResolver = blobPathResolver ?? throw new ArgumentNullException(nameof(blobPathResolver));
 
-        public ModelValidator(
-            IBlobValidator blobValidator,
-            IBlobPathResolver blobPathResolver)
-        {
-            BlobValidator = blobValidator ?? throw new ArgumentNullException(nameof(blobValidator));
-            _blobPathResolver = blobPathResolver ?? throw new ArgumentNullException(nameof(blobPathResolver));
-        }
-
-        public IBlobValidator BlobValidator { get; set; }
+        private IBlobValidator BlobValidator { get; set; } = blobValidator ?? throw new ArgumentNullException(nameof(blobValidator));
 
         public void Validate(IMutableModel model)
         {
@@ -27,21 +20,18 @@
             {
                 var clrType = entity.ClrType;
 
-                var attributes = clrType.GetCustomAttributes(typeof(BlobSettingsAttribute), false)
-                                        .Cast<ModelAttribute>()
-                                        .ToList();
+                var blobSettingsAttributes = clrType.GetCustomAttributes(typeof(BlobSettingsAttribute), false)
+                                                    .Cast<BlobSettingsAttribute>()
+                                                    .ToList();
 
                 // check each attribute per entity
-                foreach (var attribute in attributes)
+                foreach (var blobSettings in blobSettingsAttributes)
                 {
-                    if (attribute is BlobSettingsAttribute blobSettings)
-                    {
-                        ValidateBlobName(blobSettings.Name, entity);
-                    }
+                    ValidateBlobName(blobSettings.Name, entity);
                 }
 
-                //if the blob name is not defined by attribute, its defined by default
-                if (!attributes.Any(att => string.IsNullOrEmpty((att as BlobSettingsAttribute)?.Name)))
+                // if the blob name is not defined by attribute, it's defined by default
+                if (!blobSettingsAttributes.Any(att => string.IsNullOrEmpty(att.Name)))
                 {
                     var blobName = _blobPathResolver.GetBlobName(clrType);
                     ValidateBlobName(blobName, entity);
@@ -60,7 +50,7 @@
             }
         }
 
-        private void ValidateHasKey(IMutableEntityType entity)
+        private static void ValidateHasKey(IMutableEntityType entity)
         {
             if (entity.FindPrimaryKey() == null)
             {
@@ -68,7 +58,7 @@
             }
         }
 
-        private void ValidateSerializable(IMutableEntityType entity)
+        private static void ValidateSerializable(IMutableEntityType entity)
         {
             try
             {

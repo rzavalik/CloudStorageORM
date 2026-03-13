@@ -1,7 +1,8 @@
 ﻿namespace SampleApp.DbContext
 {
+    using CloudStorageORM.DbContext;
     using Microsoft.EntityFrameworkCore;
-    using SampleApp.Models;
+    using Models;
 
     public class MyAppDbContextInMemory : DbContext
     {
@@ -22,7 +23,7 @@
         }
     }
 
-    public class MyAppDbContextCloudStorage : CloudStorageORM.DbContext.CloudStorageDbContext
+    public class MyAppDbContextCloudStorage : CloudStorageDbContext
     {
         public MyAppDbContextCloudStorage(
             DbContextOptions<MyAppDbContextCloudStorage> options)

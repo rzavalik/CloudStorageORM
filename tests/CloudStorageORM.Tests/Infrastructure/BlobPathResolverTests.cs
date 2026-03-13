@@ -1,21 +1,17 @@
 ﻿namespace CloudStorageORM.Tests.Infrastructure
 {
-    using System.Collections.Generic;
-
     namespace CloudStorageORM.Tests.Infrastructure
     {
-        using System;
         using global::CloudStorageORM.Abstractions;
         using global::CloudStorageORM.Infrastructure;
-        using global::CloudStorageORM.Interfaces.Infrastructure;
-        using global::CloudStorageORM.Interfaces.StorageProviders;
+        using Interfaces.Infrastructure;
+        using Interfaces.StorageProviders;
         using Microsoft.EntityFrameworkCore.ChangeTracking;
         using Microsoft.EntityFrameworkCore.Infrastructure;
         using Microsoft.EntityFrameworkCore.Metadata;
         using Microsoft.EntityFrameworkCore.Update;
         using Moq;
         using Shouldly;
-        using Xunit;
 
         public class BlobPathResolverTests
         {
@@ -79,7 +75,7 @@
                 mockType.Setup(x => x.ClrType).Returns(typeof(DummyEntity));
                 mockType.Setup(x => x.FindPrimaryKey()).Returns(new TestKey(mockProperty.Object));
                 mockEntry.Setup(x => x.EntityType).Returns(mockType.Object);
-                mockEntry.Setup(x => x.GetCurrentValue(mockProperty.Object)).Returns(null);
+                mockEntry.Setup(x => x.GetCurrentValue(mockProperty.Object)).Returns(null!);
 
                 var mockProvider = new Mock<IStorageProvider>();
                 mockProvider.Setup(x => x.SanitizeBlobName(It.IsAny<string>())).Returns("entity");
@@ -116,7 +112,7 @@
             {
                 public TestKey(params IProperty[] properties) => Properties = properties;
 
-                public object? this[string name] => throw new NotImplementedException();
+                public object this[string name] => throw new NotImplementedException();
 
                 public IReadOnlyList<IProperty> Properties { get; }
 
@@ -131,12 +127,12 @@
                     throw new NotImplementedException();
                 }
 
-                public IAnnotation? FindAnnotation(string name)
+                public IAnnotation FindAnnotation(string name)
                 {
                     throw new NotImplementedException();
                 }
 
-                public IAnnotation? FindRuntimeAnnotation(string name)
+                public IAnnotation FindRuntimeAnnotation(string name)
                 {
                     throw new NotImplementedException();
                 }
@@ -171,7 +167,7 @@
                     throw new NotImplementedException();
                 }
 
-                public IAnnotation? RemoveRuntimeAnnotation(string name)
+                public IAnnotation RemoveRuntimeAnnotation(string name)
                 {
                     throw new NotImplementedException();
                 }
@@ -182,7 +178,7 @@
                 }
             }
 
-            [BlobSettings(Name = "custom-name")]
+            [BlobSettings("custom-name")]
             private class CustomNamedEntity { }
 
             private class DummyEntity { }

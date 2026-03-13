@@ -1,7 +1,7 @@
 ﻿namespace CloudStorageORM.Validators
 {
-    using CloudStorageORM.Infrastructure;
-    using CloudStorageORM.Interfaces.StorageProviders;
+    using Infrastructure;
+    using Interfaces.StorageProviders;
     using Microsoft.EntityFrameworkCore.Metadata;
 
     public class CloudStorageModelValidator

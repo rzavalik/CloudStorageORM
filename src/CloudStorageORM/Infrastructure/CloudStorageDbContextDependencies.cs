@@ -1,6 +1,5 @@
 ﻿namespace CloudStorageORM.Infrastructure
 {
-    using System;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
     using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -37,10 +36,18 @@
             IDiagnosticsLogger<DbLoggerCategory.Infrastructure> infrastructureLogger)
         {
             _model = model ?? throw new ArgumentNullException(nameof(model));
-            if (currentContext == null) throw new ArgumentNullException(nameof(currentContext));
+            if (currentContext == null)
+            {
+                throw new ArgumentNullException(nameof(currentContext));
+            }
+
             _changeDetector = changeDetector ?? throw new ArgumentNullException(nameof(changeDetector));
             _setSource = setSource ?? throw new ArgumentNullException(nameof(setSource));
-            if (entityFinderSource == null) throw new ArgumentNullException(nameof(entityFinderSource));
+            if (entityFinderSource == null)
+            {
+                throw new ArgumentNullException(nameof(entityFinderSource));
+            }
+
             _entityGraphAttacher = entityGraphAttacher ?? throw new ArgumentNullException(nameof(entityGraphAttacher));
             _queryProvider = queryProvider ?? throw new ArgumentNullException(nameof(queryProvider));
             _stateManager = stateManager ?? throw new ArgumentNullException(nameof(stateManager));

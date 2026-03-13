@@ -3,7 +3,7 @@
     public enum CloudProvider
     {
         Azure,
-        AWS,
-        GCP
+        Aws,
+        Gcp
     }
 }

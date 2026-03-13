@@ -1,10 +1,7 @@
 ﻿namespace CloudStorageORM.Infrastructure
 {
     using System.Collections;
-    using System.Collections.Generic;
-    using System.Linq;
     using System.Linq.Expressions;
-    using System.Threading;
 
     public class CloudStorageQueryable<T> : IQueryable<T>, IAsyncEnumerable<T>
     {
@@ -26,21 +23,20 @@
 
         public async IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default)
         {
-            var cloudProvider = (CloudStorageQueryProvider)Provider;
-            var list = await cloudProvider.LoadEntitiesAsync<T>();
+            var items = ((CloudStorageQueryProvider)Provider).Execute<IEnumerable<T>>(Expression);
 
-            foreach (var item in list)
+            foreach (var item in items)
             {
                 yield return item;
             }
+
+            await Task.CompletedTask;
         }
 
         public IEnumerator<T> GetEnumerator()
         {
-            var task = ((CloudStorageQueryProvider)Provider).LoadEntitiesAsync<T>();
-            task.Wait();
-            var list = task.Result;
-            return list.GetEnumerator();
+            var items = ((CloudStorageQueryProvider)Provider).Execute<IEnumerable<T>>(Expression);
+            return items.GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()

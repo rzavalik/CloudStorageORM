@@ -1,34 +1,33 @@
 ﻿namespace SampleApp
 {
-    using System;
-    using System.Threading.Tasks;
+    using System.Text;
     using CloudStorageORM.Enums;
     using CloudStorageORM.Extensions;
     using CloudStorageORM.Options;
+    using DbContext;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.DependencyInjection;
-    using SampleApp.DbContext;
-    using SampleApp.Models;
+    using Models;
 
     public class Program
     {
-        public enum StorageType
+        private enum StorageType
         {
             InMemory,
-            CloudStorageORM
+            CloudStorageOrm
         }
 
         public static async Task Main(string[] args)
         {
-            Console.OutputEncoding = System.Text.Encoding.UTF8;
+            Console.OutputEncoding = Encoding.UTF8;
 
             Console.WriteLine("🚀 CloudStorageORM SampleApp Starting...");
             Console.WriteLine("");
             await Execute(StorageType.InMemory);
             Console.WriteLine("");
-            await Execute(StorageType.CloudStorageORM);
+            await Execute(StorageType.CloudStorageOrm);
             Console.WriteLine("");
-            Console.WriteLine($"🏁 SampleApp Finished.");
+            Console.WriteLine("🏁 SampleApp Finished.");
         }
 
         private static async Task Execute(StorageType storageType)
@@ -42,7 +41,7 @@
                 var services = new ServiceCollection();
 
                 // Register the IStorageProvider for CloudStorageORM
-                if (storageType == StorageType.CloudStorageORM)
+                if (storageType == StorageType.CloudStorageOrm)
                 {
                     // Register the IStorageProvider
                     var cloudStorageOptions = new CloudStorageOptions
@@ -56,7 +55,7 @@
                     services.AddDbContext<MyAppDbContextCloudStorage>(options =>
                     {
                         // Pass CloudStorageOptions to configure the DbContext
-                        options.UseCloudStorageORM(opt =>
+                        options.UseCloudStorageOrm(opt =>
                         {
                             opt.Provider = cloudStorageOptions.Provider;
                             opt.ConnectionString = cloudStorageOptions.ConnectionString;
@@ -76,7 +75,7 @@
 
                 var provider = services.BuildServiceProvider();
                 using var scope = provider.CreateScope();
-                if (storageType == StorageType.CloudStorageORM)
+                if (storageType == StorageType.CloudStorageOrm)
                 {
                     dbContext = scope.ServiceProvider.GetRequiredService<MyAppDbContextCloudStorage>();
                 }
@@ -100,7 +99,7 @@
 
             Console.WriteLine("| 📃 Listing users...");
             var users = await repository.ToListAsync();
-            if ((users?.Any() ?? false))
+            if (users.Count != 0)
             {
                 foreach (var user in users)
                 {
@@ -134,8 +133,7 @@
 
             Console.WriteLine("|");
             Console.WriteLine("| ✏️ Updating the user...");
-            var usersList = await repository.ToListAsync();
-            var userToUpdate = usersList.FirstOrDefault(u => u.Id == userId);
+            var userToUpdate = repository.FirstOrDefault(u => u.Id == userId);
             if (userToUpdate != null)
             {
                 userToUpdate.Name = "John Doe Updated";
@@ -147,8 +145,7 @@
 
             Console.WriteLine("|");
             Console.WriteLine("| 🔎 Finding the updated user...");
-            usersList = await repository.ToListAsync();
-            var foundUser = usersList.FirstOrDefault(u => u.Id == userId);
+            var foundUser = repository.FirstOrDefault(u => u.Id == userId);
             if (foundUser != null)
             {
                 Console.WriteLine($"| 🎯 Found: {foundUser.Id} - {foundUser.Name} ({foundUser.Email})");

@@ -1,11 +1,11 @@
 ﻿namespace CloudStorageORM.Providers
 {
-    using CloudStorageORM.Enums;
-    using CloudStorageORM.Interfaces.StorageProviders;
-    using CloudStorageORM.Options;
-    using CloudStorageORM.Providers.Azure.StorageProviders;
+    using Azure.StorageProviders;
+    using Enums;
+    using Interfaces.StorageProviders;
+    using Options;
 
-    internal static class ProviderFactory
+    public static class ProviderFactory
     {
         public static IStorageProvider GetStorageProvider(CloudStorageOptions options)
         {

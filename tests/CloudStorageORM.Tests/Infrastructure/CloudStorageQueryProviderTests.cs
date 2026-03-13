@@ -1,0 +1,381 @@
+namespace CloudStorageORM.Tests.Infrastructure
+{
+    using System.Collections;
+    using System.ComponentModel.DataAnnotations;
+    using Enums;
+    using global::CloudStorageORM.Infrastructure;
+    using Interfaces.StorageProviders;
+    using Microsoft.EntityFrameworkCore;
+    using Microsoft.EntityFrameworkCore.Infrastructure;
+    using Microsoft.EntityFrameworkCore.Metadata;
+    using Microsoft.EntityFrameworkCore.Storage;
+    using Moq;
+    using Options;
+    using Shouldly;
+
+    /// <summary>
+    /// Tests verifying that LINQ expressions are resolved directly against blob storage
+    /// rather than requiring a full materialization (ToList) first.
+    /// </summary>
+    public class CloudStorageQueryProviderTests
+    {
+        private const string UserId1 = "user-1";
+        private const string UserId2 = "user-2";
+
+        // ── helpers ──────────────────────────────────────────────────────────────
+
+        private static (CloudStorageQueryProvider provider, Mock<IStorageProvider> storageProviderMock)
+            BuildProvider(List<QueryTestUser>? seed = null)
+        {
+            seed ??= new List<QueryTestUser>();
+            var storageProviderMock = new Mock<IStorageProvider>();
+            storageProviderMock.Setup(x => x.CloudProvider).Returns(CloudProvider.Azure);
+            storageProviderMock.Setup(x => x.SanitizeBlobName(It.IsAny<string>()))
+                .Returns<string>(s => s);
+
+            // BlobPathResolver uses SanitizeBlobName, so a real instance is fine.
+            var pathResolver = new BlobPathResolver(storageProviderMock.Object);
+            var blobName = pathResolver.GetBlobName(typeof(QueryTestUser));
+
+            // ListAsync returns the blob paths for all seeded entities.
+            storageProviderMock
+                .Setup(x => x.ListAsync(blobName))
+                .ReturnsAsync(seed.Select(u => $"{blobName}/{u.Id}.json").ToList());
+
+            // ReadAsync returns the correct entity for each path.
+            foreach (var user in seed)
+            {
+                var path = $"{blobName}/{user.Id}.json";
+                storageProviderMock
+                    .Setup(x => x.ReadAsync<QueryTestUser>(path))
+                    .ReturnsAsync(user);
+            }
+
+            var database = BuildDatabase(storageProviderMock.Object);
+            var provider = new CloudStorageQueryProvider(database, pathResolver);
+            return (provider, storageProviderMock);
+        }
+
+        private static CloudStorageDatabase BuildDatabase(IStorageProvider storageProvider)
+        {
+            var options = new DbContextOptionsBuilder<MinimalDbContext>()
+                .UseInMemoryDatabase(Guid.NewGuid().ToString())
+                .Options;
+
+            var context = new MinimalDbContext(options);
+
+            var modelMock = new Mock<IModel>();
+            var entityTypeMock = new Mock<IEntityType>();
+            var keyMock = new Mock<IKey>();
+            var propMock = new Mock<IProperty>();
+
+            propMock.Setup(p => p.Name).Returns(nameof(QueryTestUser.Id));
+            propMock.Setup(p => p.PropertyInfo)
+                .Returns(typeof(QueryTestUser).GetProperty(nameof(QueryTestUser.Id))!);
+            keyMock.Setup(k => k.Properties)
+                .Returns(new[] { propMock.Object }
+                    .ToList()
+                    .AsReadOnly()
+                    .ToList()
+                    .AsReadOnly());
+            entityTypeMock.Setup(e => e.ClrType).Returns(typeof(QueryTestUser));
+            entityTypeMock.Setup(e => e.FindPrimaryKey()).Returns(keyMock.Object);
+            modelMock.Setup(m => m.FindEntityType(typeof(QueryTestUser))).Returns(entityTypeMock.Object);
+
+            var currentDbContextMock = new Mock<ICurrentDbContext>();
+            currentDbContextMock.Setup(c => c.Context).Returns(context);
+
+            var creatorMock = new Mock<IDatabaseCreator>();
+            var strategyFactoryMock = new Mock<IExecutionStrategyFactory>();
+
+            /*
+            var cloudOptions = new CloudStorageOptions
+            {
+                Provider = CloudProvider.Azure,
+                ConnectionString = "UseDevelopmentStorage=true",
+                ContainerName = "test"
+            };
+            */
+
+            return new CloudStorageDatabase(
+                modelMock.Object,
+                creatorMock.Object,
+                strategyFactoryMock.Object,
+                storageProvider,
+                currentDbContextMock.Object,
+                new BlobPathResolver(storageProvider));
+        }
+
+        // ── tests ─────────────────────────────────────────────────────────────────
+
+        [Fact]
+        public async Task FirstOrDefault_WithPrimaryKeyPredicate_LoadsSingleBlobDirectly()
+        {
+            var seed = new List<QueryTestUser>
+            {
+                new() { Id = UserId1, Name = "Alice" },
+                new() { Id = UserId2, Name = "Bob" }
+            };
+
+            var (provider, storageMock) = BuildProvider(seed);
+            var pathResolver = new BlobPathResolver(storageMock.Object);
+            var blobName = pathResolver.GetBlobName(typeof(QueryTestUser));
+
+            var queryable = new CloudStorageQueryable<QueryTestUser>(provider);
+            var result = queryable.FirstOrDefault(u => u.Id == UserId1);
+
+            result.ShouldNotBeNull();
+            result.Name.ShouldBe("Alice");
+
+            // ListAsync should NOT have been called – we resolved directly via key path.
+            storageMock.Verify(x => x.ListAsync(It.IsAny<string>()), Times.Never);
+            storageMock.Verify(x => x.ReadAsync<QueryTestUser>($"{blobName}/{UserId1}.json"), Times.Once);
+        }
+
+        [Fact]
+        public async Task FirstOrDefault_WithNonKeyPredicate_FiltersInMemoryAfterFullLoad()
+        {
+            var seed = new List<QueryTestUser>
+            {
+                new() { Id = UserId1, Name = "Alice" },
+                new() { Id = UserId2, Name = "Bob" }
+            };
+
+            var (provider, storageMock) = BuildProvider(seed);
+
+            var queryable = new CloudStorageQueryable<QueryTestUser>(provider);
+            var result = queryable.FirstOrDefault(u => u.Name == "Bob");
+
+            result.ShouldNotBeNull();
+            result.Id.ShouldBe(UserId2);
+
+            // Full list load must have been used because Name is not the PK.
+            storageMock.Verify(x => x.ListAsync(It.IsAny<string>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task Where_ReturnsFilteredResults_WithoutRequiringToList()
+        {
+            var seed = new List<QueryTestUser>
+            {
+                new() { Id = UserId1, Name = "Alice" },
+                new() { Id = UserId2, Name = "Bob" }
+            };
+
+            var (provider, _) = BuildProvider(seed);
+
+            var queryable = new CloudStorageQueryable<QueryTestUser>(provider);
+            var results = ((IQueryable<QueryTestUser>)queryable).Where(u => u.Name == "Alice").ToList();
+
+            results.Count.ShouldBe(1);
+            results[0].Id.ShouldBe(UserId1);
+        }
+
+        [Fact]
+        public async Task FirstOrDefault_WithPrimaryKey_ReturnsNull_WhenNotFound()
+        {
+            var seed = new List<QueryTestUser>
+            {
+                new() { Id = UserId1, Name = "Alice" }
+            };
+
+            var (provider, storageMock) = BuildProvider(seed);
+            var pathResolver = new BlobPathResolver(storageMock.Object);
+            var blobName = pathResolver.GetBlobName(typeof(QueryTestUser));
+
+            // blob for a missing key returns null
+            storageProviderMock_SetupMissingRead(storageMock, $"{blobName}/missing-id.json");
+
+            var queryable = new CloudStorageQueryable<QueryTestUser>(provider);
+            var result = queryable.FirstOrDefault(u => u.Id == "missing-id");
+
+            result.ShouldBeNull();
+            storageMock.Verify(x => x.ListAsync(It.IsAny<string>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task Any_ExecutesViaFullLoad_WhenNoPrimaryKeyFastPath()
+        {
+            var seed = new List<QueryTestUser>
+            {
+                new() { Id = UserId1, Name = "Alice" }
+            };
+
+            var (provider, storageMock) = BuildProvider(seed);
+
+            var queryable = new CloudStorageQueryable<QueryTestUser>(provider);
+            var exists = queryable.Any(u => u.Name == "Alice");
+
+            exists.ShouldBeTrue();
+            storageMock.Verify(x => x.ListAsync(It.IsAny<string>()), Times.Once);
+        }
+
+        [Fact]
+        public void FirstOrDefault_WithoutPredicate_UsesFullLoadPath()
+        {
+            var seed = new List<QueryTestUser>
+            {
+                new() { Id = UserId1, Name = "Alice" }
+            };
+
+            var (provider, storageMock) = BuildProvider(seed);
+            var queryable = new CloudStorageQueryable<QueryTestUser>(provider);
+
+            var result = queryable.FirstOrDefault();
+
+            result.ShouldNotBeNull();
+            storageMock.Verify(x => x.ListAsync(It.IsAny<string>()), Times.Once);
+        }
+
+        [Fact]
+        public void WhereThenFirstOrDefault_WithPrimaryKey_UsesDirectLookupPath()
+        {
+            var seed = new List<QueryTestUser>
+            {
+                new() { Id = UserId1, Name = "Alice" },
+                new() { Id = UserId2, Name = "Bob" }
+            };
+
+            var (provider, storageMock) = BuildProvider(seed);
+            var pathResolver = new BlobPathResolver(storageMock.Object);
+            var blobName = pathResolver.GetBlobName(typeof(QueryTestUser));
+            var queryable = new CloudStorageQueryable<QueryTestUser>(provider);
+
+            var result = queryable
+                .FirstOrDefault(u => u.Id == UserId2);
+
+            result.ShouldNotBeNull();
+            result.Id.ShouldBe(UserId2);
+            storageMock.Verify(x => x.ListAsync(It.IsAny<string>()), Times.Never);
+            storageMock.Verify(x => x.ReadAsync<QueryTestUser>($"{blobName}/{UserId2}.json"), Times.Once);
+        }
+
+        [Fact]
+        public void FirstOrDefault_WithCapturedVariablePredicate_DoesNotThrow()
+        {
+            var seed = new List<QueryTestUser>
+            {
+                new() { Id = UserId1, Name = "Alice" },
+                new() { Id = UserId2, Name = "Bob" }
+            };
+
+            var (provider, storageMock) = BuildProvider(seed);
+            var queryable = new CloudStorageQueryable<QueryTestUser>(provider);
+            const string userId = UserId2;
+
+            var result = Should.NotThrow(() => queryable.FirstOrDefault(u => u.Id == userId));
+
+            result.ShouldNotBeNull();
+            result.Id.ShouldBe(UserId2);
+            storageMock.Verify(x => x.ListAsync(It.IsAny<string>()), Times.AtMostOnce);
+        }
+
+        [Fact]
+        public void Execute_NonGeneric_ReturnsResult()
+        {
+            var seed = new List<QueryTestUser>
+            {
+                new() { Id = UserId1, Name = "Alice" }
+            };
+
+            var (provider, _) = BuildProvider(seed);
+            var queryable = new CloudStorageQueryable<QueryTestUser>(provider);
+            var expression = ((IQueryable<QueryTestUser>)queryable).Where(u => u.Name == "Alice").Expression;
+
+            var result = provider.Execute(expression);
+
+            result.ShouldNotBeNull();
+        }
+
+        [Fact]
+        public async Task GetAsyncEnumerator_ReturnsAllItems()
+        {
+            var seed = new List<QueryTestUser>
+            {
+                new() { Id = UserId1, Name = "Alice" },
+                new() { Id = UserId2, Name = "Bob" }
+            };
+
+            var (provider, _) = BuildProvider(seed);
+            var queryable = new CloudStorageQueryable<QueryTestUser>(provider);
+
+            var results = new List<QueryTestUser>();
+            await foreach (var item in queryable)
+            {
+                results.Add(item);
+            }
+
+            results.Count.ShouldBe(2);
+            results.Select(x => x.Id).ShouldBe([UserId1, UserId2]);
+        }
+
+        [Fact]
+        public async Task GetAsyncEnumerator_WithEmptySet_ReturnsNoItems()
+        {
+            var (provider, _) = BuildProvider([]);
+            var queryable = new CloudStorageQueryable<QueryTestUser>(provider);
+
+            var count = 0;
+            await foreach (var _ in queryable)
+            {
+                count++;
+            }
+
+            count.ShouldBe(0);
+        }
+
+        [Fact]
+        public void IEnumerable_GetEnumerator_DelegatesToGenericEnumerator()
+        {
+            var seed = new List<QueryTestUser>
+            {
+                new() { Id = UserId1, Name = "Alice" }
+            };
+
+            var (provider, _) = BuildProvider(seed);
+            var queryable = new CloudStorageQueryable<QueryTestUser>(provider);
+
+            IEnumerable nonGeneric = queryable;
+            var iterator = nonGeneric.GetEnumerator();
+            using var iterator1 = iterator as IDisposable;
+
+            iterator.MoveNext().ShouldBeTrue();
+            ((QueryTestUser?)iterator.Current)?.Id.ShouldBe(UserId1);
+            iterator.MoveNext().ShouldBeFalse();
+        }
+
+
+        // ── helpers ───────────────────────────────────────────────────────────────
+
+        private static void storageProviderMock_SetupMissingRead(
+            Mock<IStorageProvider> mock, string path)
+        {
+            mock.Setup(x => x.ReadAsync<QueryTestUser?>(It.Is<string>(p => p == path)))
+                .ReturnsAsync((QueryTestUser?)null);
+        }
+    }
+
+    // ── test model ────────────────────────────────────────────────────────────────
+
+    public class QueryTestUser
+    {
+        [StringLength(256)]
+        public string Id { get; init; } = string.Empty;
+
+        [StringLength(256)]
+        public string Name { get; init; } = string.Empty;
+    }
+
+    public class MinimalDbContext(DbContextOptions<MinimalDbContext> options) : DbContext(options)
+    {
+        public DbSet<QueryTestUser> Users => Set<QueryTestUser>();
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            var userEntity = modelBuilder.Entity<QueryTestUser>();
+            userEntity.HasKey(u => u.Id);
+            userEntity.Property(u => u.Id).HasMaxLength(256);
+            userEntity.Property(u => u.Name).HasMaxLength(256);
+        }
+    }
+}
