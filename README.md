@@ -2,144 +2,200 @@
 
 **Simplify persistence. Embrace scalability. Build the future.**
 
-CloudStorageORM is a lightweight and powerful library that enables developers to use cloud storage (Azure Blob Storage, AWS S3, Google Cloud Storage) as a reliable and scalable data source through Entity Framework.  
-Built with .NET 8, following Clean Architecture and SOLID principles, it empowers small and medium applications to focus on business logic while reducing the complexity of managing traditional databases.
+CloudStorageORM is an Entity Framework-style provider that persists entities into cloud object storage.
+The current `main` branch targets **.NET 10**, uses **EF Core 9**, and currently ships with an **Azure Blob Storage** provider.
+Support for **AWS S3** and **Google Cloud Storage** remains on the roadmap.
 
 ![License](https://img.shields.io/badge/license-GPLv3-blue)
-![.NET](https://img.shields.io/badge/.NET-8.0-blue)
+![.NET](https://img.shields.io/badge/.NET-10.0-blue)
 ![NuGet](https://img.shields.io/nuget/v/CloudStorageORM?color=blue)
 ![Build Status](https://github.com/rzavalik/CloudStorageORM/actions/workflows/ci.yml/badge.svg)
-![Build Status](https://github.com/rzavalik/CloudStorageORM/actions/workflows/publish.yml/badge.svg)
+![Publish Status](https://github.com/rzavalik/CloudStorageORM/actions/workflows/publish.yml/badge.svg)
 [![Contributing](https://img.shields.io/badge/Contributing-Guidelines-blue.svg)](./CONTRIBUTING.md)
 [![Security Policy](https://img.shields.io/badge/Security-Policy-blue.svg)](./SECURITY.md)
 
-[👉 See the full Roadmap](./ROADMAP.md)
+[👉 See the roadmap](./ROADMAP.md)
 
 ---
 
-## ✨ Features
+## ✨ Current status
 
-- ☁️ Use Azure Blob Storage, AWS S3, or Google Cloud Storage as your database
-- 🛠️ Builder Pattern and Clean Architecture ready
-- 🔥 Full Unit Test coverage using xUnit, Shouldly, and Moq
-- 🔒 Optimized for scalability, reliability, and concurrency control
-- 🛆 Available on NuGet for easy installation
-- 🎯 Built with .NET 8 and Entity Framework integration in mind
+- ✅ Targets `net10.0`
+- ✅ Azure Blob Storage provider is implemented
+- ✅ EF-style `DbContext` integration via `UseCloudStorageOrm(...)`
+- ✅ Sample app runs the same CRUD flow against EF InMemory and CloudStorageORM
+- ✅ Unit + integration tests run locally with Azurite
+- ✅ Coverage collection is wired with Coverlet + ReportGenerator
+- 🚧 AWS S3 provider is planned
+- 🚧 Google Cloud Storage provider is planned
 
 ---
 
-## 🛆 Installation
+## 📦 Installation
 
-Install via CLI:
+### From NuGet
 
 ```bash
-dotnet add package CloudStorageORM --version 1.0.7
+dotnet add package CloudStorageORM
 ```
 
-Or search for `CloudStorageORM` in the NuGet Package Manager inside Visual Studio.
+### From source (`main` branch)
+
+The repository currently targets **.NET 10 SDK**.
+
+```bash
+git clone https://github.com/rzavalik/CloudStorageORM.git
+cd CloudStorageORM
+dotnet restore CloudStorageORM.sln
+```
 
 ---
 
-## 🚀 Getting Started
+## 🚀 Getting started
 
-Start by configuring your cloud storage provider:
+The current recommended integration pattern is to configure a regular EF Core `DbContext` with `UseCloudStorageOrm(...)`.
 
 ```csharp
-var options = new CloudStorageOptions
-{
-    Provider = CloudProvider.Azure,
-    ConnectionString = "UseDevelopmentStorage=true",
-    ContainerName = "sampleapp-container"
-};
-
-var storageProvider = new AzureBlobStorageProvider(options);
-var context = new CloudStorageDbContext(options, storageProvider);
-var users = await context.Set<User>().ToListAsync();
-```
-
-![SampleApp](https://github.com/user-attachments/assets/4727df94-c149-46ae-a359-da159fe5c8b6)
-```csharp
-using CloudStorageORM.DbContext;
+using CloudStorageORM.Contexts;
 using CloudStorageORM.Enums;
-using CloudStorageORM.Options;
-using CloudStorageORM.StorageProviders;
+using CloudStorageORM.Extensions;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
-var options = new CloudStorageOptions
+public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
+    : CloudStorageDbContext(options)
 {
-    Provider = CloudProvider.Azure,
-    ConnectionString = "UseDevelopmentStorage=true", // Azurite local emulator or real Azure
-    ContainerName = "sampleapp-container"
-};
+    public DbSet<User> Users => Set<User>();
 
-var storageProvider = new AzureBlobStorageProvider(options);
-var context = new CloudStorageDbContext(options, storageProvider);
-
-var repository = context.Set<User>();
-var userId = Guid.NewGuid().ToString();
-
-// ➕ Create
-await repository.AddAsync(userId, new User
-{
-    Id = userId,
-    Name = "John Doe",
-    Email = "john.doe@example.com"
-});
-
-// 📃 List
-var users = await repository.ListAsync();
-foreach (var user in users)
-{
-    Console.WriteLine($"{user.Id}: {user.Name} ({user.Email})");
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<User>().HasKey(x => x.Id);
+        base.OnModelCreating(modelBuilder);
+    }
 }
 
-// ✏️ Update
-var updatedUser = new User
+var services = new ServiceCollection();
+
+services.AddDbContext<AppDbContext>(options =>
 {
-    Id = userId,
-    Name = "John Doe Updated",
-    Email = "john.doe.updated@example.com"
-};
-await repository.UpdateAsync(userId, updatedUser);
-
-// 🔎 Find
-var foundUser = await repository.FindAsync(userId);
-Console.WriteLine($"Found: {foundUser?.Id} - {foundUser?.Name} ({foundUser?.Email})");
-
-// 🗑️ Delete
-await repository.RemoveAsync(userId);
-
-// 📃 List after deletion
-var usersAfterDelete = await repository.ListAsync();
-Console.WriteLine($"Remaining users: {usersAfterDelete.Count}");
+    options.UseCloudStorageOrm(storage =>
+    {
+        storage.Provider = CloudProvider.Azure;
+        storage.ConnectionString = "UseDevelopmentStorage=true";
+        storage.ContainerName = "sampleapp-container";
+    });
+});
 ```
 
-> 📚 Full examples and extended documentation are coming soon!
+Then use the context with familiar EF operations and LINQ:
+
+```csharp
+await using var provider = services.BuildServiceProvider();
+await using var scope = provider.CreateAsyncScope();
+var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+var user = new User
+{
+    Id = Guid.NewGuid().ToString(),
+    Name = "John Doe",
+    Email = "john.doe@example.com"
+};
+
+db.Add(user);
+await db.SaveChangesAsync();
+
+var users = await db.Set<User>().ToListAsync();
+var found = db.Set<User>().FirstOrDefault(x => x.Id == user.Id);
+
+db.Remove(found!);
+await db.SaveChangesAsync();
+```
+
+> Current provider support on `main`: **Azure Blob Storage only**.
 
 ---
 
-## 🧪 Running Tests Locally
+## 🧭 Important notes for the current branch
 
-CloudStorageORM uses [Azurite](https://github.com/Azure/Azurite) to simulate Azure Blob Storage locally for unit testing.  
-See [Testing with Azurite](./docs/testing-with-azurite.md) to configure your local environment.
+- The base context namespace is now `CloudStorageORM.Contexts`.
+- Coding style is enforced with **file-scoped namespaces** (`namespace X;`).
+- The sample app is covered by an integration test that verifies `dotnet run` exits successfully.
+- `IDatabaseCreator` behavior is still minimal right now: schema-style database lifecycle methods are not fully implemented because object storage does not map 1:1 to relational database creation semantics.
+
+---
+
+## 🧪 Running tests locally
+
+### Start Azurite
+
+```bash
+docker run -d \
+  -p 10000:10000 \
+  -p 10001:10001 \
+  -p 10002:10002 \
+  --name azurite \
+  mcr.microsoft.com/azure-storage/azurite
+```
+
+### Run the solution tests
+
+```bash
+dotnet test CloudStorageORM.sln --nologo -v minimal
+```
+
+### Collect coverage
+
+```bash
+dotnet test CloudStorageORM.sln --nologo --settings coverlet.runsettings --collect:"XPlat Code Coverage" -v minimal
+dotnet tool restore
+dotnet tool run reportgenerator \
+  -reports:"tests/**/TestResults/*/coverage.cobertura.xml" \
+  -targetdir:"coverage/report" \
+  -reporttypes:"Html"
+```
+
+The HTML report is generated at `coverage/report/index.html`.
+
+---
+
+## 🧪 Running the sample app
+
+```bash
+dotnet run --project samples/CloudStorageORM.SampleApp/SampleApp.csproj
+```
+
+The app runs the same CRUD flow twice:
+
+1. Once against EF Core InMemory
+2. Once against CloudStorageORM configured for Azure Blob Storage / Azurite
+
+See [docs/sampleapp.md](./docs/sampleapp.md) for details.
+
+---
+
+## 📚 Documentation
+
+- [Library documentation](./docs/CloudStorageORM.md)
+- [Sample app guide](./docs/sampleapp.md)
+- [Testing with Azurite](./docs/testing-with-azurite.md)
+- [Contributing](./CONTRIBUTING.md)
+- [Roadmap](./ROADMAP.md)
 
 ---
 
 ## 🛡️ License
 
-This project is licensed under the **GNU General Public License v3.0 (GPL-3.0-only)**.  
-Commercial use without prior authorization is not allowed.  
-See the [LICENSE](./LICENSE) file for more information.
+This project is licensed under the **GNU General Public License v3.0 (GPL-3.0-or-later)**.
+See [LICENSE](./LICENSE) for details.
 
 ---
 
 ## 🤝 Contributing
 
-We welcome contributions from the community! 🚀  
-If you'd like to help, please read our [Contributing Guidelines](./CONTRIBUTING.md) and [Pull Request Template](./.github/PULL_REQUEST_TEMPLATE.md).
-
-Thank you for helping make CloudStorageORM even better!
+Contributions are welcome.
+Please read [CONTRIBUTING.md](./CONTRIBUTING.md) before opening a PR.
 
 ---
 
-> _"CloudStorageORM empowers developers to move faster, scale smarter, and build stronger applications by leveraging the true power of cloud storage."_ 🚀
 
+> _CloudStorageORM aims to make cloud object storage feel familiar to EF-oriented .NET applications, while staying explicit about the current provider and platform limits._

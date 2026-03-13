@@ -1,131 +1,126 @@
 # CloudStorageORM.SampleApp
 
-Welcome to the official sample app for **CloudStorageORM**!
+`CloudStorageORM.SampleApp` demonstrates the current provider behavior on `main` by running the **same application flow** twice:
 
-This project demonstrates how to use the **CloudStorageORM** library to persist and query data using **Azure Blob Storage** as the data source, through an **Entity Framework Core (EF Core)**-like experience.
+1. once with **EF Core InMemory**
+2. once with **CloudStorageORM + Azure Blob Storage**
 
-The SampleApp runs two examples side-by-side:
-- One using **InMemory** database.
-- One using **CloudStorageORM** with Azure Blob Storage.
-
----
-
-## 🔍 What does this SampleApp do?
-
-For both storage types (**InMemory** and **CloudStorageORM**):
-
-1. **Creates a User**
-2. **Lists Users**
-3. **Updates the User**
-4. **Finds the updated User**
-5. **Deletes the User**
-6. **Confirms that no Users are left**
-
-Everything is fully logged in the Console output, showing the behavior of the persistence operations.
+The sample currently targets **.NET 10** and uses **Azurite** by default for local Blob Storage emulation.
 
 ---
 
-## 💡 How the App is Organized
+## What the sample proves
 
-The `Program.cs` file drives the execution. It uses two DbContext configurations:
+For both storage modes, the app executes the same steps:
 
-- `MyAppDbContextInMemory`: EF Core using InMemoryDatabase.
-- `MyAppDbContextCloudStorage`: EF Core using CloudStorageORM with Azure Blob Storage.
+1. list users
+2. create a user
+3. list users again
+4. update the user
+5. find the updated user through a LINQ query
+6. delete the user
+7. confirm the entity is gone
 
-Each DbContext implements the same operations to show how CloudStorageORM can mimic a traditional database using object storage.
-
-
----
-
-## 🎓 Technologies Demonstrated
-
-| Feature | Demonstrated |
-|:---|:---|
-| EF Core Concepts | DbContext, DbSet, LINQ Queries |
-| InMemory Database | For comparison |
-| CloudStorageORM | Using Blob Storage like a database |
-| CRUD Operations | Create, Read, Update, Delete |
-| Azure Blob Storage | For persistent storage |
-| Asynchronous programming | `await` / `async` all over the sample |
-| IQueryable and IAsyncEnumerable | Correct handling inside ORM |
+This is important because the goal of the sample is not just CRUD; it is demonstrating that the CloudStorageORM provider behaves close to familiar EF usage for the same application code.
 
 ---
 
-## 🛍️ How to Run Locally
+## Current sample structure
 
-1. Clone the Repository:
-   ```bash
-   git clone https://github.com/rzavalik/CloudStorageORM.git
-   cd CloudStorageORM/samples/CloudStorageORM.SampleApp
-   ```
-
-2. Configure your Azure Storage:
-   - The app currently uses the **Azurite** emulator by default.
-   - If you want to use real Azure Blob Storage, update the connection string and container name in `Program.cs`.
-
-3. Run the App:
-   ```bash
-   dotnet run
-   ```
-
-4. See the output in the console:
-   - First part: InMemory database operations.
-   - Second part: CloudStorageORM with Azure Blob Storage.
+| File | Purpose |
+| :--- | :--- |
+| `samples/CloudStorageORM.SampleApp/Program.cs` | Drives the two runs and prints the console output |
+| `samples/CloudStorageORM.SampleApp/DbContext/MyAppDbContext.cs` | Defines the InMemory and CloudStorageORM contexts |
+| `samples/CloudStorageORM.SampleApp/Models/User.cs` | Sample entity persisted to storage |
 
 ---
 
-## 📖 Example Console Output
+## Key behavior on the current branch
 
-```plaintext
-🚀 Running using InMemory...
-📃 Listing users...
-- 72112332-dae0-4110-ae93-3afcb3d135da: John Doe (john.doe@example.com)
-...
-🚀 Running using CloudStorageORM...
-📃 Listing users...
-- 72112332-dae0-4110-ae93-3afcb3d135da: John Doe (john.doe@example.com)
-...
+- The CloudStorageORM path is configured with `UseCloudStorageOrm(...)`.
+- The sample uses `SaveChangesAsync()` for create, update, and delete.
+- Listing uses `ToListAsync()`.
+- Finding and updating use LINQ with `FirstOrDefault(...)`.
+- The same domain model and CRUD flow are exercised for both providers.
+
+---
+
+## How to run locally
+
+### Prerequisites
+
+- .NET 10 SDK
+- Docker (recommended, for Azurite)
+
+### Start Azurite
+
+```bash
+docker run -d \
+  -p 10000:10000 \
+  -p 10001:10001 \
+  -p 10002:10002 \
+  --name azurite \
+  mcr.microsoft.com/azure-storage/azurite
+```
+
+### Run the sample from the repository root
+
+```bash
+dotnet run --project samples/CloudStorageORM.SampleApp/SampleApp.csproj
+```
+
+---
+
+## What you should expect to see
+
+The console output is split into two sections:
+
+- `Running using EF InMemory Provider...`
+- `Running using EF CloudStorageOrm Provider...`
+
+Both sections should complete successfully and finish with a message like:
+
+```text
+🏁 SampleApp Finished for MyAppDbContextInMemory.
+🏁 SampleApp Finished for MyAppDbContextCloudStorage.
 🏁 SampleApp Finished.
 ```
 
 ---
 
-## 🔄 What this Sample Demonstrates About CloudStorageORM
+## Configuration details
 
-- **Seamless replacement** for traditional EF Core DbContext.
-- **LINQ support** over Blob Storage.
-- **Asynchronous and Synchronous queries**.
-- **Simulated DbSet behavior** with Blob persistence.
-- **Minimal code changes** between InMemory and Cloud Storage modes.
+The sample currently uses:
 
----
+- provider: `CloudProvider.Azure`
+- connection string: `UseDevelopmentStorage=true`
+- container: `sampleapp-container`
 
-## 📘 Additional Notes
-
-- When running with CloudStorageORM, each entity is persisted individually as a **Blob object** inside your container.
-- This sample is useful for:
-  - Testing CloudStorageORM capabilities.
-  - Understanding how object storage can be used like a database for small/medium applications.
-  - Comparing InMemory vs Cloud persistence side-by-side.
+If you want to point it to a real Azure Storage account instead of Azurite, update the CloudStorageORM configuration in `samples/CloudStorageORM.SampleApp/Program.cs`.
 
 ---
 
-## 🌐 Links
+## Regression safety
 
-- [Main Repository](https://github.com/rzavalik/CloudStorageORM)
-- [CloudStorageORM NuGet Package](#)
-- [Documentation](#)
+This sample is also covered by an integration test:
 
----
+- `tests/CloudStorageORM.IntegrationTests/ProgramExitTests.cs`
 
-## 💡 Future Improvements
-
-- Implement `SaveChangesAsync` for real update/persist/delete operations in Blob.
-- Add E2E API sample using ASP.NET Core.
-- Add Azure Storage configuration options.
+That test launches the sample through `dotnet run` and verifies it exits with code `0` and prints `SampleApp Finished`.
 
 ---
 
-> Made with ❤️ by [Rodrigo Zavalik](https://github.com/rzavalik) and contributors!
+## Why this sample matters
+
+The sample is the clearest executable proof, on the current branch, that CloudStorageORM is intended to be consumed like an EF provider rather than through a completely separate repository API.
+It also serves as a guardrail for query execution changes, provider behavior, and end-to-end startup wiring.
 
 ---
+
+## Related docs
+
+- [README](../README.md)
+- [Library documentation](./CloudStorageORM.md)
+- [Testing with Azurite](./testing-with-azurite.md)
+
+

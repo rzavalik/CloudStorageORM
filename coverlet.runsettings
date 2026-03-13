@@ -38,6 +38,6 @@
 
   <!-- Enable branch coverage output in Cobertura -->
   <MSTest>
-    <EnableBranchCoverage>true</EnableBranchCoverage>kd
+    <EnableBranchCoverage>true</EnableBranchCoverage>
   </MSTest>
 </RunSettings>
