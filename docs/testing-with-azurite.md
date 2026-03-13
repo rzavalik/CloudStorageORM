@@ -1,51 +1,153 @@
 # 🧪 Testing CloudStorageORM with Azurite
 
-CloudStorageORM uses [Azurite](https://github.com/Azure/Azurite) to simulate Azure Blob Storage locally during testing.
+CloudStorageORM uses [Azurite](https://github.com/Azure/Azurite) to emulate Azure Blob Storage locally.
+That is the expected local setup for the current `main` branch whenever you want to:
 
-This allows you to run tests without a real Azure subscription, fully offline and free.
+- run integration tests
+- run the sample app in CloudStorageORM mode
+- validate Azure Blob Storage behavior without a real Azure subscription
 
 ---
 
-## 🚀 Running Azurite Locally
+## Prerequisites
 
-You can run Azurite easily using Docker:
+- .NET 10 SDK
+- Docker
+
+---
+
+## Start Azurite
 
 ```bash
-docker run -d -p 10000:10000 -p 10001:10001 -p 10002:10002 --name azurite mcr.microsoft.com/azure-storage/azurite
+docker run -d \
+  -p 10000:10000 \
+  -p 10001:10001 \
+  -p 10002:10002 \
+  --name azurite \
+  mcr.microsoft.com/azure-storage/azurite
 ```
 
-## 🔗 Connection String for Testing
+The repository uses the standard development connection string:
 
-The tests use the following connection string:
-
-```
+```text
 UseDevelopmentStorage=true
 ```
 
-This automatically points to your local Azurite instance.
+---
 
-## 🛑 Common Issues
+## Verify Azurite is running
 
-### Azurite not running
-
-Make sure the Docker container is running:
 ```bash
 docker ps
 ```
 
-#### Example Output
+You should see a container named `azurite` exposing ports `10000-10002`.
+
+---
+
+## Run the full test suite
+
+From the repository root:
 
 ```bash
-CONTAINER ID   IMAGE                                     COMMAND                  CREATED         STATUS         PORTS                                  NAMES
-abcd1234efgh   mcr.microsoft.com/azure-storage/azurite   "docker-entrypoint.s…"   2 minutes ago   Up 2 minutes   0.0.0.0:10000-10002->10000-10002/tcp   azurite
+dotnet test CloudStorageORM.sln --nologo -v minimal
+```
+
+This runs:
+
+- unit tests in `tests/CloudStorageORM.Tests`
+- integration tests in `tests/CloudStorageORM.IntegrationTests`
+
+---
+
+## Run only the integration tests
+
+```bash
+dotnet test tests/CloudStorageORM.IntegrationTests/CloudStorageORM.IntegrationTests.Azure.csproj --nologo -v minimal
+```
+
+---
+
+## Run the sample app against Azurite
+
+```bash
+dotnet run --project samples/CloudStorageORM.SampleApp/SampleApp.csproj
+```
+
+The sample app executes the same CRUD flow against:
+
+1. EF InMemory
+2. CloudStorageORM configured with Azure Blob Storage
+
+---
+
+## Collect coverage
+
+Coverage collection is configured through `coverlet.runsettings` and the tool manifest in `dotnet-tools.json`.
+
+### Collect Cobertura coverage files
+
+```bash
+dotnet test CloudStorageORM.sln --nologo --settings coverlet.runsettings --collect:"XPlat Code Coverage" -v minimal
+```
+
+Coverage files are emitted under each test project's `TestResults` directory.
+
+### Generate an HTML report
+
+```bash
+dotnet tool restore
+dotnet tool run reportgenerator \
+  -reports:"tests/**/TestResults/*/coverage.cobertura.xml" \
+  -targetdir:"coverage/report" \
+  -reporttypes:"Html"
+```
+
+Open `coverage/report/index.html` in your browser.
+
+---
+
+## Common issues
+
+### Azurite is not running
+
+Symptoms can include connection failures or integration tests timing out.
+Start or restart the container:
+
+```bash
+docker rm -f azurite || true
+docker run -d \
+  -p 10000:10000 \
+  -p 10001:10001 \
+  -p 10002:10002 \
+  --name azurite \
+  mcr.microsoft.com/azure-storage/azurite
 ```
 
 ### Port conflicts
-Ensure ports 10000–10002 are not used by other processes.
 
-> 💡 **Tip:** Always run `dotnet test` after starting Azurite to ensure all tests pass locally.
+Ensure ports `10000`, `10001`, and `10002` are free.
 
-## 📚 References
+### You only want fast local verification
+
+Run unit tests only:
+
+```bash
+dotnet test tests/CloudStorageORM.Tests/CloudStorageORM.Tests.csproj --nologo -v minimal
+```
+
+---
+
+## Related files
+
+- `tests/CloudStorageORM.IntegrationTests/StorageFixture.cs`
+- `tests/CloudStorageORM.IntegrationTests/ProgramExitTests.cs`
+- `coverlet.runsettings`
+- `dotnet-tools.json`
+
+---
+
+## References
 
 - [Azurite GitHub Repository](https://github.com/Azure/Azurite)
-- [Azure Storage Emulator (deprecated)](https://learn.microsoft.com/en-us/azure/storage/common/storage-use-emulator)
+- [Azure Storage Emulator migration guidance](https://learn.microsoft.com/en-us/azure/storage/common/storage-use-emulator)

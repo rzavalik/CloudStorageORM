@@ -1,132 +1,174 @@
-
 # 📦 CloudStorageORM - Library Documentation
 
-**Target Framework**: `.NET 8`  
-**Testing**: `xUnit`, `Shouldly`, `Moq`  
-**Architecture**: `Builder Architecture`, `SOLID Principles`, `Clean Dependency Injection`
+**Target Framework**: `net10.0`  
+**Language Version**: `C# 14`  
+**EF Core Packages**: `Microsoft.EntityFrameworkCore 9.0.4`, `Microsoft.EntityFrameworkCore.Relational 9.0.4`  
+**Testing**: `xUnit`, `Shouldly`, `Moq`, `Coverlet`, `ReportGenerator`
 
 ---
 
 ## Overview
 
-The `CloudStorageORM` project is a lightweight, extensible, and testable Entity Framework Provider that allows using cloud object storage (e.g., Azure Blob Storage, Amazon S3, Google Cloud Storage) **as a database backend** for simple, scalable applications.
+`CloudStorageORM` is an Entity Framework-style provider that lets a .NET application persist entities into cloud object storage.
+On the current `main` branch, the implemented storage provider is **Azure Blob Storage**.
+The provider surface is designed so that **AWS S3** and **Google Cloud Storage** can be added later, but they are **not implemented yet**.
 
-The library focuses on implementing CRUD operations using **cloud-native principles** such as:
-- **Locking**, **Snapshot Isolation**
-- **Blob / Object Storage** as backend
-- **DbContext integration** for familiar development experience
-- **Plug & Play** Storage Providers (Azure, AWS, GCP)
+The current branch is focused on:
+
+- EF-style `DbContext` integration
+- LINQ query execution over persisted blobs
+- CRUD flows that behave similarly to the EF InMemory provider for the sample app
+- Unit and integration test coverage around infrastructure, queries, validators, and provider behavior
 
 ---
 
-## Project Structure
+## Current project structure
 
-| Folder/File | Purpose |
+| Path | Purpose |
 | :--- | :--- |
-| `Abstractions/` | Core Interfaces for Providers and Internal Logic |
-| `Infrastructure/` | EF Core Integration and Implementation Details |
-| `Models/` | Entity and Metadata Definitions |
-| `Services/` | Utility Services (Locking, Serialization) |
-| `StorageProviders/` | Cloud Provider Implementations (e.g., AzureBlobStorageProvider) |
-| `CloudStorageExtensions.cs` | Extension methods to inject CloudStorageORM into DI/EF |
-| `CloudStorageOptions.cs` | Configuration options for Storage Provider |
-| `CloudStorageSingletonOptionsInitializer.cs` | EF Core service initializer |
-| `IStorageProvider.cs` | Interface for storage operations |
-| `StorageProviderFactory.cs` | Future point for factory building multiple providers |
+| `src/CloudStorageORM/Contexts` | Base `CloudStorageDbContext` used by consuming applications |
+| `src/CloudStorageORM/Extensions` | EF and DI extension methods such as `UseCloudStorageOrm(...)` |
+| `src/CloudStorageORM/Infrastructure` | Query pipeline, database abstractions, type mapping, and EF integration internals |
+| `src/CloudStorageORM/Interfaces` | Contracts for storage providers, validators, repositories, and infrastructure helpers |
+| `src/CloudStorageORM/Options` | `CloudStorageOptions` configuration model |
+| `src/CloudStorageORM/Providers/Azure` | Azure Blob Storage provider and validator implementation |
+| `src/CloudStorageORM/Repositories` | Repository and queryable helpers |
+| `src/CloudStorageORM/Validators` | Model and blob validation rules |
+| `samples/CloudStorageORM.SampleApp` | Console sample that runs the same flow against InMemory and CloudStorageORM |
+| `tests/CloudStorageORM.Tests` | Unit tests |
+| `tests/CloudStorageORM.IntegrationTests` | Azurite-backed integration tests, including sample app process execution |
 
 ---
 
-## Class-by-Class Documentation
+## Main public entry points
 
-### 📁 `Abstractions`
+### `CloudStorageORM.Extensions.CloudStorageOrmExtensions`
 
-#### `IStorageProvider`
-- **Purpose**: Defines CRUD operations over cloud storage (like Save, Get, Delete, List).
-- **Intent**: Allow CloudStorageORM to remain agnostic of the underlying storage provider.
-- **Key Methods**: 
-  - `SaveAsync`
-  - `GetAsync`
-  - `DeleteAsync`
-  - `ListAsync`
-  - `ExistsAsync`
+Adds the provider to EF Core through:
 
-### 📁 `Infrastructure`
+- `UseCloudStorageOrm(this DbContextOptionsBuilder builder, Action<CloudStorageOptions>? configureOptions)`
+- `UseCloudStorageOrm<TContext>(...)`
 
-#### `CloudStorageExtensions`
-- **Purpose**: Adds `.UseCloudStorageORM()` extension to `DbContextOptionsBuilder`.
-- **Intent**: Seamless EF Core integration through Dependency Injection.
+Use this when configuring a context with `AddDbContext(...)`.
 
-#### `CloudStorageOptions`
-- **Purpose**: Encapsulates configuration settings.
-- **Properties**:
-  - `Provider` (Azure, AWS, GCP)
-  - `ConnectionString`
-  - `ContainerName`
-  - `RootPath`
-- **Intent**: Centralize storage configuration per context.
+### `CloudStorageORM.Contexts.CloudStorageDbContext`
 
-#### `CloudStorageSingletonOptionsInitializer`
-- **Purpose**: Internal EF Core hook that ensures `CloudStorageORM` options are initialized once.
-- **Intent**: Prevent misconfiguration at runtime.
+Base context that:
 
-### 📁 `Models`
+- reads `CloudStorageOptions` from EF options
+- resolves the correct storage provider through `ProviderFactory`
+- applies blob settings conventions
+- validates the EF model against storage constraints
 
-#### `EntityMetadata`
-- **Purpose**: Metadata representation (like ETag, LastModified, ContentType) for stored entities.
-- **Intent**: Enable advanced scenarios (optimistic concurrency, audit, etc).
+### `CloudStorageORM.Extensions.CloudStorageOrmServiceCollectionExtensions`
 
-### 📁 `Services`
+Adds related services to DI through:
 
-#### `BlobEntitySerializer`
-- **Purpose**: Handles serialization/deserialization of entities into blobs (using JSON).
-- **Intent**: Abstract serialization to allow future customizations (e.g., compressed, encrypted).
+- `AddEntityFrameworkCloudStorageOrm(this IServiceCollection services, CloudStorageOptions storageOptions)`
 
-#### `BlobStorageLocker`
-- **Purpose**: Provides optimistic concurrency and basic locking.
-- **Intent**: Prevent concurrent writes, race conditions using cloud-native features (e.g., leases, etags).
+### `CloudStorageORM.Providers.ProviderFactory`
 
-### 📁 `StorageProviders`
+Current behavior:
 
-#### `AzureBlobStorageProvider`
-- **Purpose**: Implements `IStorageProvider` for **Azure Blob Storage**.
-- **Intent**: Enable CRUD operations via Azure SDK.
-- **Notes**: 
-  - Uses `BlobContainerClient`
-  - Uploads, downloads, deletes JSON blobs
-  - Supports basic folder organization via "prefixes"
-
-### 🔧 `StorageProviderFactory`
-- **Purpose**: (Currently not implemented but envisioned)  
-- **Intent**: Allow runtime provider selection based on `CloudProvider` enum (Azure, AWS, GCP).
+- `CloudProvider.Azure` → `AzureBlobStorageProvider`
+- any other provider → `NotSupportedException`
 
 ---
 
-## Design Patterns and Principles
+## Query and persistence behavior
 
-- **Builder Pattern**: Configure via `.UseCloudStorageORM()`
-- **Dependency Injection**: Injects `IStorageProvider` into the DbContext
-- **SOLID**: Clear separation of concerns across Abstractions, Infrastructure, Services
-- **Testability**: Every class can be tested using `Moq`, `Shouldly`, and `xUnit`
-- **Extensibility**: Easy to add support for new providers (AWS S3, Google Storage)
+The current branch supports EF-style usage such as:
 
----
+- `context.Add(entity)` / `context.Update(entity)` / `context.Remove(entity)`
+- `await context.SaveChangesAsync()`
+- `await context.Set<TEntity>().ToListAsync()`
+- `context.Set<TEntity>().FirstOrDefault(predicate)`
 
-## Current Status
+The recent query work on `main` focuses on:
 
-✅ InMemory Provider for Testing  
-✅ Azure Blob Storage Provider  
-✅ Full CRUD Implementation  
-✅ Integrated with EF Core  
-✅ SampleApp showing usage  
-🚧 AWS/GCP Providers not yet implemented  
-🚧 Advanced Lock/Lease strategies to be evolved  
+- evaluating LINQ queries directly instead of materializing everything and then searching in memory for single-entity lookups
+- returning queryables and async enumerables compatible with EF-style execution
+- keeping the sample app behavior aligned between EF InMemory and CloudStorageORM
 
 ---
 
-## Future Plans
+## Provider status
 
-- Implement `AWS S3 Provider`
-- Implement `Google Cloud Storage Provider`
-- Add `Blob Compression / Encryption`
-- Extend `BlobEntitySerializer` to allow pluggable formats (JSON, Avro, ProtoBuf)
-- Advanced Locking (distributed lock manager)
+### Implemented now
+
+- Azure Blob Storage provider
+- Azure blob validation
+- Sample app demonstrating CRUD parity with EF InMemory
+- Integration test verifying the sample app exits successfully
+
+### Planned, not implemented yet
+
+- AWS S3 provider
+- Google Cloud Storage provider
+- provider-specific locking and richer concurrency strategies
+- broader snapshot/versioning support
+
+---
+
+## Important limitations to document clearly
+
+These items are important for anyone consuming the current `main` branch:
+
+1. **Only Azure is implemented today**  
+   The enum contains more provider options, but `ProviderFactory` currently supports only Azure.
+
+2. **Object storage is not relational storage**  
+   Database creation / deletion semantics do not map directly to object storage.
+   In particular, `CloudStorageDatabaseCreator` is still intentionally minimal and some methods remain placeholders or throw `NotImplementedException`.
+
+3. **Current branch targets .NET 10**  
+   Consumers building from source should use the .NET 10 SDK.
+
+4. **Namespace style was standardized**  
+   The codebase now uses file-scoped namespaces (`namespace X;`) and places `using` directives outside the namespace.
+
+---
+
+## Testing and coverage
+
+The repository currently includes:
+
+- unit tests in `tests/CloudStorageORM.Tests`
+- Azurite-backed integration tests in `tests/CloudStorageORM.IntegrationTests`
+- coverage collection through `coverlet.collector` / `coverlet.msbuild`
+- HTML report generation through the local tool manifest in `dotnet-tools.json`
+
+Typical commands:
+
+```bash
+dotnet test CloudStorageORM.sln --nologo -v minimal
+dotnet test CloudStorageORM.sln --nologo --settings coverlet.runsettings --collect:"XPlat Code Coverage" -v minimal
+dotnet tool restore
+dotnet tool run reportgenerator -reports:"tests/**/TestResults/*/coverage.cobertura.xml" -targetdir:"coverage/report" -reporttypes:"Html"
+```
+
+---
+
+## Sample app relationship
+
+The sample app is not just a demo now; it is also part of the regression safety net.
+The integration test `tests/CloudStorageORM.IntegrationTests/ProgramExitTests.cs` executes:
+
+```bash
+dotnet run --project samples/CloudStorageORM.SampleApp/SampleApp.csproj
+```
+
+and verifies the process exits successfully.
+
+---
+
+## Roadmap summary
+
+Short term priorities still documented by the repository direction are:
+
+- additional provider implementations
+- better concurrency and locking semantics
+- continued query behavior parity with familiar EF usage
+- clearer production-readiness guidance per feature area
+
+See [`ROADMAP.md`](../ROADMAP.md) for the broader plan.

@@ -1,84 +1,185 @@
 # Contributing to CloudStorageORM
 
-First of all, thank you for considering contributing to **CloudStorageORM**! 🚀  
-We welcome contributions from everyone.
-
-To keep the project clean, organized, and scalable, we ask contributors to follow these simple guidelines.
+Thank you for considering contributing to **CloudStorageORM**.
+This document reflects the current expectations for the `main` branch.
 
 ---
 
-## 📋 How to Contribute
+## ✅ Quick checklist
+
+Before opening a PR, make sure you have:
+
+- [ ] built with the **.NET 10 SDK**
+- [ ] formatted the solution with `dotnet format`
+- [ ] run the relevant tests
+- [ ] updated documentation when changing public behavior, supported platforms, or contributor workflows
+
+---
+
+## Local prerequisites
+
+For active development on the current branch, you should have:
+
+- .NET 10 SDK
+- Docker (recommended for Azurite-backed integration tests)
+
+---
+
+## How to contribute
 
 - Fork the repository.
-- Create a branch for your work following our branch naming convention.
-- Work on your feature, fix, or improvement.
-- Open a Pull Request (PR) referencing the related Issue.
+- Create a branch for your work following the naming convention below.
+- Implement your change.
+- Run formatting and tests locally.
+- Open a Pull Request referencing the related issue.
 
+---
 
-## 🏷️ Branch Naming Convention
-
-When creating a new branch, please use the following prefixes:
+## Branch naming convention
 
 | Type | Prefix | Example |
-|:---|:---|:---|
+| :--- | :--- | :--- |
 | New Feature | `feature/` | `feature/implement-azureprovider` |
-| Bug Fix | `bugfix/` | `bugfix/fix-azure-saveasync` |
-| Tests | `test/` | `test/unit-cloudstoragerepository` |
-| Documentation | `docs/` | `docs/update-readme-azure-example` |
-| Refactoring | `refactor/` | `refactor/optimize-repository-queries` |
+| Bug Fix | `bugfix/` | `bugfix/fix-query-evaluation` |
+| Tests | `test/` | `test/add-sampleapp-exit-coverage` |
+| Documentation | `docs/` | `docs/update-net10-guidance` |
+| Refactoring | `refactor/` | `refactor/simplify-query-provider` |
 
-Example branch names:
+Examples:
+
 - `feature/create-istorageprovider`
 - `bugfix/fix-path-handling`
 - `test/unit-azureblobstorageprovider`
 
+---
 
-## 📄 Pull Request Guidelines
+## Pull request guidelines
 
-When submitting a Pull Request, please:
+### PR title format
 
-- Use the following title format:
+Use:
 
-  ```
-  [TYPE] Short Description
-  ```
+```text
+[TYPE] Short Description
+```
 
-  Where `TYPE` is one of:
-  - `[FEATURE]` — New functionality
-  - `[BUGFIX]` — Fix for a bug
-  - `[TEST]` — Tests added or improved
-  - `[DOCS]` — Documentation updates
-  - `[REFACTOR]` — Refactoring code without changing functionality
+Where `TYPE` is one of:
+
+- `[FEATURE]`
+- `[BUGFIX]`
+- `[TEST]`
+- `[DOCS]`
+- `[REFACTOR]`
 
 Examples:
+
 - `[FEATURE] Implement AzureBlobStorageProvider`
-- `[BUGFIX] Fix DeleteAsync error in Azure Provider`
-- `[TEST] Add unit tests for CloudStorageRepository`
+- `[BUGFIX] Fix LINQ execution for single-entity queries`
+- `[TEST] Add sample app process integration test`
 
-- In the PR description:
-  - Briefly explain what was implemented or fixed.
-  - Reference the related Issue using `Closes #issue_number`.
-  - Fill in the checklist from the Pull Request Template.
+### PR description
 
+Please include:
 
-## ✅ Pull Request Checklist
+- a short summary of what changed
+- why the change was needed
+- `Closes #issue_number` when applicable
+- any local setup notes reviewers need (for example, Azurite)
 
-Before submitting your pull request, make sure that:
-- [ ] The code follows the branch naming and PR title conventions.
-- [ ] Tests are passing.
-- [ ] Code is consistent with project standards.
-- [ ] Related Issue is referenced.
-- [ ] Documentation was updated if necessary.
+---
 
+## Coding style requirements
 
-## 🛡️ Branch Protection Rules
+The repository formatting rules are driven by `.editorconfig`.
+The current branch expects, among other things:
 
-Direct pushes to `main` are not allowed.  
-All changes must go through a Pull Request and must pass CI checks.
+- **file-scoped namespaces**: `namespace My.Namespace;`
+- `using` directives **outside** namespaces
+- `var` usage preferred in the configured style rules
+- standard solution-wide formatting via `dotnet format`
 
+Run:
 
-## 💬 Need Help?
+```bash
+dotnet format CloudStorageORM.sln --verbosity minimal
+```
 
-Feel free to open a [Discussion](https://github.com/rzavalik/CloudStorageORM/discussions) if you have questions or suggestions!
+---
 
-We appreciate your effort and interest! Let's build something amazing together! 🚀
+## Testing expectations
+
+### Unit + integration tests
+
+```bash
+dotnet test CloudStorageORM.sln --nologo -v minimal
+```
+
+### Integration tests with Azurite
+
+If your change touches Azure provider behavior, sample app behavior, or end-to-end query execution, start Azurite first:
+
+```bash
+docker run -d \
+  -p 10000:10000 \
+  -p 10001:10001 \
+  -p 10002:10002 \
+  --name azurite \
+  mcr.microsoft.com/azure-storage/azurite
+```
+
+### Coverage workflow
+
+```bash
+dotnet test CloudStorageORM.sln --nologo --settings coverlet.runsettings --collect:"XPlat Code Coverage" -v minimal
+dotnet tool restore
+dotnet tool run reportgenerator \
+  -reports:"tests/**/TestResults/*/coverage.cobertura.xml" \
+  -targetdir:"coverage/report" \
+  -reporttypes:"Html"
+```
+
+---
+
+## Documentation expectations
+
+Documentation updates are required when your PR changes any of the following:
+
+- target framework or SDK expectations
+- supported providers
+- public namespaces or public API shape
+- sample app behavior
+- test, coverage, or local development workflow
+
+The most likely files to update are:
+
+- `README.md`
+- `docs/CloudStorageORM.md`
+- `docs/sampleapp.md`
+- `docs/testing-with-azurite.md`
+- `ROADMAP.md`
+
+---
+
+## Pull request checklist
+
+Before submitting your PR, verify:
+
+- [ ] The branch name follows the convention.
+- [ ] The PR title follows the convention.
+- [ ] The relevant tests pass.
+- [ ] The solution is formatted.
+- [ ] Documentation was updated if behavior changed.
+- [ ] Related issues are referenced.
+
+---
+
+## Branch protection
+
+Direct pushes to `main` are not allowed.
+All changes should go through a PR and pass CI.
+
+---
+
+## Need help?
+
+Open a [Discussion](https://github.com/rzavalik/CloudStorageORM/discussions) if you have questions, ideas, or design feedback.
