@@ -1,73 +1,72 @@
-﻿namespace CloudStorageORM.Infrastructure
+﻿using Microsoft.EntityFrameworkCore.Storage;
+
+namespace CloudStorageORM.Infrastructure;
+
+public class CloudStorageTransactionManager : IDbContextTransactionManager
 {
-    using Microsoft.EntityFrameworkCore.Storage;
-
-    public class CloudStorageTransactionManager : IDbContextTransactionManager
+    public IDbContextTransaction BeginTransaction()
     {
-        public IDbContextTransaction BeginTransaction()
-        {
-            return new NoopDbContextTransaction();
-        }
-
-        public Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default)
-        {
-            return Task.FromResult<IDbContextTransaction>(new NoopDbContextTransaction());
-        }
-
-        public void CommitTransaction()
-        {
-        }
-
-        public void RollbackTransaction()
-        {
-        }
-
-        public Task CommitTransactionAsync(CancellationToken cancellationToken = default)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task RollbackTransactionAsync(CancellationToken cancellationToken = default)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void ResetState()
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task ResetStateAsync(CancellationToken cancellationToken = default)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IDbContextTransaction CurrentTransaction => null!;
+        return new NoopDbContextTransaction();
     }
 
-    public class NoopDbContextTransaction : IDbContextTransaction
+    public Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default)
     {
-        public Guid TransactionId => Guid.NewGuid();
+        return Task.FromResult<IDbContextTransaction>(new NoopDbContextTransaction());
+    }
 
-        public void Commit() { }
+    public void CommitTransaction()
+    {
+    }
 
-        public void Rollback() { }
+    public void RollbackTransaction()
+    {
+    }
 
-        public void Dispose() { }
+    public Task CommitTransactionAsync(CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
 
-        public Task CommitAsync(CancellationToken cancellationToken = default)
-        {
-            throw new NotImplementedException();
-        }
+    public Task RollbackTransactionAsync(CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
 
-        public Task RollbackAsync(CancellationToken cancellationToken = default)
-        {
-            throw new NotImplementedException();
-        }
+    public void ResetState()
+    {
+        throw new NotImplementedException();
+    }
 
-        public ValueTask DisposeAsync()
-        {
-            throw new NotImplementedException();
-        }
+    public Task ResetStateAsync(CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
+
+    public IDbContextTransaction CurrentTransaction => null!;
+}
+
+public class NoopDbContextTransaction : IDbContextTransaction
+{
+    public Guid TransactionId => Guid.NewGuid();
+
+    public void Commit() { }
+
+    public void Rollback() { }
+
+    public void Dispose() { }
+
+    public Task CommitAsync(CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task RollbackAsync(CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
+
+    public ValueTask DisposeAsync()
+    {
+        throw new NotImplementedException();
     }
 }

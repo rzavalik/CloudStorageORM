@@ -1,8 +1,7 @@
-﻿namespace CloudStorageORM.Infrastructure
-{
-    using Microsoft.EntityFrameworkCore.Diagnostics;
+﻿using Microsoft.EntityFrameworkCore.Diagnostics;
 
-    public class CloudStorageLoggingDefinitions : LoggingDefinitions
-    {
-    }
+namespace CloudStorageORM.Infrastructure;
+
+public class CloudStorageLoggingDefinitions : LoggingDefinitions
+{
 }

@@ -1,12 +1,11 @@
-﻿namespace CloudStorageORM.Infrastructure
-{
-    using Microsoft.EntityFrameworkCore;
-    using Microsoft.EntityFrameworkCore.Internal;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
 
-    public class CloudStorageDbSetInitializer : IDbSetInitializer
+namespace CloudStorageORM.Infrastructure;
+
+public class CloudStorageDbSetInitializer : IDbSetInitializer
+{
+    public void InitializeSets(DbContext context)
     {
-        public void InitializeSets(DbContext context)
-        {
-        }
     }
 }

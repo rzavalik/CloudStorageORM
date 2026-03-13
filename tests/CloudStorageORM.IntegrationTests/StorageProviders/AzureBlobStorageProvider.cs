@@ -1,54 +1,53 @@
-﻿namespace CloudStorageORM.IntegrationTests.Azure.StorageProviders
+﻿using CloudStorageORM.Providers.Azure.StorageProviders;
+using Shouldly;
+
+namespace CloudStorageORM.IntegrationTests.Azure.StorageProviders;
+
+public class AzureBlobStorageProviderTests(StorageFixture fixture) : IClassFixture<StorageFixture>
 {
-    using Providers.Azure.StorageProviders;
-    using Shouldly;
+    private readonly AzureBlobStorageProvider _provider = new(fixture.ConnectionString, fixture.ContainerName);
 
-    public class AzureBlobStorageProviderTests(StorageFixture fixture) : IClassFixture<StorageFixture>
+    [Fact]
+    public async Task SaveAsync_ShouldSaveEntity()
     {
-        private readonly AzureBlobStorageProvider _provider = new(fixture.ConnectionString, fixture.ContainerName);
+        var entity = new TestEntity { Id = "entity1", Name = "Test" };
+        await _provider.SaveAsync("test-folder/entity1.json", entity);
 
-        [Fact]
-        public async Task SaveAsync_ShouldSaveEntity()
-        {
-            var entity = new TestEntity { Id = "entity1", Name = "Test" };
-            await _provider.SaveAsync("test-folder/entity1.json", entity);
+        var savedEntity = await _provider.ReadAsync<TestEntity>("test-folder/entity1.json");
 
-            var savedEntity = await _provider.ReadAsync<TestEntity>("test-folder/entity1.json");
-
-            savedEntity.ShouldNotBeNull();
-            savedEntity.Id.ShouldBe(entity.Id);
-            savedEntity.Name.ShouldBe(entity.Name);
-        }
-
-        [Fact]
-        public async Task DeleteAsync_ShouldDeleteEntity()
-        {
-            var entity = new TestEntity { Id = "entity2", Name = "ToDelete" };
-            await _provider.SaveAsync("test-folder/entity2.json", entity);
-
-            await _provider.DeleteAsync("test-folder/entity2.json");
-
-            var deletedEntity = await _provider.ReadAsync<TestEntity>("test-folder/entity2.json");
-
-            deletedEntity.ShouldBeNull();
-        }
-
-        [Fact]
-        public async Task ListAsync_ShouldReturnListOfEntities()
-        {
-            await _provider.SaveAsync("test-folder/list-entity1.json", new TestEntity { Id = "list1", Name = "Item1" });
-            await _provider.SaveAsync("test-folder/list-entity2.json", new TestEntity { Id = "list2", Name = "Item2" });
-
-            var files = await _provider.ListAsync("test-folder/");
-
-            files.ShouldNotBeEmpty();
-            files.Count.ShouldBeGreaterThanOrEqualTo(2);
-        }
+        savedEntity.ShouldNotBeNull();
+        savedEntity.Id.ShouldBe(entity.Id);
+        savedEntity.Name.ShouldBe(entity.Name);
     }
 
-    public class TestEntity
+    [Fact]
+    public async Task DeleteAsync_ShouldDeleteEntity()
     {
-        public string Id { get; init; } = string.Empty;
-        public string Name { get; init; } = string.Empty;
+        var entity = new TestEntity { Id = "entity2", Name = "ToDelete" };
+        await _provider.SaveAsync("test-folder/entity2.json", entity);
+
+        await _provider.DeleteAsync("test-folder/entity2.json");
+
+        var deletedEntity = await _provider.ReadAsync<TestEntity>("test-folder/entity2.json");
+
+        deletedEntity.ShouldBeNull();
     }
+
+    [Fact]
+    public async Task ListAsync_ShouldReturnListOfEntities()
+    {
+        await _provider.SaveAsync("test-folder/list-entity1.json", new TestEntity { Id = "list1", Name = "Item1" });
+        await _provider.SaveAsync("test-folder/list-entity2.json", new TestEntity { Id = "list2", Name = "Item2" });
+
+        var files = await _provider.ListAsync("test-folder/");
+
+        files.ShouldNotBeEmpty();
+        files.Count.ShouldBeGreaterThanOrEqualTo(2);
+    }
+}
+
+public class TestEntity
+{
+    public string Id { get; init; } = string.Empty;
+    public string Name { get; init; } = string.Empty;
 }

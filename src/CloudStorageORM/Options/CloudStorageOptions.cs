@@ -1,11 +1,10 @@
-﻿namespace CloudStorageORM.Options
-{
-    using Enums;
+﻿using CloudStorageORM.Enums;
 
-    public class CloudStorageOptions
-    {
-        public CloudProvider Provider { get; set; }
-        public string ConnectionString { get; set; } = string.Empty;
-        public string ContainerName { get; set; } = string.Empty;
-    }
+namespace CloudStorageORM.Options;
+
+public class CloudStorageOptions
+{
+    public CloudProvider Provider { get; set; }
+    public string ConnectionString { get; set; } = string.Empty;
+    public string ContainerName { get; set; } = string.Empty;
 }

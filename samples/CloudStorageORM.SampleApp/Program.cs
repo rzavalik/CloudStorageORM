@@ -1,184 +1,183 @@
-﻿namespace SampleApp
+﻿using System.Text;
+using CloudStorageORM.Enums;
+using CloudStorageORM.Extensions;
+using CloudStorageORM.Options;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using SampleApp.DbContext;
+using SampleApp.Models;
+
+namespace SampleApp;
+
+public class Program
 {
-    using System.Text;
-    using CloudStorageORM.Enums;
-    using CloudStorageORM.Extensions;
-    using CloudStorageORM.Options;
-    using DbContext;
-    using Microsoft.EntityFrameworkCore;
-    using Microsoft.Extensions.DependencyInjection;
-    using Models;
-
-    public class Program
+    private enum StorageType
     {
-        private enum StorageType
-        {
-            InMemory,
-            CloudStorageOrm
-        }
+        InMemory,
+        CloudStorageOrm
+    }
 
-        public static async Task Main(string[] args)
-        {
-            Console.OutputEncoding = Encoding.UTF8;
+    public static async Task Main(string[] args)
+    {
+        Console.OutputEncoding = Encoding.UTF8;
 
-            Console.WriteLine("🚀 CloudStorageORM SampleApp Starting...");
-            Console.WriteLine("");
-            await Execute(StorageType.InMemory);
-            Console.WriteLine("");
-            await Execute(StorageType.CloudStorageOrm);
-            Console.WriteLine("");
-            Console.WriteLine("🏁 SampleApp Finished.");
-        }
+        Console.WriteLine("🚀 CloudStorageORM SampleApp Starting...");
+        Console.WriteLine("");
+        await Execute(StorageType.InMemory);
+        Console.WriteLine("");
+        await Execute(StorageType.CloudStorageOrm);
+        Console.WriteLine("");
+        Console.WriteLine("🏁 SampleApp Finished.");
+    }
 
-        private static async Task Execute(StorageType storageType)
+    private static async Task Execute(StorageType storageType)
+    {
+        try
         {
-            try
+            Console.WriteLine($"🚀 Running using EF {storageType:G} Provider...");
+            Console.WriteLine("|");
+
+            Microsoft.EntityFrameworkCore.DbContext dbContext;
+            var services = new ServiceCollection();
+
+            // Register the IStorageProvider for CloudStorageORM
+            if (storageType == StorageType.CloudStorageOrm)
             {
-                Console.WriteLine($"🚀 Running using EF {storageType:G} Provider...");
-                Console.WriteLine("|");
-
-                Microsoft.EntityFrameworkCore.DbContext dbContext;
-                var services = new ServiceCollection();
-
-                // Register the IStorageProvider for CloudStorageORM
-                if (storageType == StorageType.CloudStorageOrm)
+                // Register the IStorageProvider
+                var cloudStorageOptions = new CloudStorageOptions
                 {
-                    // Register the IStorageProvider
-                    var cloudStorageOptions = new CloudStorageOptions
-                    {
-                        Provider = CloudProvider.Azure,
-                        ConnectionString = "UseDevelopmentStorage=true",
-                        ContainerName = "sampleapp-container"
-                    };
+                    Provider = CloudProvider.Azure,
+                    ConnectionString = "UseDevelopmentStorage=true",
+                    ContainerName = "sampleapp-container"
+                };
 
-                    // Register DbContext for CloudStorageORM
-                    services.AddDbContext<MyAppDbContextCloudStorage>(options =>
+                // Register DbContext for CloudStorageORM
+                services.AddDbContext<MyAppDbContextCloudStorage>(options =>
+                {
+                    // Pass CloudStorageOptions to configure the DbContext
+                    options.UseCloudStorageOrm(opt =>
                     {
-                        // Pass CloudStorageOptions to configure the DbContext
-                        options.UseCloudStorageOrm(opt =>
-                        {
-                            opt.Provider = cloudStorageOptions.Provider;
-                            opt.ConnectionString = cloudStorageOptions.ConnectionString;
-                            opt.ContainerName = cloudStorageOptions.ContainerName;
-                        });
+                        opt.Provider = cloudStorageOptions.Provider;
+                        opt.ConnectionString = cloudStorageOptions.ConnectionString;
+                        opt.ContainerName = cloudStorageOptions.ContainerName;
                     });
-                }
-                else
-                {
-                    // Register DbContext for InMemory with correct options
-                    services.AddDbContext<MyAppDbContextInMemory>(options =>
-                    {
-                        // Use In-Memory for this DbContext
-                        options.UseInMemoryDatabase("InMemoryDb");
-                    });
-                }
-
-                var provider = services.BuildServiceProvider();
-                using var scope = provider.CreateScope();
-                if (storageType == StorageType.CloudStorageOrm)
-                {
-                    dbContext = scope.ServiceProvider.GetRequiredService<MyAppDbContextCloudStorage>();
-                }
-                else
-                {
-                    dbContext = scope.ServiceProvider.GetRequiredService<MyAppDbContextInMemory>();
-                }
-
-                await RunSample(dbContext);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"  ❌ An error occurred: {ex}");
-            }
-        }
-
-        private static async Task RunSample(Microsoft.EntityFrameworkCore.DbContext context)
-        {
-            var repository = context.Set<User>();
-            var userId = Guid.NewGuid().ToString();
-
-            Console.WriteLine("| 📃 Listing users...");
-            var users = await repository.ToListAsync();
-            if (users.Count != 0)
-            {
-                foreach (var user in users)
-                {
-                    Console.WriteLine($"|   {user.Id}: {user.Name} ({user.Email})");
-                }
+                });
             }
             else
             {
-                Console.WriteLine("| ❌ No users found.");
+                // Register DbContext for InMemory with correct options
+                services.AddDbContext<MyAppDbContextInMemory>(options =>
+                {
+                    // Use In-Memory for this DbContext
+                    options.UseInMemoryDatabase("InMemoryDb");
+                });
             }
 
-            Console.WriteLine("|");
-            Console.WriteLine("| ➕ Creating a new user...");
-            var newUser = new User
+            var provider = services.BuildServiceProvider();
+            using var scope = provider.CreateScope();
+            if (storageType == StorageType.CloudStorageOrm)
             {
-                Id = userId,
-                Name = "John Doe",
-                Email = "john.doe@example.com"
-            };
-            context.Add(newUser);
-            await context.SaveChangesAsync();
-            Console.WriteLine($"| ✅ User {newUser.Name} created (Id {newUser.Id}).");
-            Console.WriteLine("|");
+                dbContext = scope.ServiceProvider.GetRequiredService<MyAppDbContextCloudStorage>();
+            }
+            else
+            {
+                dbContext = scope.ServiceProvider.GetRequiredService<MyAppDbContextInMemory>();
+            }
 
-            Console.WriteLine("| 📃 Listing users...");
-            users = await repository.ToListAsync();
+            await RunSample(dbContext);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"  ❌ An error occurred: {ex}");
+        }
+    }
+
+    private static async Task RunSample(Microsoft.EntityFrameworkCore.DbContext context)
+    {
+        var repository = context.Set<User>();
+        var userId = Guid.NewGuid().ToString();
+
+        Console.WriteLine("| 📃 Listing users...");
+        var users = await repository.ToListAsync();
+        if (users.Count != 0)
+        {
             foreach (var user in users)
             {
-                Console.WriteLine($"|   {user.Id}: {user.Name} ({user.Email})" + (newUser.Id == user.Id ? " ✅" : ""));
+                Console.WriteLine($"|   {user.Id}: {user.Name} ({user.Email})");
             }
-
-            Console.WriteLine("|");
-            Console.WriteLine("| ✏️ Updating the user...");
-            var userToUpdate = repository.FirstOrDefault(u => u.Id == userId);
-            if (userToUpdate != null)
-            {
-                userToUpdate.Name = "John Doe Updated";
-                userToUpdate.Email = "john.doe.updated@example.com";
-                context.Update(userToUpdate);
-                await context.SaveChangesAsync();
-                Console.WriteLine($"| ✅ User {userToUpdate.Name} updated (Id {userToUpdate.Id}).");
-            }
-
-            Console.WriteLine("|");
-            Console.WriteLine("| 🔎 Finding the updated user...");
-            var foundUser = repository.FirstOrDefault(u => u.Id == userId);
-            if (foundUser != null)
-            {
-                Console.WriteLine($"| 🎯 Found: {foundUser.Id} - {foundUser.Name} ({foundUser.Email})");
-            }
-            else
-            {
-                Console.WriteLine("| ❌ User not found.");
-            }
-
-            Console.WriteLine("|");
-            Console.WriteLine("| 🗑️ Deleting the user...");
-            if (foundUser != null)
-            {
-                context.Remove(foundUser);
-                await context.SaveChangesAsync();
-                Console.WriteLine($"| ✅ User deleted (Id {foundUser.Id}).");
-            }
-
-            Console.WriteLine("|");
-            Console.WriteLine("| 📃 Listing users after deletion...");
-            var usersAfterDelete = await repository.ToListAsync();
-            foreach (var user in usersAfterDelete)
-            {
-                Console.WriteLine($"|   {user.Id}: {user.Name} ({user.Email})" + (newUser.Id == user.Id ? " ✅" : ""));
-            }
-
-            if (usersAfterDelete.Count == 0)
-            {
-                Console.WriteLine("| ✅ No users found. Deletion confirmed.");
-            }
-
-            Console.WriteLine("|");
-            Console.WriteLine($"🏁 SampleApp Finished for {context.GetType().Name}.");
         }
+        else
+        {
+            Console.WriteLine("| ❌ No users found.");
+        }
+
+        Console.WriteLine("|");
+        Console.WriteLine("| ➕ Creating a new user...");
+        var newUser = new User
+        {
+            Id = userId,
+            Name = "John Doe",
+            Email = "john.doe@example.com"
+        };
+        context.Add(newUser);
+        await context.SaveChangesAsync();
+        Console.WriteLine($"| ✅ User {newUser.Name} created (Id {newUser.Id}).");
+        Console.WriteLine("|");
+
+        Console.WriteLine("| 📃 Listing users...");
+        users = await repository.ToListAsync();
+        foreach (var user in users)
+        {
+            Console.WriteLine($"|   {user.Id}: {user.Name} ({user.Email})" + (newUser.Id == user.Id ? " ✅" : ""));
+        }
+
+        Console.WriteLine("|");
+        Console.WriteLine("| ✏️ Updating the user...");
+        var userToUpdate = repository.FirstOrDefault(u => u.Id == userId);
+        if (userToUpdate != null)
+        {
+            userToUpdate.Name = "John Doe Updated";
+            userToUpdate.Email = "john.doe.updated@example.com";
+            context.Update(userToUpdate);
+            await context.SaveChangesAsync();
+            Console.WriteLine($"| ✅ User {userToUpdate.Name} updated (Id {userToUpdate.Id}).");
+        }
+
+        Console.WriteLine("|");
+        Console.WriteLine("| 🔎 Finding the updated user...");
+        var foundUser = repository.FirstOrDefault(u => u.Id == userId);
+        if (foundUser != null)
+        {
+            Console.WriteLine($"| 🎯 Found: {foundUser.Id} - {foundUser.Name} ({foundUser.Email})");
+        }
+        else
+        {
+            Console.WriteLine("| ❌ User not found.");
+        }
+
+        Console.WriteLine("|");
+        Console.WriteLine("| 🗑️ Deleting the user...");
+        if (foundUser != null)
+        {
+            context.Remove(foundUser);
+            await context.SaveChangesAsync();
+            Console.WriteLine($"| ✅ User deleted (Id {foundUser.Id}).");
+        }
+
+        Console.WriteLine("|");
+        Console.WriteLine("| 📃 Listing users after deletion...");
+        var usersAfterDelete = await repository.ToListAsync();
+        foreach (var user in usersAfterDelete)
+        {
+            Console.WriteLine($"|   {user.Id}: {user.Name} ({user.Email})" + (newUser.Id == user.Id ? " ✅" : ""));
+        }
+
+        if (usersAfterDelete.Count == 0)
+        {
+            Console.WriteLine("| ✅ No users found. Deletion confirmed.");
+        }
+
+        Console.WriteLine("|");
+        Console.WriteLine($"🏁 SampleApp Finished for {context.GetType().Name}.");
     }
 }

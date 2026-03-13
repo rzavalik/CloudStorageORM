@@ -1,7 +1,6 @@
-﻿namespace CloudStorageORM.Interfaces.Validators
+﻿namespace CloudStorageORM.Interfaces.Validators;
+
+public interface IBlobValidator
 {
-    public interface IBlobValidator
-    {
-        bool IsBlobNameValid(string? blobName);
-    }
+    bool IsBlobNameValid(string? blobName);
 }

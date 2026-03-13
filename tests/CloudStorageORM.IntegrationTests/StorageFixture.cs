@@ -1,24 +1,23 @@
-﻿namespace CloudStorageORM.IntegrationTests.Azure
+﻿using Azure.Storage.Blobs;
+
+namespace CloudStorageORM.IntegrationTests.Azure;
+
+public class StorageFixture : IAsyncLifetime
 {
-    using global::Azure.Storage.Blobs;
+    public string ConnectionString { get; } = "UseDevelopmentStorage=true";
+    public string ContainerName { get; } = "test-container";
 
-    public class StorageFixture : IAsyncLifetime
+    public async Task InitializeAsync()
     {
-        public string ConnectionString { get; } = "UseDevelopmentStorage=true";
-        public string ContainerName { get; } = "test-container";
+        var blobServiceClient = new BlobServiceClient(ConnectionString);
 
-        public async Task InitializeAsync()
-        {
-            var blobServiceClient = new BlobServiceClient(ConnectionString);
+        var containerClient = blobServiceClient.GetBlobContainerClient(ContainerName);
 
-            var containerClient = blobServiceClient.GetBlobContainerClient(ContainerName);
+        await containerClient.CreateIfNotExistsAsync();
+    }
 
-            await containerClient.CreateIfNotExistsAsync();
-        }
-
-        public Task DisposeAsync()
-        {
-            return Task.CompletedTask;
-        }
+    public Task DisposeAsync()
+    {
+        return Task.CompletedTask;
     }
 }

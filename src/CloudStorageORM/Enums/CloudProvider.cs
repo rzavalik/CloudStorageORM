@@ -1,9 +1,8 @@
-﻿namespace CloudStorageORM.Enums
+﻿namespace CloudStorageORM.Enums;
+
+public enum CloudProvider
 {
-    public enum CloudProvider
-    {
-        Azure,
-        Aws,
-        Gcp
-    }
+    Azure,
+    Aws,
+    Gcp
 }

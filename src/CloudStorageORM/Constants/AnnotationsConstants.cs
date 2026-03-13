@@ -1,7 +1,6 @@
-﻿namespace CloudStorageORM.Constants
+﻿namespace CloudStorageORM.Constants;
+
+internal static class AnnotationsConstants
 {
-    internal class AnnotationsConstants
-    {
-        public const string BlobNameAnnotation = "CloudStorageORM:BlobName";
-    }
+    public const string BlobNameAnnotation = "CloudStorageORM:BlobName";
 }

@@ -1,19 +1,18 @@
-﻿namespace CloudStorageORM.Providers
-{
-    using Azure.StorageProviders;
-    using Enums;
-    using Interfaces.StorageProviders;
-    using Options;
+﻿using CloudStorageORM.Enums;
+using CloudStorageORM.Interfaces.StorageProviders;
+using CloudStorageORM.Options;
+using CloudStorageORM.Providers.Azure.StorageProviders;
 
-    public static class ProviderFactory
+namespace CloudStorageORM.Providers;
+
+public static class ProviderFactory
+{
+    public static IStorageProvider GetStorageProvider(CloudStorageOptions options)
     {
-        public static IStorageProvider GetStorageProvider(CloudStorageOptions options)
+        return options.Provider switch
         {
-            return options.Provider switch
-            {
-                CloudProvider.Azure => new AzureBlobStorageProvider(options),
-                _ => throw new NotSupportedException($"Provider {options.Provider} not supported.")
-            };
-        }
+            CloudProvider.Azure => new AzureBlobStorageProvider(options),
+            _ => throw new NotSupportedException($"Provider {options.Provider} not supported.")
+        };
     }
 }

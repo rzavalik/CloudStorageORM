@@ -1,40 +1,40 @@
-﻿namespace CloudStorageORM.Infrastructure
+﻿using CloudStorageORM.Interfaces.Infrastructure;
+using CloudStorageORM.Interfaces.StorageProviders;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace CloudStorageORM.Infrastructure;
+
+public class CloudStorageDatabaseProvider : IDatabaseProvider
 {
-    using Interfaces.Infrastructure;
-    using Interfaces.StorageProviders;
-    using Microsoft.EntityFrameworkCore.Infrastructure;
-    using Microsoft.EntityFrameworkCore.Metadata;
-    using Microsoft.EntityFrameworkCore.Storage;
-    using Microsoft.Extensions.DependencyInjection;
+    public string Name => "CloudStorageORM.Provider";
 
-    public class CloudStorageDatabaseProvider : IDatabaseProvider
+    public bool IsConfigured(IDbContextOptions options)
+         => true;
+
+    public static IDatabase Create(IDatabaseFacadeDependencies dependencies)
     {
-        public string Name => "CloudStorageORM.Provider";
+        var databaseCreator = dependencies.DatabaseCreator;
+        var executionStrategyFactory = dependencies.ExecutionStrategyFactory;
+        //var concurrencyDetector = dependencies.ConcurrencyDetector;
 
-        public bool IsConfigured(IDbContextOptions options)
-             => true;
+        // ReSharper disable once SuspiciousTypeConversion.Global
+        var serviceProvider = ((IInfrastructure<IServiceProvider>)dependencies).Instance;
 
-        public static IDatabase Create(IDatabaseFacadeDependencies dependencies)
-        {
-            var databaseCreator = dependencies.DatabaseCreator;
-            var executionStrategyFactory = dependencies.ExecutionStrategyFactory;
-            //var concurrencyDetector = dependencies.ConcurrencyDetector;
+        var storageProvider = serviceProvider.GetRequiredService<IStorageProvider>();
+        //var cloudOptions = serviceProvider?.GetRequiredService<CloudStorageOptions>();
+        var model = serviceProvider.GetRequiredService<IModel>();
+        var currentDbContext = serviceProvider.GetRequiredService<ICurrentDbContext>();
+        var blobPathResolver = serviceProvider.GetRequiredService<IBlobPathResolver>();
 
-            var serviceProvider = ((IInfrastructure<IServiceProvider>)dependencies).Instance;
-
-            var storageProvider = serviceProvider.GetRequiredService<IStorageProvider>();
-            //var cloudOptions = serviceProvider?.GetRequiredService<CloudStorageOptions>();
-            var model = serviceProvider?.GetRequiredService<IModel>();
-            var currentDbContext = serviceProvider?.GetRequiredService<ICurrentDbContext>();
-            var blobPathResolver = serviceProvider?.GetRequiredService<IBlobPathResolver>();
-
-            return new CloudStorageDatabase(
-                model!,
-                databaseCreator,
-                executionStrategyFactory,
-                storageProvider!,
-                currentDbContext!,
-                blobPathResolver!);
-        }
+        return new CloudStorageDatabase(
+            model,
+            databaseCreator,
+            executionStrategyFactory,
+            storageProvider,
+            currentDbContext,
+            blobPathResolver);
     }
 }

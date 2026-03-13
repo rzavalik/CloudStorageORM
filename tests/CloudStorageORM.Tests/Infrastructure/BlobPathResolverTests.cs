@@ -1,18 +1,18 @@
-﻿namespace CloudStorageORM.Tests.Infrastructure
+﻿using CloudStorageORM.Abstractions;
+using CloudStorageORM.Infrastructure;
+using CloudStorageORM.Interfaces.Infrastructure;
+using CloudStorageORM.Interfaces.StorageProviders;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Update;
+using Moq;
+using Shouldly;
+
+namespace CloudStorageORM.Tests.Infrastructure
 {
     namespace CloudStorageORM.Tests.Infrastructure
     {
-        using global::CloudStorageORM.Abstractions;
-        using global::CloudStorageORM.Infrastructure;
-        using Interfaces.Infrastructure;
-        using Interfaces.StorageProviders;
-        using Microsoft.EntityFrameworkCore.ChangeTracking;
-        using Microsoft.EntityFrameworkCore.Infrastructure;
-        using Microsoft.EntityFrameworkCore.Metadata;
-        using Microsoft.EntityFrameworkCore.Update;
-        using Moq;
-        using Shouldly;
-
         public class BlobPathResolverTests
         {
             private IBlobPathResolver MakeSut(IStorageProvider storageProvider)
@@ -108,13 +108,11 @@
                 path.ShouldBe("dummy_entity-dummy_entity/123.json");
             }
 
-            private class TestKey : IKey
+            private class TestKey(params IProperty[] properties) : IKey
             {
-                public TestKey(params IProperty[] properties) => Properties = properties;
-
                 public object this[string name] => throw new NotImplementedException();
 
-                public IReadOnlyList<IProperty> Properties { get; }
+                public IReadOnlyList<IProperty> Properties { get; } = properties;
 
                 public IEntityType DeclaringEntityType => throw new NotImplementedException();
 
@@ -183,10 +181,13 @@
 
             private class DummyEntity { }
 
+            // ReSharper disable once ClassNeverInstantiated.Local
             private class SubType1 { }
 
+            // ReSharper disable once ClassNeverInstantiated.Local
             private class SubType2 { }
 
+            // ReSharper disable once UnusedTypeParameter
             private class GenericEntity<T> { }
         }
     }

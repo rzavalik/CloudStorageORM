@@ -1,44 +1,33 @@
-﻿namespace SampleApp.DbContext
+﻿using CloudStorageORM.Contexts;
+using Microsoft.EntityFrameworkCore;
+using SampleApp.Models;
+
+namespace SampleApp.DbContext;
+
+public class MyAppDbContextInMemory(DbContextOptions<MyAppDbContextInMemory> options)
+    : Microsoft.EntityFrameworkCore.DbContext(options)
 {
-    using CloudStorageORM.DbContext;
-    using Microsoft.EntityFrameworkCore;
-    using Models;
+    public DbSet<User> Users { get; set; }
 
-    public class MyAppDbContextInMemory : DbContext
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        public MyAppDbContextInMemory(
-            DbContextOptions<MyAppDbContextInMemory> options)
-            : base(options)
-        {
-        }
+        modelBuilder.Entity<User>()
+            .HasKey(u => u.Id);
 
-        public DbSet<User> Users { get; set; }
-
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            modelBuilder.Entity<User>()
-                .HasKey(u => u.Id);
-
-            base.OnModelCreating(modelBuilder);
-        }
+        base.OnModelCreating(modelBuilder);
     }
+}
 
-    public class MyAppDbContextCloudStorage : CloudStorageDbContext
+public class MyAppDbContextCloudStorage(DbContextOptions<MyAppDbContextCloudStorage> options)
+    : CloudStorageDbContext(options)
+{
+    public DbSet<User> Users { get; set; }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        public MyAppDbContextCloudStorage(
-            DbContextOptions<MyAppDbContextCloudStorage> options)
-           : base(options)
-        {
-        }
+        modelBuilder.Entity<User>()
+            .HasKey(u => u.Id);
 
-        public DbSet<User> Users { get; set; }
-
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            modelBuilder.Entity<User>()
-                .HasKey(u => u.Id);
-
-            base.OnModelCreating(modelBuilder);
-        }
+        base.OnModelCreating(modelBuilder);
     }
 }

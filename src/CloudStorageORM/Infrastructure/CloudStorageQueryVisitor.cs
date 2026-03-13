@@ -1,23 +1,22 @@
-﻿namespace CloudStorageORM.Infrastructure
+﻿using System.Linq.Expressions;
+using Microsoft.EntityFrameworkCore.Query;
+
+namespace CloudStorageORM.Infrastructure;
+
+public class CloudStorageQueryVisitor : ExpressionVisitor
 {
-    using System.Linq.Expressions;
-    using Microsoft.EntityFrameworkCore.Query;
-
-    public class CloudStorageQueryVisitor : ExpressionVisitor
+    public CloudStorageQueryVisitor(QueryContext context)
     {
-        public CloudStorageQueryVisitor(QueryContext context)
+        _ = context;
+    }
+
+    protected override Expression VisitConstant(ConstantExpression node)
+    {
+        if (node.Value is IQueryable queryable)
         {
-            _ = context;
+            return Expression.Constant(queryable.Provider.Execute(Expression.Constant(queryable.Expression)));
         }
 
-        protected override Expression VisitConstant(ConstantExpression node)
-        {
-            if (node.Value is IQueryable queryable)
-            {
-                return Expression.Constant(queryable.Provider.Execute(Expression.Constant(queryable.Expression)));
-            }
-
-            return base.VisitConstant(node);
-        }
+        return base.VisitConstant(node);
     }
 }

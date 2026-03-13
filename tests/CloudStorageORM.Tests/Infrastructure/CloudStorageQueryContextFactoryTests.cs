@@ -1,30 +1,29 @@
-namespace CloudStorageORM.Tests.Infrastructure
+using CloudStorageORM.Infrastructure;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Query;
+using Shouldly;
+
+namespace CloudStorageORM.Tests.Infrastructure;
+
+public class CloudStorageQueryContextFactoryTests
 {
-    using global::CloudStorageORM.Infrastructure;
-    using Microsoft.EntityFrameworkCore;
-    using Microsoft.EntityFrameworkCore.Infrastructure;
-    using Microsoft.EntityFrameworkCore.Query;
-    using Shouldly;
-
-    public class CloudStorageQueryContextFactoryTests
+    [Fact]
+    public void Create_ReturnsCloudStorageQueryContext()
     {
-        [Fact]
-        public void Create_ReturnsCloudStorageQueryContext()
-        {
-            var options = new DbContextOptionsBuilder<FactoryDbContext>()
-                .UseInMemoryDatabase(Guid.NewGuid().ToString())
-                .Options;
+        var options = new DbContextOptionsBuilder<FactoryDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .Options;
 
-            using var context = new FactoryDbContext(options);
-            var deps = context.GetService<QueryContextDependencies>();
+        using var context = new FactoryDbContext(options);
+        var deps = context.GetService<QueryContextDependencies>();
 
-            var factory = new CloudStorageQueryContextFactory(deps);
-            var ctx = factory.Create();
+        var factory = new CloudStorageQueryContextFactory(deps);
+        var ctx = factory.Create();
 
-            ctx.ShouldNotBeNull();
-            ctx.ShouldBeOfType<CloudStorageQueryContext>();
-        }
-
-        private sealed class FactoryDbContext(DbContextOptions<FactoryDbContext> options) : DbContext(options);
+        ctx.ShouldNotBeNull();
+        ctx.ShouldBeOfType<CloudStorageQueryContext>();
     }
+
+    private sealed class FactoryDbContext(DbContextOptions<FactoryDbContext> options) : DbContext(options);
 }
