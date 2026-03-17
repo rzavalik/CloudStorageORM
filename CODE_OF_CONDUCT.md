@@ -34,7 +34,7 @@ This Code of Conduct applies within all community spaces and also applies when a
 
 ## Enforcement
 
-Instances of abusive, harassing, or otherwise unacceptable behavior may be reported to the community leaders responsible for enforcement at [your-email@example.com].
+Instances of abusive, harassing, or otherwise unacceptable behavior may be reported to the community leaders responsible for enforcement at [zavalik+CloudStorageORM@gmail.com](mailto:zavalik+CloudStorageORM@gmail.com).
 
 All complaints will be reviewed and investigated promptly and fairly.
 

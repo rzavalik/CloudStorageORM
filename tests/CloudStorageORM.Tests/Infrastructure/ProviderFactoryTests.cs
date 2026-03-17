@@ -1,6 +1,7 @@
 using CloudStorageORM.Enums;
 using CloudStorageORM.Options;
 using CloudStorageORM.Providers;
+using CloudStorageORM.Providers.Aws.StorageProviders;
 using CloudStorageORM.Providers.Azure.StorageProviders;
 using Shouldly;
 
@@ -14,16 +15,37 @@ public class ProviderFactoryTests
         var options = new CloudStorageOptions
         {
             Provider = CloudProvider.Azure,
-            ConnectionString = "UseDevelopmentStorage=true",
-            ContainerName = "provider-tests"
+            ContainerName = "provider-tests",
+            Azure = new CloudStorageAzureOptions
+            {
+                ConnectionString = "UseDevelopmentStorage=true"
+            }
         };
 
         var provider = ProviderFactory.GetStorageProvider(options);
         provider.ShouldBeOfType<AzureBlobStorageProvider>();
     }
 
+    [Fact]
+    public void GetStorageProvider_Aws_ReturnsAwsProvider()
+    {
+        var options = new CloudStorageOptions
+        {
+            Provider = CloudProvider.Aws,
+            ContainerName = "provider-tests",
+            Aws = new CloudStorageAwsOptions
+            {
+                AccessKeyId = "test-key",
+                SecretAccessKey = "test-secret",
+                Region = "us-east-1"
+            }
+        };
+
+        var provider = ProviderFactory.GetStorageProvider(options);
+        provider.ShouldBeOfType<AwsS3StorageProvider>();
+    }
+
     [Theory]
-    [InlineData(CloudProvider.Aws)]
     [InlineData(CloudProvider.Gcp)]
     public void GetStorageProvider_Unsupported_Throws(CloudProvider cloud)
     {

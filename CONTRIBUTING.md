@@ -21,7 +21,7 @@ Before opening a PR, make sure you have:
 For active development on the current branch, you should have:
 
 - .NET 10 SDK
-- Docker (recommended for Azurite-backed integration tests)
+- Docker (recommended for Azurite- and LocalStack-backed integration tests)
 
 ---
 
@@ -84,7 +84,7 @@ Please include:
 - a short summary of what changed
 - why the change was needed
 - `Closes #issue_number` when applicable
-- any local setup notes reviewers need (for example, Azurite)
+- any local setup notes reviewers need (for example, Azurite or LocalStack)
 
 ---
 
@@ -127,6 +127,19 @@ docker run -d \
   mcr.microsoft.com/azure-storage/azurite
 ```
 
+### Integration tests with LocalStack (AWS)
+
+If your change touches AWS provider behavior, start LocalStack with S3 enabled:
+
+```bash
+docker run -d \
+  -p 4566:4566 \
+  --name localstack \
+  -e SERVICES=s3 \
+  -e AWS_DEFAULT_REGION=us-east-1 \
+  localstack/localstack
+```
+
 ### Coverage workflow
 
 ```bash
@@ -156,6 +169,7 @@ The most likely files to update are:
 - `docs/CloudStorageORM.md`
 - `docs/sampleapp.md`
 - `docs/testing-with-azurite.md`
+- `docs/testing-with-localstack.md`
 - `ROADMAP.md`
 
 ---

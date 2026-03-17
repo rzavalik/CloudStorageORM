@@ -1,14 +1,19 @@
 using System.Diagnostics;
+using CloudStorageORM.IntegrationTests.Azure.Aws;
 using Shouldly;
 
 namespace CloudStorageORM.IntegrationTests.Azure;
 
-public class ProgramExitTests(StorageFixture fixture) : IClassFixture<StorageFixture>
+public class ProgramExitTests(StorageFixture fixture, LocalStackFixture awsFixture)
+    : IClassFixture<StorageFixture>, IClassFixture<LocalStackFixture>
 {
     [Fact]
-    public async Task SampleApp_ShouldExitWithCodeZero()
+    public async Task SampleApp_ShouldExitWithCodeZero_AndRunAllProviders()
     {
         fixture.ShouldNotBeNull();
+        fixture.EnsureAvailableOrSkip();
+        awsFixture.EnsureAvailableOrSkip();
+
         var repoRoot = FindRepoRoot();
 
         using var process = new Process();
@@ -25,6 +30,15 @@ public class ProgramExitTests(StorageFixture fixture) : IClassFixture<StorageFix
         process.StartInfo.ArgumentList.Add("samples/CloudStorageORM.SampleApp/SampleApp.csproj");
         process.StartInfo.ArgumentList.Add("-c");
         process.StartInfo.ArgumentList.Add("Debug");
+
+        process.StartInfo.Environment["CLOUDSTORAGEORM_AZURE_CONNECTION_STRING"] = fixture.ConnectionString;
+        process.StartInfo.Environment["CLOUDSTORAGEORM_CONTAINER_NAME"] = fixture.ContainerName;
+        process.StartInfo.Environment["CLOUDSTORAGEORM_AWS_ACCESS_KEY_ID"] = awsFixture.AccessKeyId;
+        process.StartInfo.Environment["CLOUDSTORAGEORM_AWS_SECRET_ACCESS_KEY"] = awsFixture.SecretAccessKey;
+        process.StartInfo.Environment["CLOUDSTORAGEORM_AWS_REGION"] = awsFixture.Region;
+        process.StartInfo.Environment["CLOUDSTORAGEORM_AWS_SERVICE_URL"] = awsFixture.ServiceUrl;
+        process.StartInfo.Environment["CLOUDSTORAGEORM_AWS_BUCKET"] = awsFixture.BucketName;
+        process.StartInfo.Environment["CLOUDSTORAGEORM_AWS_FORCE_PATH_STYLE"] = "true";
 
         process.Start();
 
@@ -57,6 +71,17 @@ public class ProgramExitTests(StorageFixture fixture) : IClassFixture<StorageFix
 
         process.ExitCode.ShouldBe(0, $"SampleApp should exit cleanly.\nSTDOUT:\n{stdout}\nSTDERR:\n{stderr}");
         stdout.ShouldContain("SampleApp Finished");
+        stdout.ShouldContain("Running using EF InMemory Provider");
+        stdout.ShouldContain("Running using EF Azure Provider");
+        stdout.ShouldContain("Running using EF Aws Provider");
+        stdout.ShouldContain("Clearing users before run");
+        stdout.ShouldContain("sample-user-001");
+        stdout.ShouldNotContain("An error occurred");
+
+        stdout.IndexOf("Running using EF InMemory Provider", StringComparison.Ordinal)
+            .ShouldBeLessThan(stdout.IndexOf("Running using EF Azure Provider", StringComparison.Ordinal));
+        stdout.IndexOf("Running using EF Azure Provider", StringComparison.Ordinal)
+            .ShouldBeLessThan(stdout.IndexOf("Running using EF Aws Provider", StringComparison.Ordinal));
     }
 
     private static string FindRepoRoot()

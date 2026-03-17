@@ -11,7 +11,7 @@ If you discover a security vulnerability within CloudStorageORM, please report i
 **Do not** create a public GitHub Issue.  
 Instead, please contact us directly at:
 
-📧 **rzavalik@gmail.com**
+📧 **zavalik+CloudStorageORM@gmail.com**
 
 We will investigate and respond promptly.  
 Thank you for helping to make CloudStorageORM safer and more reliable!

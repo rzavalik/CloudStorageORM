@@ -7,6 +7,8 @@ That is the expected local setup for the current `main` branch whenever you want
 - run the sample app in CloudStorageORM mode
 - validate Azure Blob Storage behavior without a real Azure subscription
 
+For AWS S3 local emulation, see [testing-with-localstack.md](./testing-with-localstack.md).
+
 ---
 
 ## Prerequisites
@@ -58,6 +60,8 @@ This runs:
 - unit tests in `tests/CloudStorageORM.Tests`
 - integration tests in `tests/CloudStorageORM.IntegrationTests`
 
+If Azurite is unavailable, Azure-backed integration scenarios are skipped by fixture guards.
+
 ---
 
 ## Run only the integration tests
@@ -78,6 +82,9 @@ The sample app executes the same CRUD flow against:
 
 1. EF InMemory
 2. CloudStorageORM configured with Azure Blob Storage
+3. CloudStorageORM configured with AWS S3
+
+If Azurite is not reachable, the Azure run is skipped with a warning message.
 
 ---
 
@@ -104,6 +111,9 @@ dotnet tool run reportgenerator \
 ```
 
 Open `coverage/report/index.html` in your browser.
+
+You may see SourceLink 404 warnings from `reportgenerator` when local changes are not present in the remote commit
+metadata; this does not block HTML report generation.
 
 ---
 

@@ -16,8 +16,11 @@ public class CloudStorageOrmOptionsExtensionTests
         var options = new CloudStorageOptions
         {
             Provider = CloudProvider.Azure,
-            ConnectionString = "UseDevelopmentStorage=true",
-            ContainerName = "unit"
+            ContainerName = "unit",
+            Azure = new CloudStorageAzureOptions
+            {
+                ConnectionString = "UseDevelopmentStorage=true"
+            }
         };
 
         var extension = new CloudStorageOrmOptionsExtension(options);
@@ -33,8 +36,11 @@ public class CloudStorageOrmOptionsExtensionTests
         var extension = new CloudStorageOrmOptionsExtension(new CloudStorageOptions
         {
             Provider = CloudProvider.Azure,
-            ConnectionString = "UseDevelopmentStorage=true",
-            ContainerName = "unit"
+            ContainerName = "unit",
+            Azure = new CloudStorageAzureOptions
+            {
+                ConnectionString = "UseDevelopmentStorage=true"
+            }
         });
 
         extension.ApplyServices(services);
@@ -46,10 +52,37 @@ public class CloudStorageOrmOptionsExtensionTests
     }
 
     [Fact]
-    public void Validate_DoesNotThrow()
+    public void Validate_WithInvalidOptions_Throws()
     {
-        var extension = new CloudStorageOrmOptionsExtension(new CloudStorageOptions());
+        var extension = new CloudStorageOrmOptionsExtension(new CloudStorageOptions
+        {
+            Provider = CloudProvider.Azure,
+            ContainerName = "unit",
+            Azure = new CloudStorageAzureOptions
+            {
+                ConnectionString = ""
+            }
+        });
+
+        var ex = Should.Throw<InvalidOperationException>(() => extension.Validate(null!));
+        ex.Message.ShouldContain("Azure.ConnectionString");
+    }
+
+    [Fact]
+    public void Validate_WithValidAwsOptions_DoesNotThrow()
+    {
+        var extension = new CloudStorageOrmOptionsExtension(new CloudStorageOptions
+        {
+            Provider = CloudProvider.Aws,
+            ContainerName = "unit-bucket",
+            Aws = new CloudStorageAwsOptions
+            {
+                AccessKeyId = "test-key",
+                SecretAccessKey = "test-secret",
+                Region = "us-east-1"
+            }
+        });
+
         Should.NotThrow(() => extension.Validate(null!));
     }
 }
-

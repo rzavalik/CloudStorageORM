@@ -3,8 +3,8 @@
 **Simplify persistence. Embrace scalability. Build the future.**
 
 CloudStorageORM is an Entity Framework-style provider that persists entities into cloud object storage.
-The current `main` branch targets **.NET 10**, uses **EF Core 9**, and currently ships with an **Azure Blob Storage** provider.
-Support for **AWS S3** and **Google Cloud Storage** remains on the roadmap.
+The current `main` branch targets **.NET 10**, uses **EF Core 9**, and currently ships with **Azure Blob Storage** and **AWS S3** providers.
+Support for **Google Cloud Storage** remains on the roadmap.
 
 ![License](https://img.shields.io/badge/license-GPLv3-blue)
 ![.NET](https://img.shields.io/badge/.NET-10.0-blue)
@@ -22,11 +22,11 @@ Support for **AWS S3** and **Google Cloud Storage** remains on the roadmap.
 
 - ✅ Targets `net10.0`
 - ✅ Azure Blob Storage provider is implemented
+- ✅ AWS S3 provider is implemented
 - ✅ EF-style `DbContext` integration via `UseCloudStorageOrm(...)`
-- ✅ Sample app runs the same CRUD flow against EF InMemory and CloudStorageORM
-- ✅ Unit + integration tests run locally with Azurite
+- ✅ Sample app runs the same CRUD flow against EF InMemory, Azure, and AWS
+- ✅ Unit + integration tests run locally with Azurite and LocalStack
 - ✅ Coverage collection is wired with Coverlet + ReportGenerator
-- 🚧 AWS S3 provider is planned
 - 🚧 Google Cloud Storage provider is planned
 
 ---
@@ -81,8 +81,8 @@ services.AddDbContext<AppDbContext>(options =>
     options.UseCloudStorageOrm(storage =>
     {
         storage.Provider = CloudProvider.Azure;
-        storage.ConnectionString = "UseDevelopmentStorage=true";
         storage.ContainerName = "sampleapp-container";
+        storage.Azure.ConnectionString = "UseDevelopmentStorage=true";
     });
 });
 ```
@@ -111,22 +111,25 @@ db.Remove(found!);
 await db.SaveChangesAsync();
 ```
 
-> Current provider support on `main`: **Azure Blob Storage only**.
+> Current provider support on `main`: **Azure Blob Storage** and **AWS S3**.
 
 ---
 
 ## 🧭 Important notes for the current branch
 
 - The base context namespace is now `CloudStorageORM.Contexts`.
+- Configuration uses composition on `CloudStorageOptions`: common fields stay on the root, while provider-specific fields are under `storage.Azure` and `storage.Aws`.
+- `CloudStorageOptions.ConnectionString` was removed; use `storage.Azure.ConnectionString` for Azure configuration.
 - Coding style is enforced with **file-scoped namespaces** (`namespace X;`).
 - The sample app is covered by an integration test that verifies `dotnet run` exits successfully.
+- Integration fixtures can skip Azure/AWS scenarios when Azurite/LocalStack are unavailable.
 - `IDatabaseCreator` behavior is still minimal right now: schema-style database lifecycle methods are not fully implemented because object storage does not map 1:1 to relational database creation semantics.
 
 ---
 
 ## 🧪 Running tests locally
 
-### Start Azurite
+### Start Azurite (Azure integration)
 
 ```bash
 docker run -d \
@@ -141,6 +144,17 @@ docker run -d \
 
 ```bash
 dotnet test CloudStorageORM.sln --nologo -v minimal
+```
+
+### Start LocalStack (AWS integration)
+
+```bash
+docker run -d \
+  -p 4566:4566 \
+  --name localstack \
+  -e SERVICES=s3 \
+  -e AWS_DEFAULT_REGION=us-east-1 \
+  localstack/localstack
 ```
 
 ### Collect coverage
@@ -164,10 +178,11 @@ The HTML report is generated at `coverage/report/index.html`.
 dotnet run --project samples/CloudStorageORM.SampleApp/SampleApp.csproj
 ```
 
-The app runs the same CRUD flow twice:
+The app runs the same CRUD flow three times:
 
 1. Once against EF Core InMemory
 2. Once against CloudStorageORM configured for Azure Blob Storage / Azurite
+3. Once against CloudStorageORM configured for AWS S3 / LocalStack
 
 See [docs/sampleapp.md](./docs/sampleapp.md) for details.
 
@@ -178,6 +193,7 @@ See [docs/sampleapp.md](./docs/sampleapp.md) for details.
 - [Library documentation](./docs/CloudStorageORM.md)
 - [Sample app guide](./docs/sampleapp.md)
 - [Testing with Azurite](./docs/testing-with-azurite.md)
+- [Testing with LocalStack](./docs/testing-with-localstack.md)
 - [Contributing](./CONTRIBUTING.md)
 - [Roadmap](./ROADMAP.md)
 

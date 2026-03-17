@@ -17,8 +17,11 @@ public class AzureBlobStorageProviderTests
         var options = new CloudStorageOptions
         {
             Provider = CloudProvider.Azure,
-            ConnectionString = "UseDevelopmentStorage=true",
-            ContainerName = "test-container"
+            ContainerName = "test-container",
+            Azure = new CloudStorageAzureOptions
+            {
+                ConnectionString = "UseDevelopmentStorage=true"
+            }
         };
 
         var sut = new AzureBlobStorageProvider(options);
@@ -108,8 +111,7 @@ public class AzureBlobStorageProviderTests
 
         var sut = MakeSut(containerClientMock);
 
-        await Should.ThrowAsync<NullReferenceException>(
-            () => sut.ReadAsync<TestEntity>("test-folder/entity3.json"));
+        await Should.ThrowAsync<NullReferenceException>(() => sut.ReadAsync<TestEntity>("test-folder/entity3.json"));
     }
 
     [Fact]
@@ -139,7 +141,8 @@ public class AzureBlobStorageProviderTests
         var sut = MakeSut(containerClientMock);
         await sut.DeleteContainerAsync();
 
-        containerClientMock.Verify(x => x.DeleteIfExistsAsync(It.IsAny<BlobRequestConditions>(), It.IsAny<CancellationToken>()), Times.Once);
+        containerClientMock.Verify(
+            x => x.DeleteIfExistsAsync(It.IsAny<BlobRequestConditions>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -269,6 +272,7 @@ public class AzureBlobStorageProviderTests
     {
         // ReSharper disable once UnusedAutoPropertyAccessor.Local
         public string Id { get; init; } = string.Empty;
+
         // ReSharper disable once UnusedAutoPropertyAccessor.Local
         public string Name { get; init; } = string.Empty;
     }

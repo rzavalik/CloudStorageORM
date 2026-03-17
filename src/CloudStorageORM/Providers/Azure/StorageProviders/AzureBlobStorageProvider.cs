@@ -12,13 +12,13 @@ public class AzureBlobStorageProvider : IStorageProvider
     private readonly BlobContainerClient _containerClient;
 
     private static Func<CloudStorageOptions, BlobContainerClient> OptionsContainerClientFactory { get; set; }
-        = options => new BlobContainerClient(options.ConnectionString, options.ContainerName);
+        = options => new BlobContainerClient(options.Azure.ConnectionString, options.ContainerName);
 
     internal static Func<string, string, BlobContainerClient> ConnectionContainerClientFactory { get; set; }
         = (connectionString, containerName) => new BlobContainerClient(connectionString, containerName);
 
     public AzureBlobStorageProvider(
-       CloudStorageOptions options)
+        CloudStorageOptions options)
     {
         _containerClient = OptionsContainerClientFactory(options);
         _containerClient.CreateIfNotExists();
@@ -51,13 +51,13 @@ public class AzureBlobStorageProvider : IStorageProvider
     public async Task<T> ReadAsync<T>(string path)
     {
         var blobClient = _containerClient.GetBlobClient(path);
-        if (await blobClient.ExistsAsync())
+        if (!await blobClient.ExistsAsync())
         {
-            var response = await blobClient.DownloadContentAsync();
-            return JsonSerializer.Deserialize<T>(response.Value.Content.ToString())!;
+            return default!;
         }
 
-        return default!;
+        var response = await blobClient.DownloadContentAsync();
+        return JsonSerializer.Deserialize<T>(response.Value.Content.ToString())!;
     }
 
     public async Task DeleteAsync(string path)
@@ -73,13 +73,11 @@ public class AzureBlobStorageProvider : IStorageProvider
         {
             result.Add(blobItem.Name);
         }
+
         return result;
     }
 
-    public async Task DeleteContainerAsync()
-    {
-        await _containerClient.DeleteIfExistsAsync();
-    }
+    public async Task DeleteContainerAsync() => await _containerClient.DeleteIfExistsAsync();
 
     public async Task CreateContainerIfNotExistsAsync()
     {

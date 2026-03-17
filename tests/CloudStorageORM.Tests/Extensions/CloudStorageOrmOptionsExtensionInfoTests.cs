@@ -14,8 +14,11 @@ public class CloudStorageOrmOptionsExtensionInfoTests
         var options = new CloudStorageOptions
         {
             Provider = CloudProvider.Azure,
-            ConnectionString = "UseDevelopmentStorage=true",
-            ContainerName = "test"
+            ContainerName = "test",
+            Azure = new CloudStorageAzureOptions
+            {
+                ConnectionString = "UseDevelopmentStorage=true"
+            }
         };
 
         var extension = new CloudStorageOrmOptionsExtension(options);
@@ -23,7 +26,33 @@ public class CloudStorageOrmOptionsExtensionInfoTests
 
         info.IsDatabaseProvider.ShouldBeTrue();
         info.LogFragment.ShouldContain("CloudStorageORM");
-        info.GetServiceProviderHashCode().ShouldBe(options.ConnectionString.GetHashCode());
+        info.LogFragment.ShouldContain("Azure");
+        info.GetServiceProviderHashCode().ShouldNotBe(0);
+    }
+
+    [Fact]
+    public void Properties_WithAwsOptions_ReturnExpectedValues()
+    {
+        var options = new CloudStorageOptions
+        {
+            Provider = CloudProvider.Aws,
+            ContainerName = "aws-bucket",
+            Aws = new CloudStorageAwsOptions
+            {
+                AccessKeyId = "test-key",
+                SecretAccessKey = "test-secret",
+                Region = "us-east-1",
+                ServiceUrl = "http://localhost:4566",
+                ForcePathStyle = true
+            }
+        };
+
+        var extension = new CloudStorageOrmOptionsExtension(options);
+        var info = new CloudStorageOrmOptionsExtensionInfo(extension);
+
+        info.LogFragment.ShouldContain("Aws");
+        info.LogFragment.ShouldContain("us-east-1");
+        info.GetServiceProviderHashCode().ShouldNotBe(0);
     }
 
     [Fact]
@@ -34,7 +63,8 @@ public class CloudStorageOrmOptionsExtensionInfoTests
         var debug = new Dictionary<string, string>();
 
         Should.NotThrow(() => info.PopulateDebugInfo(debug));
-        debug.Count.ShouldBe(0);
+        debug.ShouldContainKey("CloudStorageORM:Provider");
+        debug.ShouldContainKey("CloudStorageORM:ContainerName");
     }
 
     [Fact]

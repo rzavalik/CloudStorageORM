@@ -2,6 +2,7 @@
 using CloudStorageORM.Interfaces.StorageProviders;
 using CloudStorageORM.Options;
 using CloudStorageORM.Providers;
+using CloudStorageORM.Validators;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CloudStorageORM.Extensions;
@@ -15,10 +16,15 @@ public static class CloudStorageOrmServiceCollectionExtensions
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(storageOptions);
 
+        CloudStorageOptionsValidator.Validate(storageOptions);
+
         services.AddSingleton(storageOptions);
-        services.AddSingleton(_ => string.IsNullOrEmpty(storageOptions.ConnectionString)
-            ? throw new InvalidOperationException("CloudStorageOptions.ConnectionString must be provided.")
-            : new BlobServiceClient(storageOptions.ConnectionString));
+
+        if (storageOptions.Provider == Enums.CloudProvider.Azure)
+        {
+            services.AddSingleton(_ => new BlobServiceClient(storageOptions.Azure.ConnectionString));
+        }
+
         services.AddSingleton<IStorageProvider>(_ => ProviderFactory.GetStorageProvider(storageOptions));
 
         return services;
