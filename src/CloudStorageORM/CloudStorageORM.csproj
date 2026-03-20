@@ -10,6 +10,8 @@
         <PackageId>CloudStorageORM</PackageId>
         <Version>1.0.8</Version>
         <Authors>Rodrigo Zavalik Castro</Authors>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+
         <!-- Opcional -->
         <RepositoryUrl>https://github.com/rzavalik/CloudStorageORM</RepositoryUrl>
         <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
@@ -30,6 +32,10 @@
         <PackageReference Include="Azure.Storage.Blobs"/>
         <PackageReference Include="Microsoft.EntityFrameworkCore"/>
         <PackageReference Include="Microsoft.EntityFrameworkCore.Relational"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Include="..\..\README.md" Pack="true" PackagePath="README.md"/>
     </ItemGroup>
 
     <ItemGroup>
