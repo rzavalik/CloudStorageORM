@@ -48,10 +48,25 @@ jobs:
       run: |
         docker run -d -p 10000:10000 -p 10001:10001 -p 10002:10002 --name azurite mcr.microsoft.com/azure-storage/azurite
 
-    - name: Wait for Azurite to be ready
-      run: sleep 5
+    - name: Run LocalStack Emulator (S3)
+      run: |
+        docker run -d -p 4566:4566 \
+          -e SERVICES=s3 \
+          -e AWS_DEFAULT_REGION=us-east-1 \
+          --name localstack \
+          localstack/localstack:3
+
+    - name: Wait for storage emulators to be ready
+      run: |
+        sleep 8
 
     - name: Run Unit Tests - All Unit Tests
+      env:
+        CLOUDSTORAGEORM_AWS_SERVICE_URL: http://127.0.0.1:4566
+        CLOUDSTORAGEORM_AWS_ACCESS_KEY_ID: test
+        CLOUDSTORAGEORM_AWS_SECRET_ACCESS_KEY: test
+        CLOUDSTORAGEORM_AWS_REGION: us-east-1
+        CLOUDSTORAGEORM_AWS_BUCKET: cloudstorageorm-integration-tests
       run: |
         mkdir -p TestResults/Coverage
         for proj in $(find . -type f -iname "*.Tests.csproj"); do
@@ -105,3 +120,7 @@ jobs:
     - name: Cleanup Azurite Container
       if: always()
       run: docker rm -f azurite || true
+
+    - name: Cleanup LocalStack Container
+      if: always()
+      run: docker rm -f localstack || true
