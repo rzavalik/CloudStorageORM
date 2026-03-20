@@ -1,6 +1,7 @@
 ﻿using Azure.Storage.Blobs;
 using CloudStorageORM.Enums;
 using CloudStorageORM.Extensions;
+using CloudStorageORM.Interfaces.StorageProviders;
 using CloudStorageORM.Options;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,8 +18,11 @@ public class CloudStorageOrmServiceCollectionExtensionsTests
         var storageOptions = new CloudStorageOptions
         {
             Provider = CloudProvider.Azure,
-            ConnectionString = "UseDevelopmentStorage=true",
-            ContainerName = "test-container"
+            ContainerName = "test-container",
+            Azure = new CloudStorageAzureOptions
+            {
+                ConnectionString = "UseDevelopmentStorage=true"
+            }
         };
 
         var exception = Should.Throw<ArgumentNullException>(() =>
@@ -48,8 +52,11 @@ public class CloudStorageOrmServiceCollectionExtensionsTests
         var storageOptions = new CloudStorageOptions
         {
             Provider = CloudProvider.Azure,
-            ConnectionString = "UseDevelopmentStorage=true",
-            ContainerName = "test-container"
+            ContainerName = "test-container",
+            Azure = new CloudStorageAzureOptions
+            {
+                ConnectionString = "UseDevelopmentStorage=true"
+            }
         };
 
         services.AddEntityFrameworkCloudStorageOrm(storageOptions);
@@ -65,48 +72,88 @@ public class CloudStorageOrmServiceCollectionExtensionsTests
     }
 
     [Fact]
-    public void AddEntityFrameworkCloudStorageORM_WithNullConnectionString_BlobServiceClientFactoryThrows()
+    public void AddEntityFrameworkCloudStorageORM_WithNullConnectionString_ThrowsDuringValidation()
     {
         var services = new ServiceCollection();
         var storageOptions = new CloudStorageOptions
         {
             Provider = CloudProvider.Azure,
-            ConnectionString = null!,
-            ContainerName = "test-container"
+            ContainerName = "test-container",
+            Azure = new CloudStorageAzureOptions
+            {
+                ConnectionString = null!
+            }
         };
 
-        services.AddEntityFrameworkCloudStorageOrm(storageOptions);
-        var provider = services.BuildServiceProvider();
-
-        // Try to get BlobServiceClient which should trigger the factory validation
         var ex = Should.Throw<InvalidOperationException>(() =>
-        {
-            provider.GetService(typeof(BlobServiceClient));
-        });
+            services.AddEntityFrameworkCloudStorageOrm(storageOptions));
 
-        ex.Message.ShouldContain("ConnectionString must be provided");
+        ex.Message.ShouldContain("Azure.ConnectionString");
     }
 
     [Fact]
-    public void AddEntityFrameworkCloudStorageORM_WithEmptyConnectionString_BlobServiceClientFactoryThrows()
+    public void AddEntityFrameworkCloudStorageORM_WithEmptyConnectionString_ThrowsDuringValidation()
     {
         var services = new ServiceCollection();
         var storageOptions = new CloudStorageOptions
         {
             Provider = CloudProvider.Azure,
-            ConnectionString = "",
-            ContainerName = "test-container"
+            ContainerName = "test-container",
+            Azure = new CloudStorageAzureOptions
+            {
+                ConnectionString = ""
+            }
+        };
+
+        var ex = Should.Throw<InvalidOperationException>(() =>
+            services.AddEntityFrameworkCloudStorageOrm(storageOptions));
+
+        ex.Message.ShouldContain("Azure.ConnectionString");
+    }
+
+    [Fact]
+    public void AddEntityFrameworkCloudStorageORM_WithValidAwsOptions_DoesNotRegisterBlobServiceClient()
+    {
+        var services = new ServiceCollection();
+        var storageOptions = new CloudStorageOptions
+        {
+            Provider = CloudProvider.Aws,
+            ContainerName = "test-bucket",
+            Aws = new CloudStorageAwsOptions
+            {
+                AccessKeyId = "test-key",
+                SecretAccessKey = "test-secret",
+                Region = "us-east-1"
+            }
         };
 
         services.AddEntityFrameworkCloudStorageOrm(storageOptions);
-        var provider = services.BuildServiceProvider();
+        using var provider = services.BuildServiceProvider();
 
-        // Try to get BlobServiceClient which should trigger the factory validation
-        var ex = Should.Throw<InvalidOperationException>(() =>
+        provider.GetService<BlobServiceClient>().ShouldBeNull();
+        provider.GetService<CloudStorageOptions>().ShouldNotBeNull();
+        provider.GetService(typeof(IStorageProvider)).ShouldNotBeNull();
+    }
+
+    [Fact]
+    public void AddEntityFrameworkCloudStorageORM_WithMissingAwsRegion_ThrowsDuringValidation()
+    {
+        var services = new ServiceCollection();
+        var storageOptions = new CloudStorageOptions
         {
-            provider.GetService(typeof(BlobServiceClient));
-        });
+            Provider = CloudProvider.Aws,
+            ContainerName = "test-bucket",
+            Aws = new CloudStorageAwsOptions
+            {
+                AccessKeyId = "test-key",
+                SecretAccessKey = "test-secret",
+                Region = ""
+            }
+        };
 
-        ex.Message.ShouldContain("ConnectionString must be provided");
+        var ex = Should.Throw<InvalidOperationException>(() =>
+            services.AddEntityFrameworkCloudStorageOrm(storageOptions));
+
+        ex.Message.ShouldContain("Aws.Region");
     }
 }

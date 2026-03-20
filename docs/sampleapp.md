@@ -1,17 +1,18 @@
 # CloudStorageORM.SampleApp
 
-`CloudStorageORM.SampleApp` demonstrates the current provider behavior on `main` by running the **same application flow** twice:
+`CloudStorageORM.SampleApp` demonstrates the current provider behavior on `main` by running the **same application flow** three times:
 
 1. once with **EF Core InMemory**
 2. once with **CloudStorageORM + Azure Blob Storage**
+3. once with **CloudStorageORM + AWS S3**
 
-The sample currently targets **.NET 10** and uses **Azurite** by default for local Blob Storage emulation.
+The sample currently targets **.NET 10** and uses **Azurite** + **LocalStack** by default for local cloud emulation.
 
 ---
 
 ## What the sample proves
 
-For both storage modes, the app executes the same steps:
+For all storage modes, the app executes the same steps:
 
 1. list users
 2. create a user
@@ -29,7 +30,7 @@ This is important because the goal of the sample is not just CRUD; it is demonst
 
 | File | Purpose |
 | :--- | :--- |
-| `samples/CloudStorageORM.SampleApp/Program.cs` | Drives the two runs and prints the console output |
+| `samples/CloudStorageORM.SampleApp/Program.cs` | Drives the three runs and prints the console output |
 | `samples/CloudStorageORM.SampleApp/DbContext/MyAppDbContext.cs` | Defines the InMemory and CloudStorageORM contexts |
 | `samples/CloudStorageORM.SampleApp/Models/User.cs` | Sample entity persisted to storage |
 
@@ -41,7 +42,9 @@ This is important because the goal of the sample is not just CRUD; it is demonst
 - The sample uses `SaveChangesAsync()` for create, update, and delete.
 - Listing uses `ToListAsync()`.
 - Finding and updating use LINQ with `FirstOrDefault(...)`.
-- The same domain model and CRUD flow are exercised for both providers.
+- The same domain model and CRUD flow are exercised for all providers.
+- Each run clears existing users first to avoid leftover objects from previous executions.
+- The sample uses a deterministic user ID (`sample-user-001`) for predictable output and easier assertions.
 
 ---
 
@@ -50,7 +53,7 @@ This is important because the goal of the sample is not just CRUD; it is demonst
 ### Prerequisites
 
 - .NET 10 SDK
-- Docker (recommended, for Azurite)
+- Docker (recommended, for Azurite + LocalStack)
 
 ### Start Azurite
 
@@ -63,6 +66,17 @@ docker run -d \
   mcr.microsoft.com/azure-storage/azurite
 ```
 
+### Start LocalStack (S3)
+
+```bash
+docker run -d \
+  -p 4566:4566 \
+  --name localstack \
+  -e SERVICES=s3 \
+  -e AWS_DEFAULT_REGION=us-east-1 \
+  localstack/localstack
+```
+
 ### Run the sample from the repository root
 
 ```bash
@@ -73,15 +87,17 @@ dotnet run --project samples/CloudStorageORM.SampleApp/SampleApp.csproj
 
 ## What you should expect to see
 
-The console output is split into two sections:
+The console output is split into three sections:
 
 - `Running using EF InMemory Provider...`
-- `Running using EF CloudStorageOrm Provider...`
+- `Running using EF Azure Provider...`
+- `Running using EF Aws Provider...`
 
-Both sections should complete successfully and finish with a message like:
+All sections should complete successfully and finish with messages like:
 
 ```text
 🏁 SampleApp Finished for MyAppDbContextInMemory.
+🏁 SampleApp Finished for MyAppDbContextCloudStorage.
 🏁 SampleApp Finished for MyAppDbContextCloudStorage.
 🏁 SampleApp Finished.
 ```
@@ -90,13 +106,15 @@ Both sections should complete successfully and finish with a message like:
 
 ## Configuration details
 
-The sample currently uses:
+The sample currently uses environment-based configuration with defaults:
 
-- provider: `CloudProvider.Azure`
-- connection string: `UseDevelopmentStorage=true`
-- container: `sampleapp-container`
+- Azure connection string: `UseDevelopmentStorage=true`
+- Azure container: `sampleapp-container`
+- AWS endpoint: `http://localhost:4566`
+- AWS region: `us-east-1`
+- AWS credentials: `test` / `test`
 
-If you want to point it to a real Azure Storage account instead of Azurite, update the CloudStorageORM configuration in `samples/CloudStorageORM.SampleApp/Program.cs`.
+You can override values with env vars (for example `CLOUDSTORAGEORM_AZURE_CONNECTION_STRING`, `CLOUDSTORAGEORM_AWS_SERVICE_URL`, `CLOUDSTORAGEORM_AWS_BUCKET`).
 
 ---
 
@@ -105,8 +123,9 @@ If you want to point it to a real Azure Storage account instead of Azurite, upda
 This sample is also covered by an integration test:
 
 - `tests/CloudStorageORM.IntegrationTests/ProgramExitTests.cs`
+- `tests/CloudStorageORM.IntegrationTests/Aws/ProgramExitAwsTests.cs`
 
-That test launches the sample through `dotnet run` and verifies it exits with code `0` and prints `SampleApp Finished`.
+Those tests launch the sample through `dotnet run` and verify it exits with code `0` and prints `SampleApp Finished`.
 
 ---
 
@@ -122,5 +141,6 @@ It also serves as a guardrail for query execution changes, provider behavior, an
 - [README](../README.md)
 - [Library documentation](./CloudStorageORM.md)
 - [Testing with Azurite](./testing-with-azurite.md)
+- [Testing with LocalStack](./testing-with-localstack.md)
 
 

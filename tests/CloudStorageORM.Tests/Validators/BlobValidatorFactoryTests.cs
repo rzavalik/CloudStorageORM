@@ -1,5 +1,6 @@
 ﻿using CloudStorageORM.Enums;
 using CloudStorageORM.Interfaces.Validators;
+using CloudStorageORM.Providers.Aws.Validators;
 using CloudStorageORM.Providers.Azure.Validators;
 using CloudStorageORM.Validators;
 using Shouldly;
@@ -19,8 +20,18 @@ public class BlobValidatorFactoryTests
         validator.GetType().Name.ShouldBe("AzureBlobValidator");
     }
 
+    [Fact]
+    public void Create_WithAwsProvider_ShouldReturnAwsBlobValidator()
+    {
+        var validator = BlobValidatorFactory.Create(CloudProvider.Aws);
+
+        validator.ShouldNotBeNull();
+        validator.ShouldBeOfType<AwsBlobValidator>();
+        validator.ShouldBeAssignableTo<IBlobValidator>();
+        validator.GetType().Name.ShouldBe("AwsBlobValidator");
+    }
+
     [Theory]
-    [InlineData(CloudProvider.Aws)]
     [InlineData(CloudProvider.Gcp)]
     public void Create_WithUnsupportedProvider_ShouldThrowNotSupportedException(CloudProvider provider)
     {

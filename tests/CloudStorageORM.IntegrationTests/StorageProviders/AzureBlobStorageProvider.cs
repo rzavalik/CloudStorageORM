@@ -5,15 +5,16 @@ namespace CloudStorageORM.IntegrationTests.Azure.StorageProviders;
 
 public class AzureBlobStorageProviderTests(StorageFixture fixture) : IClassFixture<StorageFixture>
 {
-    private readonly AzureBlobStorageProvider _provider = new(fixture.ConnectionString, fixture.ContainerName);
-
     [Fact]
     public async Task SaveAsync_ShouldSaveEntity()
     {
-        var entity = new TestEntity { Id = "entity1", Name = "Test" };
-        await _provider.SaveAsync("test-folder/entity1.json", entity);
+        fixture.EnsureAvailableOrSkip();
 
-        var savedEntity = await _provider.ReadAsync<TestEntity>("test-folder/entity1.json");
+        var provider = new AzureBlobStorageProvider(fixture.ConnectionString, fixture.ContainerName);
+        var entity = new TestEntity { Id = "entity1", Name = "Test" };
+        await provider.SaveAsync("test-folder/entity1.json", entity);
+
+        var savedEntity = await provider.ReadAsync<TestEntity>("test-folder/entity1.json");
 
         savedEntity.ShouldNotBeNull();
         savedEntity.Id.ShouldBe(entity.Id);
@@ -23,12 +24,15 @@ public class AzureBlobStorageProviderTests(StorageFixture fixture) : IClassFixtu
     [Fact]
     public async Task DeleteAsync_ShouldDeleteEntity()
     {
+        fixture.EnsureAvailableOrSkip();
+
+        var provider = new AzureBlobStorageProvider(fixture.ConnectionString, fixture.ContainerName);
         var entity = new TestEntity { Id = "entity2", Name = "ToDelete" };
-        await _provider.SaveAsync("test-folder/entity2.json", entity);
+        await provider.SaveAsync("test-folder/entity2.json", entity);
 
-        await _provider.DeleteAsync("test-folder/entity2.json");
+        await provider.DeleteAsync("test-folder/entity2.json");
 
-        var deletedEntity = await _provider.ReadAsync<TestEntity>("test-folder/entity2.json");
+        var deletedEntity = await provider.ReadAsync<TestEntity>("test-folder/entity2.json");
 
         deletedEntity.ShouldBeNull();
     }
@@ -36,10 +40,13 @@ public class AzureBlobStorageProviderTests(StorageFixture fixture) : IClassFixtu
     [Fact]
     public async Task ListAsync_ShouldReturnListOfEntities()
     {
-        await _provider.SaveAsync("test-folder/list-entity1.json", new TestEntity { Id = "list1", Name = "Item1" });
-        await _provider.SaveAsync("test-folder/list-entity2.json", new TestEntity { Id = "list2", Name = "Item2" });
+        fixture.EnsureAvailableOrSkip();
 
-        var files = await _provider.ListAsync("test-folder/");
+        var provider = new AzureBlobStorageProvider(fixture.ConnectionString, fixture.ContainerName);
+        await provider.SaveAsync("test-folder/list-entity1.json", new TestEntity { Id = "list1", Name = "Item1" });
+        await provider.SaveAsync("test-folder/list-entity2.json", new TestEntity { Id = "list2", Name = "Item2" });
+
+        var files = await provider.ListAsync("test-folder/");
 
         files.ShouldNotBeEmpty();
         files.Count.ShouldBeGreaterThanOrEqualTo(2);

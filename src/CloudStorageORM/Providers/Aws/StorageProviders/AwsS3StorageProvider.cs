@@ -1,0 +1,207 @@
+using System.Net;
+using System.Text;
+using System.Text.Json;
+using Amazon;
+using Amazon.Runtime;
+using Amazon.S3;
+using Amazon.S3.Model;
+using Amazon.S3.Util;
+using CloudStorageORM.Enums;
+using CloudStorageORM.Interfaces.StorageProviders;
+using CloudStorageORM.Options;
+
+namespace CloudStorageORM.Providers.Aws.StorageProviders;
+
+public class AwsS3StorageProvider : IStorageProvider
+{
+    private readonly string _bucketName;
+    private readonly IAmazonS3 _s3Client;
+    private readonly SemaphoreSlim _bucketInitLock = new(1, 1);
+    private bool _isBucketInitialized;
+
+    private static Func<CloudStorageOptions, IAmazonS3> OptionsS3ClientFactory { get; set; } = options =>
+    {
+        var config = new AmazonS3Config
+        {
+            ForcePathStyle = options.Aws.ForcePathStyle
+        };
+
+        if (!string.IsNullOrWhiteSpace(options.Aws.Region))
+        {
+            config.RegionEndpoint = RegionEndpoint.GetBySystemName(options.Aws.Region);
+        }
+
+        if (!string.IsNullOrWhiteSpace(options.Aws.ServiceUrl))
+        {
+            config.ServiceURL = options.Aws.ServiceUrl;
+            config.AuthenticationRegion = string.IsNullOrWhiteSpace(options.Aws.Region)
+                ? "us-east-1"
+                : options.Aws.Region;
+        }
+
+        var credentials = new BasicAWSCredentials(options.Aws.AccessKeyId, options.Aws.SecretAccessKey);
+        return new AmazonS3Client(credentials, config);
+    };
+
+    private static Func<IAmazonS3, string, Task<bool>> BucketExistsAsyncFactory { get; set; }
+        = AmazonS3Util.DoesS3BucketExistV2Async;
+
+    public AwsS3StorageProvider(CloudStorageOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(options);
+        _bucketName = options.ContainerName;
+        _s3Client = OptionsS3ClientFactory(options);
+    }
+
+    internal AwsS3StorageProvider(CloudStorageOptions options, IAmazonS3 s3Client)
+    {
+        ArgumentNullException.ThrowIfNull(options);
+        ArgumentNullException.ThrowIfNull(s3Client);
+        _bucketName = options.ContainerName;
+        _s3Client = s3Client;
+    }
+
+    public CloudProvider CloudProvider => CloudProvider.Aws;
+
+    public async Task DeleteContainerAsync()
+    {
+        try
+        {
+            await _s3Client.DeleteBucketAsync(new DeleteBucketRequest
+            {
+                BucketName = _bucketName
+            });
+        }
+        catch (AmazonS3Exception ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            // Match Azure delete-if-exists behavior.
+        }
+    }
+
+    public async Task CreateContainerIfNotExistsAsync()
+    {
+        if (await BucketExistsAsyncFactory(_s3Client, _bucketName))
+        {
+            return;
+        }
+
+        await _s3Client.PutBucketAsync(new PutBucketRequest
+        {
+            BucketName = _bucketName
+        });
+
+        _isBucketInitialized = true;
+    }
+
+    public async Task SaveAsync<T>(string path, T entity)
+    {
+        await EnsureBucketExistsAsync();
+
+        var json = JsonSerializer.Serialize(entity);
+
+        await _s3Client.PutObjectAsync(new PutObjectRequest
+        {
+            BucketName = _bucketName,
+            Key = path,
+            ContentBody = json,
+            ContentType = "application/json"
+        });
+    }
+
+    public async Task<T> ReadAsync<T>(string path)
+    {
+        await EnsureBucketExistsAsync();
+
+        try
+        {
+            var response = await _s3Client.GetObjectAsync(new GetObjectRequest
+            {
+                BucketName = _bucketName,
+                Key = path
+            });
+
+            using var reader = new StreamReader(response.ResponseStream);
+            var json = await reader.ReadToEndAsync();
+            return JsonSerializer.Deserialize<T>(json)!;
+        }
+        catch (AmazonS3Exception ex) when (
+            ex.StatusCode == HttpStatusCode.NotFound ||
+            string.Equals(ex.ErrorCode, "NoSuchKey", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(ex.ErrorCode, "NoSuchBucket", StringComparison.OrdinalIgnoreCase))
+        {
+            return default!;
+        }
+    }
+
+    public async Task DeleteAsync(string path)
+    {
+        await EnsureBucketExistsAsync();
+
+        await _s3Client.DeleteObjectAsync(new DeleteObjectRequest
+        {
+            BucketName = _bucketName,
+            Key = path
+        });
+    }
+
+    public async Task<List<string>> ListAsync(string folderPath)
+    {
+        await EnsureBucketExistsAsync();
+
+        var result = new List<string>();
+        string? continuationToken = null;
+
+        do
+        {
+            var response = await _s3Client.ListObjectsV2Async(new ListObjectsV2Request
+            {
+                BucketName = _bucketName,
+                Prefix = folderPath,
+                ContinuationToken = continuationToken
+            });
+
+            var objects = response.S3Objects ?? [];
+            result.AddRange(objects.Select(x => x.Key));
+            continuationToken = response.IsTruncated == true ? response.NextContinuationToken : null;
+        } while (!string.IsNullOrEmpty(continuationToken));
+
+        return result;
+    }
+
+    public string SanitizeBlobName(string rawName)
+    {
+        var invalidChars = new[] { '\\', '/', '?', '#', '[', ']', ' ', '+', '`', '"' };
+        var sanitizedName = new StringBuilder(rawName.Length);
+
+        foreach (var c in rawName)
+        {
+            sanitizedName.Append(invalidChars.Contains(c) ? '_' : c);
+        }
+
+        return sanitizedName.ToString().ToLowerInvariant();
+    }
+
+    private async Task EnsureBucketExistsAsync()
+    {
+        if (_isBucketInitialized)
+        {
+            return;
+        }
+
+        await _bucketInitLock.WaitAsync();
+        try
+        {
+            if (_isBucketInitialized)
+            {
+                return;
+            }
+
+            await CreateContainerIfNotExistsAsync();
+            _isBucketInitialized = true;
+        }
+        finally
+        {
+            _bucketInitLock.Release();
+        }
+    }
+}

@@ -6,20 +6,22 @@ This document outlines the evolution of CloudStorageORM from the current release
 
 ## ✅ Current released version
 
-### v1.0.8
+### v1.0.9
 
 - Targets `.NET 10`
 - Azure Blob Storage provider implemented
+- AWS S3 provider implemented
 - EF-style configuration through `UseCloudStorageOrm(...)`
 - `CloudStorageDbContext` integration for consumer contexts
-- Sample app runs the same CRUD flow against EF InMemory and CloudStorageORM
+- Sample app runs the same CRUD flow against EF InMemory, Azure, and AWS
 - LINQ query execution improved to better match expected EF provider behavior
 - Unit and integration tests are in place
+- Integration coverage includes Azurite and LocalStack paths
 - Coverage collection/reporting is wired with Coverlet + ReportGenerator
 - File-scoped namespace style enforced repository-wide
 - Finalize documentation alignment for `.NET 10`
 - Keep roadmap, CI workflows, and package metadata aligned with the current release line
-- Preserve sample app parity between EF InMemory and CloudStorageORM
+- Preserve sample app parity between EF InMemory and CloudStorageORM providers
 - Harden query execution and regression coverage around provider behavior
 - Maintain HTML coverage reporting workflow and contributor guidance
 
@@ -38,10 +40,10 @@ This document outlines the evolution of CloudStorageORM from the current release
 
 ### v1.2.0
 
-- AWS S3 storage provider
-- Save, read, delete, and list operations on AWS
-- Integrate AWS provider into the existing abstraction layer
-- Add sample configuration path for AWS support
+- AWS provider hardening (resilience, retries, and diagnostics)
+- Expanded AWS integration test matrix (lifecycle, edge cases, and failure scenarios)
+- CI improvements for AWS test execution reliability
+- Performance profiling for larger AWS object sets
 
 ---
 

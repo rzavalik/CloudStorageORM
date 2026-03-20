@@ -11,10 +11,21 @@ namespace SampleApp;
 
 public class Program
 {
+    private const string DeterministicUserId = "sample-user-001";
+    private const string ContainerNameEnvVar = "CLOUDSTORAGEORM_CONTAINER_NAME";
+    private const string AzureConnectionStringEnvVar = "CLOUDSTORAGEORM_AZURE_CONNECTION_STRING";
+    private const string AwsAccessKeyIdEnvVar = "CLOUDSTORAGEORM_AWS_ACCESS_KEY_ID";
+    private const string AwsSecretAccessKeyEnvVar = "CLOUDSTORAGEORM_AWS_SECRET_ACCESS_KEY";
+    private const string AwsRegionEnvVar = "CLOUDSTORAGEORM_AWS_REGION";
+    private const string AwsServiceUrlEnvVar = "CLOUDSTORAGEORM_AWS_SERVICE_URL";
+    private const string AwsBucketEnvVar = "CLOUDSTORAGEORM_AWS_BUCKET";
+    private const string AwsForcePathStyleEnvVar = "CLOUDSTORAGEORM_AWS_FORCE_PATH_STYLE";
+
     private enum StorageType
     {
         InMemory,
-        CloudStorageOrm
+        Azure,
+        Aws
     }
 
     public static async Task Main(string[] args)
@@ -25,7 +36,9 @@ public class Program
         Console.WriteLine("");
         await Execute(StorageType.InMemory);
         Console.WriteLine("");
-        await Execute(StorageType.CloudStorageOrm);
+        await Execute(StorageType.Azure);
+        Console.WriteLine("");
+        await Execute(StorageType.Aws);
         Console.WriteLine("");
         Console.WriteLine("🏁 SampleApp Finished.");
     }
@@ -41,15 +54,18 @@ public class Program
             var services = new ServiceCollection();
 
             // Register the IStorageProvider for CloudStorageORM
-            if (storageType == StorageType.CloudStorageOrm)
+            if (storageType is StorageType.Azure or StorageType.Aws)
             {
-                // Register the IStorageProvider
-                var cloudStorageOptions = new CloudStorageOptions
+                var cloudProvider = storageType == StorageType.Azure ? CloudProvider.Azure : CloudProvider.Aws;
+                var cloudStorageOptions = BuildCloudStorageOptionsFromEnvironment(cloudProvider);
+                Console.WriteLine($"| ☁️ Cloud provider: {cloudStorageOptions.Provider}");
+
+                var (isAvailable, reason) = await IsProviderAvailableAsync(cloudStorageOptions);
+                if (!isAvailable)
                 {
-                    Provider = CloudProvider.Azure,
-                    ConnectionString = "UseDevelopmentStorage=true",
-                    ContainerName = "sampleapp-container"
-                };
+                    Console.WriteLine($"| ⚠️ Skipping {cloudStorageOptions.Provider} run: {reason}");
+                    return;
+                }
 
                 // Register DbContext for CloudStorageORM
                 services.AddDbContext<MyAppDbContextCloudStorage>(options =>
@@ -58,8 +74,9 @@ public class Program
                     options.UseCloudStorageOrm(opt =>
                     {
                         opt.Provider = cloudStorageOptions.Provider;
-                        opt.ConnectionString = cloudStorageOptions.ConnectionString;
                         opt.ContainerName = cloudStorageOptions.ContainerName;
+                        opt.Azure = cloudStorageOptions.Azure;
+                        opt.Aws = cloudStorageOptions.Aws;
                     });
                 });
             }
@@ -75,7 +92,7 @@ public class Program
 
             var provider = services.BuildServiceProvider();
             using var scope = provider.CreateScope();
-            if (storageType == StorageType.CloudStorageOrm)
+            if (storageType is StorageType.Azure or StorageType.Aws)
             {
                 dbContext = scope.ServiceProvider.GetRequiredService<MyAppDbContextCloudStorage>();
             }
@@ -95,7 +112,13 @@ public class Program
     private static async Task RunSample(Microsoft.EntityFrameworkCore.DbContext context)
     {
         var repository = context.Set<User>();
-        var userId = Guid.NewGuid().ToString();
+
+        Console.WriteLine("| 🧹 Clearing users before run...");
+        var cleared = await repository.ClearAsync(context);
+        Console.WriteLine($"| ✅ Cleared {cleared} existing users.");
+        Console.WriteLine("|");
+
+        var userId = DeterministicUserId;
 
         Console.WriteLine("| 📃 Listing users...");
         var users = await repository.ToListAsync();
@@ -179,5 +202,95 @@ public class Program
 
         Console.WriteLine("|");
         Console.WriteLine($"🏁 SampleApp Finished for {context.GetType().Name}.");
+    }
+
+    private static async Task<(bool IsAvailable, string Reason)> IsProviderAvailableAsync(CloudStorageOptions options)
+    {
+        return options.Provider switch
+        {
+            CloudProvider.Azure => await IsAzureAvailableAsync(options),
+            CloudProvider.Aws => await IsAwsAvailableAsync(options),
+            _ => (false, $"Provider {options.Provider} not supported by SampleApp.")
+        };
+    }
+
+    private static async Task<(bool IsAvailable, string Reason)> IsAzureAvailableAsync(CloudStorageOptions options)
+    {
+        if (!string.Equals(options.Azure.ConnectionString, "UseDevelopmentStorage=true",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            return (true, "Azure connection string is not using local emulator; skipping local probe.");
+        }
+
+        var isReachable = await IsHttpEndpointReachableAsync("http://127.0.0.1:10000");
+        return isReachable
+            ? (true, "Azurite is reachable.")
+            : (false, "Azurite is not reachable at http://127.0.0.1:10000.");
+    }
+
+    private static async Task<(bool IsAvailable, string Reason)> IsAwsAvailableAsync(CloudStorageOptions options)
+    {
+        var endpoint = options.Aws.ServiceUrl;
+        if (string.IsNullOrWhiteSpace(endpoint))
+        {
+            return (true, "AWS service URL not configured; skipping local probe.");
+        }
+
+        var isReachable = await IsHttpEndpointReachableAsync(endpoint);
+        return isReachable
+            ? (true, "AWS endpoint is reachable.")
+            : (false, $"AWS endpoint is not reachable at {endpoint}.");
+    }
+
+    private static async Task<bool> IsHttpEndpointReachableAsync(string endpoint)
+    {
+        try
+        {
+            var httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(2) };
+
+            using var response = await httpClient.GetAsync(endpoint);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private static CloudStorageOptions BuildCloudStorageOptionsFromEnvironment(CloudProvider provider)
+    {
+        var defaultContainerName = "sampleapp-container";
+        var containerName = provider == CloudProvider.Aws
+            ? Environment.GetEnvironmentVariable(AwsBucketEnvVar)
+              ?? Environment.GetEnvironmentVariable(ContainerNameEnvVar)
+              ?? defaultContainerName
+            : Environment.GetEnvironmentVariable(ContainerNameEnvVar) ?? defaultContainerName;
+
+        return new CloudStorageOptions
+        {
+            Provider = provider,
+            ContainerName = containerName,
+            Azure = new CloudStorageAzureOptions
+            {
+                ConnectionString = Environment.GetEnvironmentVariable(AzureConnectionStringEnvVar)
+                                   ?? "UseDevelopmentStorage=true"
+            },
+            Aws = new CloudStorageAwsOptions
+            {
+                AccessKeyId = Environment.GetEnvironmentVariable(AwsAccessKeyIdEnvVar) ?? "test",
+                SecretAccessKey = Environment.GetEnvironmentVariable(AwsSecretAccessKeyEnvVar) ?? "test",
+                Region = Environment.GetEnvironmentVariable(AwsRegionEnvVar) ?? "us-east-1",
+                ServiceUrl = Environment.GetEnvironmentVariable(AwsServiceUrlEnvVar) ?? "http://localhost:4566",
+                ForcePathStyle = ParseBool(Environment.GetEnvironmentVariable(AwsForcePathStyleEnvVar), true)
+            }
+        };
+    }
+
+
+    private static bool ParseBool(string? value, bool defaultValue)
+    {
+        return bool.TryParse(value, out var parsed)
+            ? parsed
+            : defaultValue;
     }
 }

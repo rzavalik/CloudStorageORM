@@ -5,6 +5,7 @@ namespace CloudStorageORM.Options;
 public class CloudStorageOptions
 {
     public CloudProvider Provider { get; set; }
-    public string ConnectionString { get; set; } = string.Empty;
     public string ContainerName { get; set; } = string.Empty;
+    public CloudStorageAzureOptions Azure { get; set; } = new();
+    public CloudStorageAwsOptions Aws { get; set; } = new();
 }

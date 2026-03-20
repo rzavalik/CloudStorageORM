@@ -1,6 +1,7 @@
 using CloudStorageORM.Contexts;
 using CloudStorageORM.Enums;
 using CloudStorageORM.Extensions;
+using CloudStorageORM.Options;
 using Microsoft.EntityFrameworkCore;
 using Shouldly;
 
@@ -31,9 +32,12 @@ public class CloudStorageDbContextTests
         var builder = new DbContextOptionsBuilder();
         builder.UseCloudStorageOrm(options =>
         {
-            options.Provider = CloudProvider.Aws;
-            options.ConnectionString = "ignored";
+            options.Provider = CloudProvider.Gcp;
             options.ContainerName = "ignored";
+            options.Azure = new CloudStorageAzureOptions
+            {
+                ConnectionString = "ignored"
+            };
         });
 
         var ex = Should.Throw<NotSupportedException>(() => new CloudStorageDbContext(builder.Options));

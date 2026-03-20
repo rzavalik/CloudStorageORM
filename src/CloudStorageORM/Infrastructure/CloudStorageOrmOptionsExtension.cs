@@ -1,9 +1,11 @@
 ﻿using Azure.Storage.Blobs;
+using CloudStorageORM.Enums;
 using CloudStorageORM.Extensions;
 using CloudStorageORM.Interfaces.Infrastructure;
 using CloudStorageORM.Interfaces.StorageProviders;
 using CloudStorageORM.Options;
 using CloudStorageORM.Providers;
+using CloudStorageORM.Validators;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Internal;
@@ -28,15 +30,18 @@ public class CloudStorageOrmOptionsExtension : IDbContextOptionsExtension
 
     public void ApplyServices(IServiceCollection services)
     {
+        CloudStorageOptionsValidator.Validate(Options);
+
         services.AddSingleton(Options);
 
         new EntityFrameworkServicesBuilder(services).TryAddCoreServices();
 
         services.AddSingleton<IStorageProvider>(_ => ProviderFactory.GetStorageProvider(Options));
 
-        services.TryAddSingleton<BlobServiceClient>(_ => string.IsNullOrEmpty(Options.ConnectionString)
-            ? throw new InvalidOperationException("CloudStorageOptions.ConnectionString must be provided.")
-            : new BlobServiceClient(Options.ConnectionString));
+        if (Options.Provider == CloudProvider.Azure)
+        {
+            services.TryAddSingleton(_ => new BlobServiceClient(Options.Azure.ConnectionString));
+        }
 
         services.AddScoped<IDatabase, CloudStorageDatabase>();
         services.AddScoped<LoggingDefinitions, CloudStorageLoggingDefinitions>();
@@ -57,5 +62,6 @@ public class CloudStorageOrmOptionsExtension : IDbContextOptionsExtension
 
     public void Validate(IDbContextOptions options)
     {
+        CloudStorageOptionsValidator.Validate(Options);
     }
 }

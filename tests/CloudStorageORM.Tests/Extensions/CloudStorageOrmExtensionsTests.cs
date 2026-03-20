@@ -1,6 +1,7 @@
 using CloudStorageORM.Enums;
 using CloudStorageORM.Extensions;
 using CloudStorageORM.Infrastructure;
+using CloudStorageORM.Options;
 using Microsoft.EntityFrameworkCore;
 using Shouldly;
 
@@ -16,7 +17,10 @@ public class CloudStorageOrmExtensionsTests
         builder.UseCloudStorageOrm(options =>
         {
             options.Provider = CloudProvider.Azure;
-            options.ConnectionString = "UseDevelopmentStorage=true";
+            options.Azure = new CloudStorageAzureOptions
+            {
+                ConnectionString = "UseDevelopmentStorage=true"
+            };
             options.ContainerName = "unit-tests";
         });
 
@@ -34,7 +38,10 @@ public class CloudStorageOrmExtensionsTests
         builder.UseCloudStorageOrm(options =>
         {
             options.Provider = CloudProvider.Azure;
-            options.ConnectionString = "UseDevelopmentStorage=true";
+            options.Azure = new CloudStorageAzureOptions
+            {
+                ConnectionString = "UseDevelopmentStorage=true"
+            };
             options.ContainerName = "generic-tests";
         });
 
@@ -58,14 +65,20 @@ public class CloudStorageOrmExtensionsTests
         builder.UseCloudStorageOrm(options =>
         {
             options.Provider = CloudProvider.Azure;
-            options.ConnectionString = "UseDevelopmentStorage=true";
+            options.Azure = new CloudStorageAzureOptions
+            {
+                ConnectionString = "UseDevelopmentStorage=true"
+            };
             options.ContainerName = "first-call";
         });
 
         builder.UseCloudStorageOrm(options =>
         {
             options.Provider = CloudProvider.Azure;
-            options.ConnectionString = "UseDevelopmentStorage=true";
+            options.Azure = new CloudStorageAzureOptions
+            {
+                ConnectionString = "UseDevelopmentStorage=true"
+            };
             options.ContainerName = "second-call";
         });
 
