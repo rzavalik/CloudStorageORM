@@ -110,12 +110,12 @@ public class CloudStorageDatabase(
             {
                 case EntityState.Added:
                 case EntityState.Modified:
-                    await ExecuteOrStageAsync(_ => _storageProvider.SaveAsync(path, entity), cancellationToken);
+                    await ExecuteOrStageSaveAsync(path, entity, cancellationToken);
                     changes++;
                     break;
 
                 case EntityState.Deleted:
-                    await ExecuteOrStageAsync(_ => _storageProvider.DeleteAsync(path), cancellationToken);
+                    await ExecuteOrStageDeleteAsync(path, cancellationToken);
                     changes++;
                     break;
             }
@@ -124,15 +124,42 @@ public class CloudStorageDatabase(
         return changes;
     }
 
-    private async Task ExecuteOrStageAsync(Func<CancellationToken, Task> operation, CancellationToken cancellationToken)
+    private async Task ExecuteOrStageSaveAsync(string path, object entity, CancellationToken cancellationToken)
     {
         if (_transactionManager is CloudStorageTransactionManager { HasActiveTransaction: true } manager)
         {
-            manager.EnqueueOperation(operation);
+            if (manager.IsDurableJournalEnabled)
+            {
+                await manager.StageSaveOperationAsync(path, entity, cancellationToken);
+            }
+            else
+            {
+                manager.EnqueueOperation(_ => _storageProvider.SaveAsync(path, entity));
+            }
+
             return;
         }
 
-        await operation(cancellationToken);
+        await _storageProvider.SaveAsync(path, entity);
+    }
+
+    private async Task ExecuteOrStageDeleteAsync(string path, CancellationToken cancellationToken)
+    {
+        if (_transactionManager is CloudStorageTransactionManager { HasActiveTransaction: true } manager)
+        {
+            if (manager.IsDurableJournalEnabled)
+            {
+                await manager.StageDeleteOperationAsync(path, cancellationToken);
+            }
+            else
+            {
+                manager.EnqueueOperation(_ => _storageProvider.DeleteAsync(path));
+            }
+
+            return;
+        }
+
+        await _storageProvider.DeleteAsync(path);
     }
 
     private static bool KeysMatch(EntityEntry trackedEntry, IUpdateEntry newEntry)

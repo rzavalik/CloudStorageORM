@@ -27,7 +27,7 @@ For CloudStorageORM-backed runs (Azure and AWS), the app also verifies transacti
 8. add a user inside a transaction and roll back (must not persist)
 9. add a user inside a transaction and commit (must persist)
 
-This scenario validates context-scoped transaction staging/commit behavior. It does not depend on a shared `tx/` folder in blob/object storage.
+This scenario validates transaction staging/commit behavior backed by the durable journal under `__cloudstorageorm/tx/`.
 
 This is important because the goal of the sample is not just CRUD; it is demonstrating that the CloudStorageORM provider behaves close to familiar EF usage for the same application code.
 

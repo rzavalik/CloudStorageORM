@@ -6,7 +6,7 @@ This document outlines the evolution of CloudStorageORM from the current release
 
 ## ✅ Current released version
 
-### v1.0.9
+### v1.0.10
 
 - Targets `.NET 10`
 - Azure Blob Storage provider implemented
@@ -31,8 +31,9 @@ This document outlines the evolution of CloudStorageORM from the current release
 
 ### v1.1.0
 
-- Add lock and unlock support in storage providers
-- Improve concurrency control mechanisms
+- Add provider-native lock and unlock support (Azure lease-based coordination)
+- Add AWS concurrency coordination via conditional/object-lock style mechanisms
+- Improve concurrency control mechanisms across provider implementations
 - Extend Azure provider for richer blob lifecycle semantics
 - Expand sample scenarios to include concurrency-sensitive operations
 

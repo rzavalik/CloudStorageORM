@@ -123,9 +123,11 @@ await db.SaveChangesAsync();
 - Coding style is enforced with **file-scoped namespaces** (`namespace X;`).
 - The sample app is covered by an integration test that verifies `dotnet run` exits successfully.
 - Integration fixtures can skip Azure/AWS scenarios when Azurite/LocalStack are unavailable.
-- CloudStorage transaction support now stages writes during an active transaction and applies them on `Commit`; `Rollback` discards staged changes.
+- CloudStorage transaction support now uses a durable transaction journal under `__cloudstorageorm/tx/<transactionId>/manifest.json`.
+- `SaveChanges` during an active transaction stages durable operations in the manifest; `Commit` marks the manifest as committed and replays operations; `Rollback` marks the transaction as aborted.
 - Each transaction has a unique `TransactionId` (`Guid`) and only one active transaction is allowed per `DbContext` instance.
-- Current transaction staging is in-memory per process/context (there is no shared `tx/` blob folder protocol yet).
+- On startup of a new transaction manager instance, committed manifests are replayed and finalized (`Completed`), while pre-commit manifests are marked as aborted (`Aborted`).
+- Future versions may add provider-native temporary locking (for example, Azure blob leases and AWS conditional/object-lock strategies) to improve concurrent-writer coordination.
 - `IDatabaseCreator` behavior is still minimal right now: schema-style database lifecycle methods are not fully implemented because object storage does not map 1:1 to relational database creation semantics.
 
 ---

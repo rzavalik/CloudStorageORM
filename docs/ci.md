@@ -1,6 +1,7 @@
 # CI workflow (`.github/workflows/ci.yml`)
 
 This repository validates build, tests, and coverage through the `Build and Test` workflow.
+Package publishing is handled by `.github/workflows/publish.yml`, which validates that the packed NuGet includes `README.md` and correct repository/readme metadata before push.
 
 ---
 
