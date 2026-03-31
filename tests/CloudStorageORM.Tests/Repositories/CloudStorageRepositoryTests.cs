@@ -1,4 +1,4 @@
-﻿using CloudStorageORM.Interfaces.StorageProviders;
+using CloudStorageORM.Interfaces.StorageProviders;
 using CloudStorageORM.Repositories;
 using Moq;
 using Shouldly;

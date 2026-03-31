@@ -1,4 +1,4 @@
-﻿using CloudStorageORM.Infrastructure;
+using CloudStorageORM.Infrastructure;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace CloudStorageORM.Extensions;

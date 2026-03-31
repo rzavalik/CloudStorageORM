@@ -1,4 +1,4 @@
-﻿namespace CloudStorageORM.Abstractions;
+namespace CloudStorageORM.Abstractions;
 
 [AttributeUsage(AttributeTargets.Class, Inherited = false)]
 public sealed class BlobSettingsAttribute : ModelAttribute

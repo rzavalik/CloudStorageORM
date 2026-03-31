@@ -1,4 +1,4 @@
-﻿namespace CloudStorageORM.Interfaces.Validators;
+namespace CloudStorageORM.Interfaces.Validators;
 
 public interface IBlobValidator
 {

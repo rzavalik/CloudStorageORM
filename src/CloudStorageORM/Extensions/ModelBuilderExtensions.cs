@@ -1,4 +1,4 @@
-﻿using CloudStorageORM.Abstractions;
+using CloudStorageORM.Abstractions;
 using CloudStorageORM.Constants;
 using CloudStorageORM.Interfaces.StorageProviders;
 using CloudStorageORM.Validators;

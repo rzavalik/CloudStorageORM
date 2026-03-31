@@ -1,4 +1,4 @@
-﻿using CloudStorageORM.Interfaces.StorageProviders;
+using CloudStorageORM.Interfaces.StorageProviders;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 

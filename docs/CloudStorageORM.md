@@ -94,6 +94,15 @@ The current branch supports EF-style usage such as:
 - `await context.Set<TEntity>().ToListAsync()`
 - `context.Set<TEntity>().FirstOrDefault(predicate)`
 
+Transaction behavior on the current branch:
+
+- `BeginTransaction()` opens a context-scoped transaction manager.
+- Every transaction gets a unique `TransactionId` (`Guid`).
+- `SaveChanges()` inside an active transaction stages storage operations in memory.
+- `Commit()` executes all staged operations in order.
+- `Rollback()` (or disposing an uncommitted transaction) discards staged operations.
+- The current implementation does not write transaction logs to a shared `tx/` folder in object storage.
+
 The recent query work on `main` focuses on:
 
 - evaluating LINQ queries directly instead of materializing everything and then searching in memory for single-entity
@@ -133,6 +142,8 @@ These items are important for anyone consuming the current `main` branch:
    Database creation / deletion semantics do not map directly to object storage.
    In particular, `CloudStorageDatabaseCreator` is still intentionally minimal and some methods remain placeholders or
    throw `NotImplementedException`.
+
+   Transactions are implemented by in-memory operation staging until commit; this is not a full relational ACID transaction engine and not a distributed transaction coordinator across processes.
 
 3. **Current branch targets .NET 10**  
    Consumers building from source should use the .NET 10 SDK.

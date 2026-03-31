@@ -1,4 +1,4 @@
-﻿using CloudStorageORM.Infrastructure;
+using CloudStorageORM.Infrastructure;
 using CloudStorageORM.Options;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;

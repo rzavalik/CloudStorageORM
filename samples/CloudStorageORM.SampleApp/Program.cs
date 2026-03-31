@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using CloudStorageORM.Enums;
 using CloudStorageORM.Extensions;
 using CloudStorageORM.Options;
@@ -9,8 +9,9 @@ using SampleApp.Models;
 
 namespace SampleApp;
 
-public class Program
+public static class Program
 {
+    private static readonly HttpClient HttpClient = new() { Timeout = TimeSpan.FromSeconds(2) };
     private const string DeterministicUserId = "sample-user-001";
     private const string ContainerNameEnvVar = "CLOUDSTORAGEORM_CONTAINER_NAME";
     private const string AzureConnectionStringEnvVar = "CLOUDSTORAGEORM_AZURE_CONNECTION_STRING";
@@ -169,14 +170,9 @@ public class Program
         Console.WriteLine("|");
         Console.WriteLine("| 🔎 Finding the updated user...");
         var foundUser = repository.FirstOrDefault(u => u.Id == userId);
-        if (foundUser != null)
-        {
-            Console.WriteLine($"| 🎯 Found: {foundUser.Id} - {foundUser.Name} ({foundUser.Email})");
-        }
-        else
-        {
-            Console.WriteLine("| ❌ User not found.");
-        }
+        Console.WriteLine(foundUser != null
+            ? $"| 🎯 Found: {foundUser.Id} - {foundUser.Name} ({foundUser.Email})"
+            : "| ❌ User not found.");
 
         Console.WriteLine("|");
         Console.WriteLine("| 🗑️ Deleting the user...");
@@ -200,8 +196,66 @@ public class Program
             Console.WriteLine("| ✅ No users found. Deletion confirmed.");
         }
 
+        if (context is MyAppDbContextCloudStorage)
+        {
+            await RunTransactionScenario(context, repository);
+        }
+        else
+        {
+            Console.WriteLine("|");
+            Console.WriteLine("| ↩️ Skipping transaction scenario for InMemory provider.");
+        }
+
         Console.WriteLine("|");
         Console.WriteLine($"🏁 SampleApp Finished for {context.GetType().Name}.");
+    }
+
+    private static async Task RunTransactionScenario(Microsoft.EntityFrameworkCore.DbContext context, DbSet<User> repository)
+    {
+        const string rollbackUserId = $"{DeterministicUserId}-tx-rollback";
+        const string commitUserId = $"{DeterministicUserId}-tx-commit";
+
+        Console.WriteLine("|");
+        Console.WriteLine("| 🔁 Transaction scenario: rollback should not persist...");
+        await using (var rollbackTx = await context.Database.BeginTransactionAsync())
+        {
+            context.Add(new User
+            {
+                Id = rollbackUserId,
+                Name = "Tx Rollback",
+                Email = "tx.rollback@example.com"
+            });
+
+            await context.SaveChangesAsync();
+            await rollbackTx.RollbackAsync();
+        }
+
+        context.ChangeTracker.Clear();
+        var rollbackFound = repository.FirstOrDefault(u => u.Id == rollbackUserId);
+        Console.WriteLine(rollbackFound is null
+            ? "| ✅ Rollback verification passed: user was not persisted."
+            : "| ❌ Rollback verification failed: user is still present.");
+
+        Console.WriteLine("|");
+        Console.WriteLine("| ✅ Transaction scenario: commit should persist...");
+        await using (var commitTx = await context.Database.BeginTransactionAsync())
+        {
+            context.Add(new User
+            {
+                Id = commitUserId,
+                Name = "Tx Commit",
+                Email = "tx.commit@example.com"
+            });
+
+            await context.SaveChangesAsync();
+            await commitTx.CommitAsync();
+        }
+
+        context.ChangeTracker.Clear();
+        var commitFound = repository.FirstOrDefault(u => u.Id == commitUserId);
+        Console.WriteLine(commitFound is not null
+            ? "| ✅ Commit verification passed: user was persisted."
+            : "| ❌ Commit verification failed: user was not found.");
     }
 
     private static async Task<(bool IsAvailable, string Reason)> IsProviderAvailableAsync(CloudStorageOptions options)
@@ -246,9 +300,7 @@ public class Program
     {
         try
         {
-            var httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(2) };
-
-            using var response = await httpClient.GetAsync(endpoint);
+            using var response = await HttpClient.GetAsync(endpoint);
             return true;
         }
         catch
@@ -259,7 +311,7 @@ public class Program
 
     private static CloudStorageOptions BuildCloudStorageOptionsFromEnvironment(CloudProvider provider)
     {
-        var defaultContainerName = "sampleapp-container";
+        const string defaultContainerName = "sampleapp-container";
         var containerName = provider == CloudProvider.Aws
             ? Environment.GetEnvironmentVariable(AwsBucketEnvVar)
               ?? Environment.GetEnvironmentVariable(ContainerNameEnvVar)

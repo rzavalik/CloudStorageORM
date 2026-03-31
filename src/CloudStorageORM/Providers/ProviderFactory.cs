@@ -1,4 +1,4 @@
-﻿using CloudStorageORM.Enums;
+using CloudStorageORM.Enums;
 using CloudStorageORM.Interfaces.StorageProviders;
 using CloudStorageORM.Options;
 using CloudStorageORM.Providers.Aws.StorageProviders;

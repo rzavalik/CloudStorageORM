@@ -1,4 +1,4 @@
-﻿using CloudStorageORM.Interfaces.Infrastructure;
+using CloudStorageORM.Interfaces.Infrastructure;
 using CloudStorageORM.Interfaces.StorageProviders;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
@@ -28,6 +28,7 @@ public class CloudStorageDatabaseProvider : IDatabaseProvider
         var model = serviceProvider.GetRequiredService<IModel>();
         var currentDbContext = serviceProvider.GetRequiredService<ICurrentDbContext>();
         var blobPathResolver = serviceProvider.GetRequiredService<IBlobPathResolver>();
+        var transactionManager = serviceProvider.GetRequiredService<IDbContextTransactionManager>();
 
         return new CloudStorageDatabase(
             model,
@@ -35,6 +36,7 @@ public class CloudStorageDatabaseProvider : IDatabaseProvider
             executionStrategyFactory,
             storageProvider,
             currentDbContext,
-            blobPathResolver);
+            blobPathResolver,
+            transactionManager);
     }
 }

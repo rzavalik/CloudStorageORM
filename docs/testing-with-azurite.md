@@ -60,6 +60,8 @@ This runs:
 - unit tests in `tests/CloudStorageORM.Tests`
 - integration tests in `tests/CloudStorageORM.IntegrationTests`
 
+For CI-style TRX and coverage artifact layout, see [ci.md](./ci.md).
+
 If Azurite is unavailable, Azure-backed integration scenarios are skipped by fixture guards.
 
 ---

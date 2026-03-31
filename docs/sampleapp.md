@@ -22,6 +22,13 @@ For all storage modes, the app executes the same steps:
 6. delete the user
 7. confirm the entity is gone
 
+For CloudStorageORM-backed runs (Azure and AWS), the app also verifies transaction semantics:
+
+8. add a user inside a transaction and roll back (must not persist)
+9. add a user inside a transaction and commit (must persist)
+
+This scenario validates context-scoped transaction staging/commit behavior. It does not depend on a shared `tx/` folder in blob/object storage.
+
 This is important because the goal of the sample is not just CRUD; it is demonstrating that the CloudStorageORM provider behaves close to familiar EF usage for the same application code.
 
 ---
@@ -74,7 +81,7 @@ docker run -d \
   --name localstack \
   -e SERVICES=s3 \
   -e AWS_DEFAULT_REGION=us-east-1 \
-  localstack/localstack
+  localstack/localstack:3
 ```
 
 ### Run the sample from the repository root

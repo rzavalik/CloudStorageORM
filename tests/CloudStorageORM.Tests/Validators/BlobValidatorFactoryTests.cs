@@ -1,4 +1,4 @@
-﻿using CloudStorageORM.Enums;
+using CloudStorageORM.Enums;
 using CloudStorageORM.Interfaces.Validators;
 using CloudStorageORM.Providers.Aws.Validators;
 using CloudStorageORM.Providers.Azure.Validators;

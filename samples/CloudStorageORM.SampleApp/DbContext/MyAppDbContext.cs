@@ -1,4 +1,4 @@
-﻿using CloudStorageORM.Contexts;
+using CloudStorageORM.Contexts;
 using Microsoft.EntityFrameworkCore;
 using SampleApp.Models;
 

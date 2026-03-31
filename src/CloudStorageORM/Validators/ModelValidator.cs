@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using CloudStorageORM.Abstractions;
 using CloudStorageORM.Interfaces.Infrastructure;
 using CloudStorageORM.Interfaces.Validators;
