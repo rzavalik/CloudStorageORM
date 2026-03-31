@@ -1,4 +1,4 @@
-﻿using Azure.Storage.Blobs;
+using Azure.Storage.Blobs;
 using CloudStorageORM.Enums;
 using CloudStorageORM.Extensions;
 using CloudStorageORM.Interfaces.StorageProviders;

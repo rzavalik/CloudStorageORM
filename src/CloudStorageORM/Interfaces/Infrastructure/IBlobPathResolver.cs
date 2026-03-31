@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Update;
+using Microsoft.EntityFrameworkCore.Update;
 
 namespace CloudStorageORM.Interfaces.Infrastructure;
 

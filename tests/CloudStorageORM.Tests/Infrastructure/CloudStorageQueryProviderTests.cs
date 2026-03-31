@@ -21,8 +21,6 @@ public class CloudStorageQueryProviderTests
     private const string UserId1 = "user-1";
     private const string UserId2 = "user-2";
 
-    // ── helpers ──────────────────────────────────────────────────────────────
-
     private static (CloudStorageQueryProvider provider, Mock<IStorageProvider> storageProviderMock)
         BuildProvider(List<QueryTestUser>? seed = null)
     {
@@ -102,13 +100,12 @@ public class CloudStorageQueryProviderTests
             strategyFactoryMock.Object,
             storageProvider,
             currentDbContextMock.Object,
-            new BlobPathResolver(storageProvider));
+            new BlobPathResolver(storageProvider),
+            new CloudStorageTransactionManager());
     }
 
-    // ── tests ─────────────────────────────────────────────────────────────────
-
     [Fact]
-    public async Task FirstOrDefault_WithPrimaryKeyPredicate_LoadsSingleBlobDirectly()
+    public void FirstOrDefault_WithPrimaryKeyPredicate_LoadsSingleBlobDirectly()
     {
         var seed = new List<QueryTestUser>
         {
@@ -132,7 +129,7 @@ public class CloudStorageQueryProviderTests
     }
 
     [Fact]
-    public async Task FirstOrDefault_WithNonKeyPredicate_FiltersInMemoryAfterFullLoad()
+    public void FirstOrDefault_WithNonKeyPredicate_FiltersInMemoryAfterFullLoad()
     {
         var seed = new List<QueryTestUser>
         {
@@ -153,7 +150,7 @@ public class CloudStorageQueryProviderTests
     }
 
     [Fact]
-    public async Task Where_ReturnsFilteredResults_WithoutRequiringToList()
+    public void Where_ReturnsFilteredResults_WithoutRequiringToList()
     {
         var seed = new List<QueryTestUser>
         {
@@ -171,7 +168,7 @@ public class CloudStorageQueryProviderTests
     }
 
     [Fact]
-    public async Task FirstOrDefault_WithPrimaryKey_ReturnsNull_WhenNotFound()
+    public void FirstOrDefault_WithPrimaryKey_ReturnsNull_WhenNotFound()
     {
         var seed = new List<QueryTestUser>
         {
@@ -193,7 +190,7 @@ public class CloudStorageQueryProviderTests
     }
 
     [Fact]
-    public async Task Any_ExecutesViaFullLoad_WhenNoPrimaryKeyFastPath()
+    public void Any_ExecutesViaFullLoad_WhenNoPrimaryKeyFastPath()
     {
         var seed = new List<QueryTestUser>
         {

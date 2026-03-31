@@ -40,7 +40,8 @@ For active development on the current branch, you should have:
 | Type | Prefix | Example |
 | :--- | :--- | :--- |
 | New Feature | `feature/` | `feature/implement-azureprovider` |
-| Bug Fix | `bugfix/` | `bugfix/fix-query-evaluation` |
+| Bug Fix | `bug/` | `bug/fix-query-evaluation` |
+| Hotfix | `hotfix/` | `hotfix/fix-release-blocker` |
 | Tests | `test/` | `test/add-sampleapp-exit-coverage` |
 | Documentation | `docs/` | `docs/update-net10-guidance` |
 | Refactoring | `refactor/` | `refactor/simplify-query-provider` |
@@ -48,7 +49,8 @@ For active development on the current branch, you should have:
 Examples:
 
 - `feature/create-istorageprovider`
-- `bugfix/fix-path-handling`
+- `bug/fix-path-handling`
+- `hotfix/fix-ci-breakage`
 - `test/unit-azureblobstorageprovider`
 
 ---
@@ -170,6 +172,8 @@ The most likely files to update are:
 - `docs/sampleapp.md`
 - `docs/testing-with-azurite.md`
 - `docs/testing-with-localstack.md`
+- `docs/ci.md`
+- `.github/copilot-instructions.md`
 - `ROADMAP.md`
 
 ---
@@ -191,6 +195,13 @@ Before submitting your PR, verify:
 
 Direct pushes to `main` are not allowed.
 All changes should go through a PR and pass CI.
+
+Current CI (`.github/workflows/ci.yml`) runs on:
+
+- pushes to `main`
+- pull requests targeting `main`, `feature/**`, `bug/**`, or `hotfix/**`
+
+If you change CI behavior, update contributor and testing docs in the same PR.
 
 ---
 

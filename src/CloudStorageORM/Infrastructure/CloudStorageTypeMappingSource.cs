@@ -1,4 +1,4 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 using CloudStorageORM.Abstractions;
 using CloudStorageORM.Options;
 using CloudStorageORM.Validators;

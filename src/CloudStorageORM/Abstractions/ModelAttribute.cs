@@ -1,4 +1,4 @@
-﻿namespace CloudStorageORM.Abstractions;
+namespace CloudStorageORM.Abstractions;
 
 public abstract class ModelAttribute : Attribute
 {

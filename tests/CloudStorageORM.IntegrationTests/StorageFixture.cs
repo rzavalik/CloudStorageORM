@@ -1,9 +1,14 @@
-﻿using Azure.Storage.Blobs;
+using Azure.Storage.Blobs;
 
 namespace CloudStorageORM.IntegrationTests.Azure;
 
 public class StorageFixture : IAsyncLifetime
 {
+    private static readonly HttpClient HttpClient = new()
+    {
+        Timeout = TimeSpan.FromSeconds(2)
+    };
+
     public string ConnectionString { get; } = "UseDevelopmentStorage=true";
     public string ContainerName { get; } = "test-container";
     public string? SkipReason { get; private set; }
@@ -38,10 +43,7 @@ public class StorageFixture : IAsyncLifetime
     {
         try
         {
-            using var httpClient = new HttpClient();
-            httpClient.Timeout = TimeSpan.FromSeconds(2);
-
-            using var response = await httpClient.GetAsync("http://127.0.0.1:10000");
+            using var response = await HttpClient.GetAsync("http://127.0.0.1:10000");
             return true;
         }
         catch

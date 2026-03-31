@@ -40,6 +40,7 @@ public class CloudStorageDatabaseProviderTests
             return currentDbContext.Object;
         });
         services.AddSingleton(new Mock<IBlobPathResolver>().Object);
+        services.AddSingleton<IDbContextTransactionManager>(new CloudStorageTransactionManager());
 
         var dependencies = new Mock<IDatabaseFacadeDependencies>();
         dependencies.SetupGet(x => x.DatabaseCreator).Returns(new Mock<IDatabaseCreator>().Object);

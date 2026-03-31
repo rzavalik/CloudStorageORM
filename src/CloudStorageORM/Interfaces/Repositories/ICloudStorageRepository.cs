@@ -1,4 +1,4 @@
-﻿namespace CloudStorageORM.Interfaces.Repositories;
+namespace CloudStorageORM.Interfaces.Repositories;
 
 public interface ICloudStorageRepository<TEntity> where TEntity : class
 {

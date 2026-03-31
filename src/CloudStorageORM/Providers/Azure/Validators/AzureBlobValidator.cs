@@ -1,4 +1,4 @@
-﻿using CloudStorageORM.Interfaces.Validators;
+using CloudStorageORM.Interfaces.Validators;
 
 namespace CloudStorageORM.Providers.Azure.Validators;
 

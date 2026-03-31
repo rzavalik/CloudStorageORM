@@ -38,5 +38,27 @@ jobs:
     - name: Pack NuGet package
       run: dotnet pack src/CloudStorageORM/CloudStorageORM.csproj --configuration Release --no-build --output ./nupkg /p:PackageVersion=${{ env.PACKAGE_VERSION }}
 
+    - name: Validate package README metadata
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        package_file=$(ls -1 ./nupkg/*.nupkg | head -n 1)
+        echo "Validating package: ${package_file}"
+
+        # Ensure README.md is physically included in the package payload.
+        unzip -Z1 "${package_file}" | grep -qx 'README.md'
+
+        nuspec_path=$(unzip -Z1 "${package_file}" | grep -E '\.nuspec$' | head -n 1)
+        if [[ -z "${nuspec_path}" ]]; then
+          echo "Unable to locate nuspec in package." >&2
+          exit 1
+        fi
+
+        unzip -p "${package_file}" "${nuspec_path}" > ./nupkg/packed.nuspec
+
+        grep -q '<readme>README.md</readme>' ./nupkg/packed.nuspec
+        grep -q '<repository type="git" url="https://github.com/rzavalik/CloudStorageORM"' ./nupkg/packed.nuspec
+
     - name: Push to NuGet
       run: dotnet nuget push ./nupkg/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate

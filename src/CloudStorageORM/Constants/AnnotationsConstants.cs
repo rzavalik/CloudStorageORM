@@ -1,4 +1,4 @@
-﻿namespace CloudStorageORM.Constants;
+namespace CloudStorageORM.Constants;
 
 internal static class AnnotationsConstants
 {

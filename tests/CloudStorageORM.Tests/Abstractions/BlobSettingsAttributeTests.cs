@@ -1,4 +1,4 @@
-﻿using CloudStorageORM.Abstractions;
+using CloudStorageORM.Abstractions;
 using Shouldly;
 
 namespace CloudStorageORM.Tests.Abstractions;

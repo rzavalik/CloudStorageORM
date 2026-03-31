@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using System.Reflection.Emit;
 using CloudStorageORM.Abstractions;
 using CloudStorageORM.Infrastructure;

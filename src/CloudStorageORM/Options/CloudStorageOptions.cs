@@ -1,4 +1,4 @@
-﻿using CloudStorageORM.Enums;
+using CloudStorageORM.Enums;
 
 namespace CloudStorageORM.Options;
 

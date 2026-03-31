@@ -21,7 +21,7 @@ docker run -d \
   --name localstack \
   -e SERVICES=s3 \
   -e AWS_DEFAULT_REGION=us-east-1 \
-  localstack/localstack
+  localstack/localstack:3
 ```
 
 ---
@@ -46,6 +46,8 @@ dotnet test tests/CloudStorageORM.IntegrationTests/CloudStorageORM.IntegrationTe
   --filter "FullyQualifiedName~Aws" \
   --nologo -v minimal
 ```
+
+Note: there is a single integration test project file (`CloudStorageORM.IntegrationTests.Azure.csproj`) that contains both Azure and AWS integration tests.
 
 If LocalStack is unavailable, AWS integration scenarios are skipped by fixture guards.
 

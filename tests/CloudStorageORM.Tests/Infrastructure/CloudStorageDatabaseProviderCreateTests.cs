@@ -32,6 +32,7 @@ public class CloudStorageDatabaseProviderCreateTests
         services.AddSingleton(context.Model);
         services.AddSingleton(currentDbContext.Object);
         services.AddSingleton(Mock.Of<IBlobPathResolver>());
+        services.AddSingleton<IDbContextTransactionManager>(new CloudStorageTransactionManager());
         using var serviceProvider = services.BuildServiceProvider();
 
         var dependencies = new Mock<IDatabaseFacadeDependencies>();

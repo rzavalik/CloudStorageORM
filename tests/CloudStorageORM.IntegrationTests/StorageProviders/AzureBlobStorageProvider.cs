@@ -1,4 +1,4 @@
-﻿using CloudStorageORM.Providers.Azure.StorageProviders;
+using CloudStorageORM.Providers.Azure.StorageProviders;
 using Shouldly;
 
 namespace CloudStorageORM.IntegrationTests.Azure.StorageProviders;

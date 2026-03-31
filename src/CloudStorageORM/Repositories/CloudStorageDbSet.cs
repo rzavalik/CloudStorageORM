@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Linq.Expressions;
 using CloudStorageORM.Interfaces.StorageProviders;
 

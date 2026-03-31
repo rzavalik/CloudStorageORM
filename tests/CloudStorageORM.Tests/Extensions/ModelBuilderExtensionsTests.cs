@@ -1,4 +1,4 @@
-﻿using CloudStorageORM.Abstractions;
+using CloudStorageORM.Abstractions;
 using CloudStorageORM.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Shouldly;

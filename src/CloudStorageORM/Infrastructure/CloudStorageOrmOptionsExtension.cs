@@ -1,4 +1,4 @@
-﻿using Azure.Storage.Blobs;
+using Azure.Storage.Blobs;
 using CloudStorageORM.Enums;
 using CloudStorageORM.Extensions;
 using CloudStorageORM.Interfaces.Infrastructure;
@@ -49,7 +49,7 @@ public class CloudStorageOrmOptionsExtension : IDbContextOptionsExtension
 
         services.AddSingleton<IBlobPathResolver, BlobPathResolver>();
         services.AddSingleton<ITypeMappingSource, CloudStorageTypeMappingSource>();
-        services.AddSingleton<IDbContextTransactionManager, CloudStorageTransactionManager>();
+        services.AddScoped<IDbContextTransactionManager, CloudStorageTransactionManager>();
         services.AddSingleton<IDatabaseCreator, CloudStorageDatabaseCreator>();
         services.AddSingleton<IModelSource, ModelSource>();
         services.AddSingleton<IModelRuntimeInitializer, ModelRuntimeInitializer>();

@@ -1,4 +1,4 @@
-﻿using CloudStorageORM.Providers.Azure.Validators;
+using CloudStorageORM.Providers.Azure.Validators;
 using Shouldly;
 
 namespace CloudStorageORM.Tests.Azure.Validators;

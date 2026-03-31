@@ -123,6 +123,11 @@ await db.SaveChangesAsync();
 - Coding style is enforced with **file-scoped namespaces** (`namespace X;`).
 - The sample app is covered by an integration test that verifies `dotnet run` exits successfully.
 - Integration fixtures can skip Azure/AWS scenarios when Azurite/LocalStack are unavailable.
+- CloudStorage transaction support now uses a durable transaction journal under `__cloudstorageorm/tx/<transactionId>/manifest.json`.
+- `SaveChanges` during an active transaction stages durable operations in the manifest; `Commit` marks the manifest as committed and replays operations; `Rollback` marks the transaction as aborted.
+- Each transaction has a unique `TransactionId` (`Guid`) and only one active transaction is allowed per `DbContext` instance.
+- On startup of a new transaction manager instance, committed manifests are replayed and finalized (`Completed`), while pre-commit manifests are marked as aborted (`Aborted`).
+- Future versions may add provider-native temporary locking (for example, Azure blob leases and AWS conditional/object-lock strategies) to improve concurrent-writer coordination.
 - `IDatabaseCreator` behavior is still minimal right now: schema-style database lifecycle methods are not fully implemented because object storage does not map 1:1 to relational database creation semantics.
 
 ---
@@ -154,7 +159,19 @@ docker run -d \
   --name localstack \
   -e SERVICES=s3 \
   -e AWS_DEFAULT_REGION=us-east-1 \
-  localstack/localstack
+  localstack/localstack:3
+```
+
+### Optional AWS environment overrides
+
+The integration fixture uses defaults, but you can override them explicitly:
+
+```bash
+export CLOUDSTORAGEORM_AWS_SERVICE_URL=http://127.0.0.1:4566
+export CLOUDSTORAGEORM_AWS_ACCESS_KEY_ID=test
+export CLOUDSTORAGEORM_AWS_SECRET_ACCESS_KEY=test
+export CLOUDSTORAGEORM_AWS_REGION=us-east-1
+export CLOUDSTORAGEORM_AWS_BUCKET=cloudstorageorm-integration-tests
 ```
 
 ### Collect coverage
@@ -170,6 +187,8 @@ dotnet tool run reportgenerator \
 
 The HTML report is generated at `coverage/report/index.html`.
 
+For CI-equivalent behavior (per-test-project TRX and coverage artifacts), see [docs/ci.md](./docs/ci.md).
+
 ---
 
 ## 🧪 Running the sample app
@@ -184,6 +203,11 @@ The app runs the same CRUD flow three times:
 2. Once against CloudStorageORM configured for Azure Blob Storage / Azurite
 3. Once against CloudStorageORM configured for AWS S3 / LocalStack
 
+For CloudStorageORM runs, the sample also executes a transaction scenario:
+
+- add entity inside a transaction and `Rollback` (entity should not persist)
+- add entity inside a transaction and `Commit` (entity should persist)
+
 See [docs/sampleapp.md](./docs/sampleapp.md) for details.
 
 ---
@@ -194,6 +218,7 @@ See [docs/sampleapp.md](./docs/sampleapp.md) for details.
 - [Sample app guide](./docs/sampleapp.md)
 - [Testing with Azurite](./docs/testing-with-azurite.md)
 - [Testing with LocalStack](./docs/testing-with-localstack.md)
+- [CI workflow and artifacts](./docs/ci.md)
 - [Contributing](./CONTRIBUTING.md)
 - [Roadmap](./ROADMAP.md)
 

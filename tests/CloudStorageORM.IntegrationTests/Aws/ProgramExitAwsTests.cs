@@ -73,6 +73,9 @@ public class ProgramExitAwsTests(LocalStackFixture fixture) : IClassFixture<Loca
         stdout.ShouldContain("Cloud provider: Aws");
         stdout.ShouldContain("Clearing users before run");
         stdout.ShouldContain("sample-user-001");
+        stdout.ShouldContain("Rollback verification passed");
+        stdout.ShouldContain("Commit verification passed");
+        stdout.ShouldNotContain("verification failed");
         stdout.ShouldNotContain("An error occurred");
 
         stdout.IndexOf("Running using EF InMemory Provider", StringComparison.Ordinal)

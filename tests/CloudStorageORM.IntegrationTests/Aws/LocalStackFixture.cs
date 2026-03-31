@@ -6,6 +6,11 @@ namespace CloudStorageORM.IntegrationTests.Azure.Aws;
 
 public sealed class LocalStackFixture : IAsyncLifetime
 {
+    private static readonly HttpClient HttpClient = new()
+    {
+        Timeout = TimeSpan.FromSeconds(2)
+    };
+
     private AwsS3StorageProvider? _provider;
 
     public string ServiceUrl { get; } = Environment.GetEnvironmentVariable("CLOUDSTORAGEORM_AWS_SERVICE_URL")
@@ -81,10 +86,7 @@ public sealed class LocalStackFixture : IAsyncLifetime
     {
         try
         {
-            using var httpClient = new HttpClient();
-            httpClient.Timeout = TimeSpan.FromSeconds(2);
-
-            using var response = await httpClient.GetAsync(serviceUrl);
+            using var response = await HttpClient.GetAsync(serviceUrl);
             return true;
         }
         catch

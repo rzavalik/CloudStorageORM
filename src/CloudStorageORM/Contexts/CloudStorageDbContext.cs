@@ -1,4 +1,4 @@
-﻿using CloudStorageORM.Extensions;
+using CloudStorageORM.Extensions;
 using CloudStorageORM.Infrastructure;
 using CloudStorageORM.Interfaces.StorageProviders;
 using CloudStorageORM.Providers;

@@ -1,4 +1,4 @@
-﻿using CloudStorageORM.Infrastructure;
+using CloudStorageORM.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 using Microsoft.EntityFrameworkCore.Diagnostics;

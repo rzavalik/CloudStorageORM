@@ -1,4 +1,4 @@
-﻿using System.Linq.Expressions;
+using System.Linq.Expressions;
 using CloudStorageORM.Interfaces.Infrastructure;
 using CloudStorageORM.Interfaces.StorageProviders;
 using Microsoft.EntityFrameworkCore;
@@ -18,7 +18,8 @@ public class CloudStorageDatabase(
     IExecutionStrategyFactory executionStrategyFactory,
     IStorageProvider storageProvider,
     ICurrentDbContext currentDbContext,
-    IBlobPathResolver blobPathResolver)
+    IBlobPathResolver blobPathResolver,
+    IDbContextTransactionManager transactionManager)
     : IDatabase
 {
     private readonly DbContext _context =
@@ -29,6 +30,9 @@ public class CloudStorageDatabase(
 
     private readonly IBlobPathResolver _blobPathResolver =
         blobPathResolver ?? throw new ArgumentNullException(nameof(blobPathResolver));
+
+    private readonly IDbContextTransactionManager _transactionManager =
+        transactionManager ?? throw new ArgumentNullException(nameof(transactionManager));
 
     public IModel Model { get; } = model ?? throw new ArgumentNullException(nameof(model));
 
@@ -47,7 +51,7 @@ public class CloudStorageDatabase(
 
     public int SaveChanges(IList<IUpdateEntry> entries)
     {
-        var request = ProcessChangesAsync(entries);
+        var request = ProcessChangesAsync(entries, CancellationToken.None);
         request.Wait();
         return request.Result;
     }
@@ -55,10 +59,10 @@ public class CloudStorageDatabase(
     public async Task<int> SaveChangesAsync(IList<IUpdateEntry> entries,
         CancellationToken cancellationToken = default)
     {
-        return await ProcessChangesAsync(entries);
+        return await ProcessChangesAsync(entries, cancellationToken);
     }
 
-    private async Task<int> ProcessChangesAsync(IList<IUpdateEntry> entries)
+    private async Task<int> ProcessChangesAsync(IList<IUpdateEntry> entries, CancellationToken cancellationToken)
     {
         var changes = 0;
 
@@ -67,7 +71,7 @@ public class CloudStorageDatabase(
             var entity = ((InternalEntityEntry)entry).Entity;
             var path = _blobPathResolver.GetPath(entry);
 
-            // Verifica se há um outro objeto já rastreado com a mesma chave
+            // Check whether another entity with the same key is already tracked.
             var entityType = entry.EntityType.ClrType;
             var key = entry.EntityType.FindPrimaryKey();
             var keyProps = key?.Properties;
@@ -85,19 +89,19 @@ public class CloudStorageDatabase(
 
                 if (existingTracked != null)
                 {
-                    // Desanexa a instância antiga para permitir que a nova seja usada
+                    // Detach the previous instance so the new one can be used.
                     entry.Context.Entry(existingTracked.Entity).State = EntityState.Detached;
                 }
             }
 
-            // Verifica se ainda está rastreado após resolver o conflito
+            // Ensure the entity is still tracked after resolving key conflicts.
             var tracked = entry.Context.ChangeTracker
                 .Entries()
                 .Any(e =>
                     e.Entity.GetType() == entity.GetType() &&
                     KeysMatch(e, entry));
 
-            if (tracked != true)
+            if (!tracked)
             {
                 continue;
             }
@@ -106,18 +110,56 @@ public class CloudStorageDatabase(
             {
                 case EntityState.Added:
                 case EntityState.Modified:
-                    await _storageProvider.SaveAsync(path, entity);
+                    await ExecuteOrStageSaveAsync(path, entity, cancellationToken);
                     changes++;
                     break;
 
                 case EntityState.Deleted:
-                    await _storageProvider.DeleteAsync(path);
+                    await ExecuteOrStageDeleteAsync(path, cancellationToken);
                     changes++;
                     break;
             }
         }
 
         return changes;
+    }
+
+    private async Task ExecuteOrStageSaveAsync(string path, object entity, CancellationToken cancellationToken)
+    {
+        if (_transactionManager is CloudStorageTransactionManager { HasActiveTransaction: true } manager)
+        {
+            if (manager.IsDurableJournalEnabled)
+            {
+                await manager.StageSaveOperationAsync(path, entity, cancellationToken);
+            }
+            else
+            {
+                manager.EnqueueOperation(_ => _storageProvider.SaveAsync(path, entity));
+            }
+
+            return;
+        }
+
+        await _storageProvider.SaveAsync(path, entity);
+    }
+
+    private async Task ExecuteOrStageDeleteAsync(string path, CancellationToken cancellationToken)
+    {
+        if (_transactionManager is CloudStorageTransactionManager { HasActiveTransaction: true } manager)
+        {
+            if (manager.IsDurableJournalEnabled)
+            {
+                await manager.StageDeleteOperationAsync(path, cancellationToken);
+            }
+            else
+            {
+                manager.EnqueueOperation(_ => _storageProvider.DeleteAsync(path));
+            }
+
+            return;
+        }
+
+        await _storageProvider.DeleteAsync(path);
     }
 
     private static bool KeysMatch(EntityEntry trackedEntry, IUpdateEntry newEntry)
@@ -130,18 +172,13 @@ public class CloudStorageDatabase(
 
         var entity = ((InternalEntityEntry)newEntry).Entity;
 
-        foreach (var keyProp in keyProps)
-        {
-            var trackedValue = keyProp.PropertyInfo?.GetValue(trackedEntry.Entity);
-            var newValue = keyProp.PropertyInfo?.GetValue(entity);
-
-            if (!Equals(trackedValue, newValue))
-            {
-                return false;
-            }
-        }
-
-        return true;
+        return !(
+            from keyProp in keyProps 
+            let trackedValue = keyProp.PropertyInfo?.GetValue(trackedEntry.Entity) 
+            let newValue = keyProp.PropertyInfo?.GetValue(entity) 
+            where !Equals(trackedValue, newValue) 
+            select trackedValue
+        ).Any();
     }
 
     Func<QueryContext, TResult> IDatabase.CompileQuery<TResult>(Expression query, bool async)

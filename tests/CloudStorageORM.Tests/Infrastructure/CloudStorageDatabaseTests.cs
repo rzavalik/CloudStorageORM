@@ -88,6 +88,44 @@ public class CloudStorageDatabaseTests
     }
 
     [Fact]
+    public async Task SaveChangesAsync_InsideTransactionThenRollback_DoesNotPersist()
+    {
+        var fixture = CreateFixture();
+        var entity = new DbUser { Id = "tx-rollback", Name = "Rollback" };
+        fixture.Context.Add(entity);
+
+        var entries = GetUpdateEntries(fixture.Context);
+        fixture.PathResolverMock.Setup(x => x.GetPath(It.IsAny<IUpdateEntry>())).Returns("users/tx-rollback.json");
+
+        await fixture.TransactionManager.BeginTransactionAsync();
+        var changes = await fixture.Database.SaveChangesAsync(entries);
+        await fixture.TransactionManager.RollbackTransactionAsync();
+
+        changes.ShouldBe(1);
+        fixture.StorageProviderMock.Verify(x => x.SaveAsync("users/tx-rollback.json", It.IsAny<object>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task SaveChangesAsync_InsideTransactionThenCommit_Persists()
+    {
+        var fixture = CreateFixture();
+        var entity = new DbUser { Id = "tx-commit", Name = "Commit" };
+        fixture.Context.Add(entity);
+
+        var entries = GetUpdateEntries(fixture.Context);
+        fixture.PathResolverMock.Setup(x => x.GetPath(It.IsAny<IUpdateEntry>())).Returns("users/tx-commit.json");
+
+        await fixture.TransactionManager.BeginTransactionAsync();
+        var changes = await fixture.Database.SaveChangesAsync(entries);
+        fixture.StorageProviderMock.Verify(x => x.SaveAsync("users/tx-commit.json", It.IsAny<object>()), Times.Never);
+
+        await fixture.TransactionManager.CommitTransactionAsync();
+
+        changes.ShouldBe(1);
+        fixture.StorageProviderMock.Verify(x => x.SaveAsync("users/tx-commit.json", It.IsAny<object>()), Times.Once);
+    }
+
+    [Fact]
     public void SaveChanges_WhenEntryIsDetached_ReturnsZero()
     {
         var fixture = CreateFixture();
@@ -269,6 +307,7 @@ public class CloudStorageDatabaseTests
         var creatorMock = new Mock<IDatabaseCreator>();
         var strategyFactoryMock = new Mock<IExecutionStrategyFactory>();
         var currentDbContextMock = new Mock<ICurrentDbContext>();
+        var transactionManager = new CloudStorageTransactionManager();
         currentDbContextMock.SetupGet(x => x.Context).Returns(context);
 
         /*
@@ -286,9 +325,16 @@ public class CloudStorageDatabaseTests
             strategyFactoryMock.Object,
             storageProviderMock.Object,
             currentDbContextMock.Object,
-            pathResolverMock.Object);
+            pathResolverMock.Object,
+            transactionManager);
 
-        return new DatabaseFixture(database, context, storageProviderMock, pathResolverMock, creatorMock);
+        return new DatabaseFixture(
+            database,
+            context,
+            storageProviderMock,
+            pathResolverMock,
+            creatorMock,
+            transactionManager);
     }
 
     private sealed record DatabaseFixture(
@@ -296,7 +342,8 @@ public class CloudStorageDatabaseTests
         DatabaseTestDbContext Context,
         Mock<IStorageProvider> StorageProviderMock,
         Mock<IBlobPathResolver> PathResolverMock,
-        Mock<IDatabaseCreator> CreatorMock);
+        Mock<IDatabaseCreator> CreatorMock,
+        CloudStorageTransactionManager TransactionManager);
 }
 
 public class DatabaseTestDbContext(DbContextOptions<DatabaseTestDbContext> options) : DbContext(options)

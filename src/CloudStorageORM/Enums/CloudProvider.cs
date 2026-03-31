@@ -1,4 +1,4 @@
-﻿namespace CloudStorageORM.Enums;
+namespace CloudStorageORM.Enums;
 
 public enum CloudProvider
 {

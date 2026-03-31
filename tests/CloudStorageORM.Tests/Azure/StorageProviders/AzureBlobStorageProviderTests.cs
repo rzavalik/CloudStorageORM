@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using Azure;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
