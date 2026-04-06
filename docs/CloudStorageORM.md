@@ -107,6 +107,7 @@ The recent query work on `main` focuses on:
 
 - evaluating LINQ queries directly instead of materializing everything and then searching in memory for single-entity
   lookups
+- optimizing primary-key predicates for `==`, `>`, `>=`, `<`, and `<=` so only matching key ranges are materialized
 - returning queryables and async enumerables compatible with EF-style execution
 - keeping the sample app behavior aligned between EF InMemory and CloudStorageORM
 
