@@ -47,6 +47,16 @@ jobs:
     - name: Build
       run: dotnet build CloudStorageORM.sln --no-restore --configuration Release --verbosity normal
 
+    - name: Generate SBOM (CycloneDX JSON)
+      run: |
+        mkdir -p TestResults/SBOM
+        docker run --rm \
+          -v "${PWD}:/workspace" \
+          -w /workspace \
+          anchore/syft:latest \
+          dir:/workspace \
+          -o cyclonedx-json=TestResults/SBOM/cloudstorageorm.sbom.cdx.json
+
     - name: Run Azurite Emulator
       run: |
         docker run -d -p 10000:10000 -p 10001:10001 -p 10002:10002 --name azurite mcr.microsoft.com/azure-storage/azurite
@@ -92,6 +102,13 @@ jobs:
       with:
         name: coverage-xml
         path: TestResults/Coverage/*.xml
+
+    - name: Upload SBOM Artifact
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: sbom-cyclonedx
+        path: TestResults/SBOM/*.json
 
     - name: Generate HTML Coverage Report
       uses: danielpalme/ReportGenerator-GitHub-Action@v5

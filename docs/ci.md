@@ -24,18 +24,20 @@ In order, CI executes:
 3. .NET SDK setup (`10.0.x`)
 4. `dotnet restore CloudStorageORM.sln`
 5. `dotnet build CloudStorageORM.sln --no-restore --configuration Release`
-6. start Azurite container
-7. start LocalStack container (S3 enabled)
-8. wait for emulators
-9. run all `*.Tests.csproj` projects with TRX + XPlat coverage
-10. upload TRX artifacts
-11. upload Cobertura XML artifacts
-12. generate HTML coverage report
-13. upload HTML coverage artifact
-14. publish PR test comment and unit test UI results
-15. cleanup containers
+6. generate CycloneDX SBOM (`TestResults/SBOM/cloudstorageorm.sbom.cdx.json`)
+7. start Azurite container
+8. start LocalStack container (S3 enabled)
+9. wait for emulators
+10. run all `*.Tests.csproj` projects with TRX + XPlat coverage
+11. upload TRX artifacts
+12. upload Cobertura XML artifacts
+13. upload SBOM artifact
+14. generate HTML coverage report
+15. upload HTML coverage artifact
+16. publish PR test comment and unit test UI results
+17. cleanup containers
 
-The Node.js 24 opt-in keeps the workflow aligned with GitHub Actions runtime deprecation timelines while first- and third-party actions continue their Node 24 transitions.
+The Node.js 24 opt-in keeps workflows aligned with GitHub Actions runtime deprecation timelines while first- and third-party actions continue their Node 24 transitions. This opt-in is enabled in both `.github/workflows/ci.yml` and `.github/workflows/publish.yml`.
 
 ---
 
@@ -58,10 +60,11 @@ AWS test environment variables are injected in CI:
 
 ## Test and coverage artifacts
 
-CI publishes three artifacts:
+CI publishes four artifacts:
 
 - `test-results` -> `TestResults/*.trx`
 - `coverage-xml` -> `TestResults/Coverage/*.xml`
+- `sbom-cyclonedx` -> `TestResults/SBOM/*.json`
 - `coverage-html` -> `TestResults/CoverageReport`
 
 The workflow also publishes test results to the GitHub Actions UI on every run.
