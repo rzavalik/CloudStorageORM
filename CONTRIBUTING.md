@@ -201,6 +201,10 @@ Current CI (`.github/workflows/ci.yml`) runs on:
 - pushes to `main`
 - pull requests targeting `main`, `feature/**`, `bug/**`, or `hotfix/**`
 
+Release publishing (`.github/workflows/publish.yml`) runs on `v*.*.*` tags (or manual dispatch) and publishes `CloudStorageORM` to NuGet.org and GitHub Packages.
+
+CI currently opts JavaScript-based GitHub Actions into the Node.js 24 runtime using `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true`.
+
 If you change CI behavior, update contributor and testing docs in the same PR.
 
 ---

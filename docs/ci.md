@@ -1,7 +1,7 @@
 # CI workflow (`.github/workflows/ci.yml`)
 
 This repository validates build, tests, and coverage through the `Build and Test` workflow.
-Package publishing is handled by `.github/workflows/publish.yml`, which validates that the packed NuGet includes `README.md` and correct repository/readme metadata before push.
+Package publishing is handled by `.github/workflows/publish.yml`, which validates that the packed NuGet includes `README.md` and correct repository/readme metadata before push, then publishes to both NuGet.org and GitHub Packages.
 
 ---
 
@@ -18,6 +18,7 @@ The workflow runs on:
 
 In order, CI executes:
 
+0. force JavaScript-based actions to run on Node.js 24 (`FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true`)
 1. checkout
 2. NuGet cache restore/save
 3. .NET SDK setup (`10.0.x`)
@@ -33,6 +34,8 @@ In order, CI executes:
 13. upload HTML coverage artifact
 14. publish PR test comment and unit test UI results
 15. cleanup containers
+
+The Node.js 24 opt-in keeps the workflow aligned with GitHub Actions runtime deprecation timelines while first- and third-party actions continue their Node 24 transitions.
 
 ---
 

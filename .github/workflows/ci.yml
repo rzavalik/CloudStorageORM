@@ -20,10 +20,13 @@ jobs:
   build-and-test:
     name: Build, Test, and Coverage
     runs-on: ubuntu-latest
+    env:
+      # Opt in early to the GitHub Actions Node.js 24 runtime.
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
 
     - name: Cache NuGet packages
       uses: actions/cache@v4
@@ -34,7 +37,7 @@ jobs:
           ${{ runner.os }}-nuget-
 
     - name: Setup .NET
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v5
       with:
         dotnet-version: 10.0.x
 
@@ -91,7 +94,7 @@ jobs:
         path: TestResults/Coverage/*.xml
 
     - name: Generate HTML Coverage Report
-      uses: danielpalme/ReportGenerator-GitHub-Action@5.1.26
+      uses: danielpalme/ReportGenerator-GitHub-Action@v5
       with:
         reports: TestResults/Coverage/*.xml
         targetdir: TestResults/CoverageReport
