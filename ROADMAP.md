@@ -6,6 +6,32 @@ This document outlines the evolution of CloudStorageORM from the current release
 
 ## ✅ Current released version
 
+### v1.0.11
+
+- Targets `.NET 10`
+- Azure Blob Storage provider implemented
+- AWS S3 provider implemented
+- EF-style configuration through `UseCloudStorageOrm(...)`
+- `CloudStorageDbContext` integration for consumer contexts
+- Primary-key range query operators: `>`, `>=`, `<`, `<=` with direct range-aware loading
+- Enhanced GitHub Actions workflows with Node.js 24 opt-in
+- Dual NuGet package publishing to NuGet.org and GitHub Packages
+- SBOM (Software Bill of Materials) export in CI pipeline
+- One-type-per-file library structure enforced
+- Sample app runs the same CRUD flow against EF InMemory, Azure, and AWS
+- LINQ query execution optimized for range predicates
+- Unit and integration tests with full coverage
+- Integration coverage includes Azurite and LocalStack paths
+- Coverage collection/reporting is wired with Coverlet + ReportGenerator
+- File-scoped namespace style enforced repository-wide
+- Keep roadmap, CI workflows, and package metadata aligned with the current release line
+- Preserve sample app parity between EF InMemory and CloudStorageORM providers
+- Maintain HTML coverage reporting workflow and contributor guidance
+
+---
+
+## 📋 Previous releases
+
 ### v1.0.10
 
 - Targets `.NET 10`
@@ -19,11 +45,6 @@ This document outlines the evolution of CloudStorageORM from the current release
 - Integration coverage includes Azurite and LocalStack paths
 - Coverage collection/reporting is wired with Coverlet + ReportGenerator
 - File-scoped namespace style enforced repository-wide
-- Finalize documentation alignment for `.NET 10`
-- Keep roadmap, CI workflows, and package metadata aligned with the current release line
-- Preserve sample app parity between EF InMemory and CloudStorageORM providers
-- Harden query execution and regression coverage around provider behavior
-- Maintain HTML coverage reporting workflow and contributor guidance
 
 ---
 
