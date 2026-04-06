@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Linq.Expressions;
 using CloudStorageORM.Interfaces.Infrastructure;
 using CloudStorageORM.Interfaces.StorageProviders;
@@ -173,10 +174,10 @@ public class CloudStorageDatabase(
         var entity = ((InternalEntityEntry)newEntry).Entity;
 
         return !(
-            from keyProp in keyProps 
-            let trackedValue = keyProp.PropertyInfo?.GetValue(trackedEntry.Entity) 
-            let newValue = keyProp.PropertyInfo?.GetValue(entity) 
-            where !Equals(trackedValue, newValue) 
+            from keyProp in keyProps
+            let trackedValue = keyProp.PropertyInfo?.GetValue(trackedEntry.Entity)
+            let newValue = keyProp.PropertyInfo?.GetValue(entity)
+            where !Equals(trackedValue, newValue)
             select trackedValue
         ).Any();
     }
@@ -280,6 +281,55 @@ public class CloudStorageDatabase(
         return entity;
     }
 
+    public async Task<IList<TEntity>> LoadByPrimaryKeyRangeAsync<TEntity>(
+        object? lowerBound,
+        bool lowerInclusive,
+        object? upperBound,
+        bool upperInclusive,
+        DbContext? context = null)
+        where TEntity : class
+    {
+        var targetContext = context ?? _context;
+        var blobName = _blobPathResolver.GetBlobName(typeof(TEntity));
+        var files = await _storageProvider.ListAsync(blobName);
+        var results = new List<TEntity>();
+
+        var entityType = Model.FindEntityType(typeof(TEntity));
+        var keyProperties = entityType?.FindPrimaryKey()?.Properties;
+        var keyProperty = keyProperties?.FirstOrDefault();
+
+        if (keyProperty is null)
+        {
+            return results;
+        }
+
+        var keyType = Nullable.GetUnderlyingType(keyProperty.ClrType) ?? keyProperty.ClrType;
+        var typedLower = lowerBound is null ? null : ConvertToKeyType(lowerBound, keyType);
+        var typedUpper = upperBound is null ? null : ConvertToKeyType(upperBound, keyType);
+
+        foreach (var file in files)
+        {
+            var keyText = Path.GetFileNameWithoutExtension(file);
+            if (string.IsNullOrWhiteSpace(keyText)
+                || !TryParseStorageKey(keyText, keyType, out var keyValue)
+                || !IsWithinRange(keyValue, typedLower, lowerInclusive, typedUpper, upperInclusive))
+            {
+                continue;
+            }
+
+            var entity = await _storageProvider.ReadAsync<TEntity?>(file);
+            if (entity is null)
+            {
+                continue;
+            }
+
+            AttachOrReplaceTrackedEntity(targetContext, entity, keyProperties);
+            results.Add(entity);
+        }
+
+        return results;
+    }
+
     public async Task<IList<TEntity>> ToListAsync<TEntity>(string containerName)
         where TEntity : class
     {
@@ -336,5 +386,79 @@ public class CloudStorageDatabase(
         }
 
         context.Attach(entity);
+    }
+
+    private static object ConvertToKeyType(object value, Type keyType)
+    {
+        if (keyType.IsInstanceOfType(value))
+        {
+            return value;
+        }
+
+        if (keyType == typeof(Guid))
+        {
+            return value is Guid guid ? guid : Guid.Parse(value.ToString() ?? string.Empty);
+        }
+
+        if (keyType.IsEnum)
+        {
+            return Enum.Parse(keyType, value.ToString() ?? string.Empty, ignoreCase: true);
+        }
+
+        if (keyType == typeof(string))
+        {
+            return value.ToString() ?? string.Empty;
+        }
+
+        return Convert.ChangeType(value, keyType, CultureInfo.InvariantCulture)
+               ?? throw new InvalidOperationException($"Could not convert key value to '{keyType.Name}'.");
+    }
+
+    private static bool TryParseStorageKey(string rawValue, Type keyType, out object parsed)
+    {
+        try
+        {
+            parsed = ConvertToKeyType(rawValue, keyType);
+            return true;
+        }
+        catch
+        {
+            parsed = default!;
+            return false;
+        }
+    }
+
+    private static bool IsWithinRange(object keyValue, object? lowerBound, bool lowerInclusive, object? upperBound,
+        bool upperInclusive)
+    {
+        if (lowerBound is not null)
+        {
+            var cmp = CompareKeyValues(keyValue, lowerBound);
+            if (lowerInclusive ? cmp < 0 : cmp <= 0)
+            {
+                return false;
+            }
+        }
+
+        if (upperBound is not null)
+        {
+            var cmp = CompareKeyValues(keyValue, upperBound);
+            if (upperInclusive ? cmp > 0 : cmp >= 0)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static int CompareKeyValues(object left, object right)
+    {
+        if (left is not IComparable comparable)
+        {
+            throw new InvalidOperationException("Primary key type must implement IComparable for range filtering.");
+        }
+
+        return comparable.CompareTo(right);
     }
 }

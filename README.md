@@ -120,6 +120,7 @@ await db.SaveChangesAsync();
 - The base context namespace is now `CloudStorageORM.Contexts`.
 - Configuration uses composition on `CloudStorageOptions`: common fields stay on the root, while provider-specific fields are under `storage.Azure` and `storage.Aws`.
 - `CloudStorageOptions.ConnectionString` was removed; use `storage.Azure.ConnectionString` for Azure configuration.
+- Primary-key query predicates now support direct range-aware loading for `>`, `>=`, `<`, and `<=` in addition to equality-based lookups.
 - Coding style is enforced with **file-scoped namespaces** (`namespace X;`).
 - The sample app is covered by an integration test that verifies `dotnet run` exits successfully.
 - Integration fixtures can skip Azure/AWS scenarios when Azurite/LocalStack are unavailable.

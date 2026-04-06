@@ -53,6 +53,38 @@ public class CloudStorageQueryProviderTests
         return (provider, storageProviderMock);
     }
 
+    private static (CloudStorageQueryProvider provider, Mock<IStorageProvider> storageProviderMock)
+        BuildRangeProvider(List<RangeQueryTestUser>? seed = null)
+    {
+        seed ??= [];
+        var storageProviderMock = new Mock<IStorageProvider>();
+        storageProviderMock.Setup(x => x.CloudProvider).Returns(CloudProvider.Azure);
+        storageProviderMock.Setup(x => x.SanitizeBlobName(It.IsAny<string>()))
+            .Returns<string>(s => s);
+
+        var pathResolver = new BlobPathResolver(storageProviderMock.Object);
+        var blobName = pathResolver.GetBlobName(typeof(RangeQueryTestUser));
+
+        storageProviderMock
+            .Setup(x => x.ListAsync(blobName))
+            .ReturnsAsync(seed.Select(u => $"{blobName}/{u.Id}.json").ToList());
+
+        foreach (var user in seed)
+        {
+            var path = $"{blobName}/{user.Id}.json";
+            storageProviderMock
+                .Setup(x => x.ReadAsync<RangeQueryTestUser>(path))
+                .ReturnsAsync(user);
+            storageProviderMock
+                .Setup(x => x.ReadAsync<RangeQueryTestUser?>(path))
+                .ReturnsAsync(user);
+        }
+
+        var database = BuildRangeDatabase(storageProviderMock.Object);
+        var provider = new CloudStorageQueryProvider(database, pathResolver);
+        return (provider, storageProviderMock);
+    }
+
     private static CloudStorageDatabase BuildDatabase(IStorageProvider storageProvider)
     {
         var options = new DbContextOptionsBuilder<MinimalDbContext>()
@@ -93,6 +125,49 @@ public class CloudStorageQueryProviderTests
             ContainerName = "test"
         };
         */
+
+        return new CloudStorageDatabase(
+            modelMock.Object,
+            creatorMock.Object,
+            strategyFactoryMock.Object,
+            storageProvider,
+            currentDbContextMock.Object,
+            new BlobPathResolver(storageProvider),
+            new CloudStorageTransactionManager());
+    }
+
+    private static CloudStorageDatabase BuildRangeDatabase(IStorageProvider storageProvider)
+    {
+        var options = new DbContextOptionsBuilder<RangeMinimalDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .Options;
+
+        var context = new RangeMinimalDbContext(options);
+
+        var modelMock = new Mock<IModel>();
+        var entityTypeMock = new Mock<IEntityType>();
+        var keyMock = new Mock<IKey>();
+        var propMock = new Mock<IProperty>();
+
+        propMock.Setup(p => p.Name).Returns(nameof(RangeQueryTestUser.Id));
+        propMock.Setup(p => p.PropertyInfo)
+            .Returns(typeof(RangeQueryTestUser).GetProperty(nameof(RangeQueryTestUser.Id))!);
+        propMock.Setup(p => p.ClrType).Returns(typeof(int));
+        keyMock.Setup(k => k.Properties)
+            .Returns(new[] { propMock.Object }
+                .ToList()
+                .AsReadOnly()
+                .ToList()
+                .AsReadOnly());
+        entityTypeMock.Setup(e => e.ClrType).Returns(typeof(RangeQueryTestUser));
+        entityTypeMock.Setup(e => e.FindPrimaryKey()).Returns(keyMock.Object);
+        modelMock.Setup(m => m.FindEntityType(typeof(RangeQueryTestUser))).Returns(entityTypeMock.Object);
+
+        var currentDbContextMock = new Mock<ICurrentDbContext>();
+        currentDbContextMock.Setup(c => c.Context).Returns(context);
+
+        var creatorMock = new Mock<IDatabaseCreator>();
+        var strategyFactoryMock = new Mock<IExecutionStrategyFactory>();
 
         return new CloudStorageDatabase(
             modelMock.Object,
@@ -267,6 +342,104 @@ public class CloudStorageQueryProviderTests
     }
 
     [Fact]
+    public void FirstOrDefault_WithPrimaryKeyGreaterThan_ReadsOnlyMatchingRangeBlobs()
+    {
+        var seed = new List<RangeQueryTestUser>
+        {
+            new() { Id = 1, Name = "A" },
+            new() { Id = 2, Name = "B" },
+            new() { Id = 3, Name = "C" }
+        };
+
+        var (provider, storageMock) = BuildRangeProvider(seed);
+        var pathResolver = new BlobPathResolver(storageMock.Object);
+        var blobName = pathResolver.GetBlobName(typeof(RangeQueryTestUser));
+        var queryable = new CloudStorageQueryable<RangeQueryTestUser>(provider);
+
+        var result = queryable.FirstOrDefault(u => u.Id > 1);
+
+        result.ShouldNotBeNull();
+        result.Id.ShouldBe(2);
+        storageMock.Verify(x => x.ListAsync(blobName), Times.Once);
+        storageMock.Verify(x => x.ReadAsync<RangeQueryTestUser?>($"{blobName}/1.json"), Times.Never);
+        storageMock.Verify(x => x.ReadAsync<RangeQueryTestUser?>($"{blobName}/2.json"), Times.Once);
+        storageMock.Verify(x => x.ReadAsync<RangeQueryTestUser?>($"{blobName}/3.json"), Times.Once);
+    }
+
+    [Fact]
+    public void Where_WithPrimaryKeyLessThanOrEqual_ReadsOnlyMatchingRangeBlobs()
+    {
+        var seed = new List<RangeQueryTestUser>
+        {
+            new() { Id = 1, Name = "A" },
+            new() { Id = 2, Name = "B" },
+            new() { Id = 3, Name = "C" }
+        };
+
+        var (provider, storageMock) = BuildRangeProvider(seed);
+        var pathResolver = new BlobPathResolver(storageMock.Object);
+        var blobName = pathResolver.GetBlobName(typeof(RangeQueryTestUser));
+        var queryable = new CloudStorageQueryable<RangeQueryTestUser>(provider);
+
+        var results = ((IQueryable<RangeQueryTestUser>)queryable).Where(u => u.Id <= 2).ToList();
+
+        results.Count.ShouldBe(2);
+        results.Select(x => x.Id).Order().ShouldBe([1, 2]);
+        storageMock.Verify(x => x.ListAsync(blobName), Times.Once);
+        storageMock.Verify(x => x.ReadAsync<RangeQueryTestUser?>($"{blobName}/1.json"), Times.Once);
+        storageMock.Verify(x => x.ReadAsync<RangeQueryTestUser?>($"{blobName}/2.json"), Times.Once);
+        storageMock.Verify(x => x.ReadAsync<RangeQueryTestUser?>($"{blobName}/3.json"), Times.Never);
+    }
+
+    [Fact]
+    public void FirstOrDefault_WithPrimaryKeyBetweenBounds_ReadsOnlyMatchingBlob()
+    {
+        var seed = new List<RangeQueryTestUser>
+        {
+            new() { Id = 1, Name = "A" },
+            new() { Id = 2, Name = "B" },
+            new() { Id = 3, Name = "C" }
+        };
+
+        var (provider, storageMock) = BuildRangeProvider(seed);
+        var pathResolver = new BlobPathResolver(storageMock.Object);
+        var blobName = pathResolver.GetBlobName(typeof(RangeQueryTestUser));
+        var queryable = new CloudStorageQueryable<RangeQueryTestUser>(provider);
+
+        var result = queryable.FirstOrDefault(u => u.Id > 1 && u.Id <= 2);
+
+        result.ShouldNotBeNull();
+        result.Id.ShouldBe(2);
+        storageMock.Verify(x => x.ReadAsync<RangeQueryTestUser?>($"{blobName}/1.json"), Times.Never);
+        storageMock.Verify(x => x.ReadAsync<RangeQueryTestUser?>($"{blobName}/2.json"), Times.Once);
+        storageMock.Verify(x => x.ReadAsync<RangeQueryTestUser?>($"{blobName}/3.json"), Times.Never);
+    }
+
+    [Fact]
+    public void FirstOrDefault_WithReversedPrimaryKeyComparison_IsSupported()
+    {
+        var seed = new List<RangeQueryTestUser>
+        {
+            new() { Id = 1, Name = "A" },
+            new() { Id = 2, Name = "B" },
+            new() { Id = 3, Name = "C" }
+        };
+
+        var (provider, storageMock) = BuildRangeProvider(seed);
+        var pathResolver = new BlobPathResolver(storageMock.Object);
+        var blobName = pathResolver.GetBlobName(typeof(RangeQueryTestUser));
+        var queryable = new CloudStorageQueryable<RangeQueryTestUser>(provider);
+
+        var result = queryable.FirstOrDefault(u => 2 < u.Id);
+
+        result.ShouldNotBeNull();
+        result.Id.ShouldBe(3);
+        storageMock.Verify(x => x.ReadAsync<RangeQueryTestUser?>($"{blobName}/1.json"), Times.Never);
+        storageMock.Verify(x => x.ReadAsync<RangeQueryTestUser?>($"{blobName}/2.json"), Times.Never);
+        storageMock.Verify(x => x.ReadAsync<RangeQueryTestUser?>($"{blobName}/3.json"), Times.Once);
+    }
+
+    [Fact]
     public void Execute_NonGeneric_ReturnsResult()
     {
         var seed = new List<QueryTestUser>
@@ -355,10 +528,14 @@ public class CloudStorageQueryProviderTests
 
 public class QueryTestUser
 {
-    [StringLength(256)]
-    public string Id { get; init; } = string.Empty;
+    [StringLength(256)] public string Id { get; init; } = string.Empty;
 
-    [StringLength(256)]
+    [StringLength(256)] public string Name { get; init; } = string.Empty;
+}
+
+public class RangeQueryTestUser
+{
+    public int Id { get; init; }
     public string Name { get; init; } = string.Empty;
 }
 
@@ -371,6 +548,18 @@ public class MinimalDbContext(DbContextOptions<MinimalDbContext> options) : DbCo
         var userEntity = modelBuilder.Entity<QueryTestUser>();
         userEntity.HasKey(u => u.Id);
         userEntity.Property(u => u.Id).HasMaxLength(256);
+        userEntity.Property(u => u.Name).HasMaxLength(256);
+    }
+}
+
+public class RangeMinimalDbContext(DbContextOptions<RangeMinimalDbContext> options) : DbContext(options)
+{
+    public DbSet<RangeQueryTestUser> Users => Set<RangeQueryTestUser>();
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        var userEntity = modelBuilder.Entity<RangeQueryTestUser>();
+        userEntity.HasKey(u => u.Id);
         userEntity.Property(u => u.Name).HasMaxLength(256);
     }
 }
