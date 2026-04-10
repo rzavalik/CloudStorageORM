@@ -72,12 +72,29 @@ public class AwsS3StorageProviderTests
         s3Mock.Setup(x => x.PutObjectAsync(It.IsAny<PutObjectRequest>(), It.IsAny<CancellationToken>()))
             .Callback<PutObjectRequest, CancellationToken>((request, _) => capturedRequest = request)
             .ReturnsAsync(new PutObjectResponse());
+        s3Mock.Setup(x => x.GetObjectMetadataAsync(It.IsAny<GetObjectMetadataRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new GetObjectMetadataResponse { ETag = "etag-1" });
 
         var sut = CreateSut(s3Mock);
         await sut.SaveAsync("users/id-1.json", new TestEntity { Id = "id-1", Name = "Alice" }, "etag-1");
 
         capturedRequest.ShouldNotBeNull();
         capturedRequest.IfMatch.ShouldBe("etag-1");
+    }
+
+    [Fact]
+    public async Task SaveAsync_WithStaleEtag_ShouldThrowStoragePreconditionFailedException()
+    {
+        var s3Mock = new Mock<IAmazonS3>();
+        s3Mock.Setup(x => x.GetObjectMetadataAsync(It.IsAny<GetObjectMetadataRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new GetObjectMetadataResponse { ETag = "etag-new" });
+
+        var sut = CreateSut(s3Mock);
+
+        await Should.ThrowAsync<StoragePreconditionFailedException>(() =>
+            sut.SaveAsync("users/id-1.json", new TestEntity { Id = "id-1", Name = "Alice" }, "etag-old"));
+
+        s3Mock.Verify(x => x.PutObjectAsync(It.IsAny<PutObjectRequest>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
