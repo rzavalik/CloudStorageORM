@@ -108,6 +108,15 @@ public class AwsS3StorageProvider : IStorageProvider
 
         try
         {
+            if (!string.IsNullOrWhiteSpace(ifMatchETag))
+            {
+                var currentEtag = await GetObjectETagAsync(path);
+                if (!ETagMatches(currentEtag, ifMatchETag))
+                {
+                    throw new StoragePreconditionFailedException(path);
+                }
+            }
+
             var response = await _s3Client.PutObjectAsync(new PutObjectRequest
             {
                 BucketName = _bucketName,
@@ -117,18 +126,12 @@ public class AwsS3StorageProvider : IStorageProvider
                 IfMatch = string.IsNullOrWhiteSpace(ifMatchETag) ? null : ifMatchETag
             });
 
-            if (!string.IsNullOrWhiteSpace(response.ETag))
+            if (!string.IsNullOrWhiteSpace(response?.ETag))
             {
                 return response.ETag;
             }
 
-            var metadata = await _s3Client.GetObjectMetadataAsync(new GetObjectMetadataRequest
-            {
-                BucketName = _bucketName,
-                Key = path
-            });
-
-            return metadata.ETag;
+            return await GetObjectETagAsync(path);
         }
         catch (AmazonS3Exception ex) when (IsPreconditionFailed(ex))
         {
@@ -162,13 +165,7 @@ public class AwsS3StorageProvider : IStorageProvider
                 return new StorageObject<T>(JsonSerializer.Deserialize<T>(json), etag, true);
             }
 
-            var metadata = await _s3Client.GetObjectMetadataAsync(new GetObjectMetadataRequest
-            {
-                BucketName = _bucketName,
-                Key = path
-            });
-
-            etag = metadata.ETag;
+            etag = await GetObjectETagAsync(path);
 
             return new StorageObject<T>(JsonSerializer.Deserialize<T>(json), etag, true);
         }
@@ -270,5 +267,34 @@ public class AwsS3StorageProvider : IStorageProvider
     {
         return ex.StatusCode == HttpStatusCode.PreconditionFailed
                || string.Equals(ex.ErrorCode, "PreconditionFailed", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private async Task<string?> GetObjectETagAsync(string path)
+    {
+        var metadataTask = _s3Client.GetObjectMetadataAsync(new GetObjectMetadataRequest
+        {
+            BucketName = _bucketName,
+            Key = path
+        });
+
+        if (metadataTask is null)
+        {
+            return null;
+        }
+
+        var metadata = await metadataTask;
+        return metadata?.ETag;
+    }
+
+    private static bool ETagMatches(string? currentETag, string expectedETag)
+    {
+        if (string.IsNullOrWhiteSpace(currentETag) || string.IsNullOrWhiteSpace(expectedETag))
+        {
+            return false;
+        }
+
+        var normalizedCurrent = currentETag.Trim().Trim('"');
+        var normalizedExpected = expectedETag.Trim().Trim('"');
+        return string.Equals(normalizedCurrent, normalizedExpected, StringComparison.Ordinal);
     }
 }

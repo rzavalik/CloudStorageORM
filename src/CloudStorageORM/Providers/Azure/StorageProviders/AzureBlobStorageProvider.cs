@@ -68,9 +68,12 @@ public class AzureBlobStorageProvider : IStorageProvider
             {
                 var response = await blobClient.UploadAsync(stream, overwrite: true);
                 var etag = response.Value?.ETag.ToString();
-                return !string.IsNullOrWhiteSpace(etag)
-                    ? etag
-                    : (await blobClient.GetPropertiesAsync()).Value.ETag.ToString();
+                if (!string.IsNullOrWhiteSpace(etag))
+                {
+                    return etag;
+                }
+
+                return await TryGetBlobETagAsync(blobClient);
             }
 
             var conditionalResponse = await blobClient.UploadAsync(stream, new BlobUploadOptions
@@ -82,9 +85,12 @@ public class AzureBlobStorageProvider : IStorageProvider
             });
 
             var conditionalETag = conditionalResponse.Value?.ETag.ToString();
-            return !string.IsNullOrWhiteSpace(conditionalETag)
-                ? conditionalETag
-                : (await blobClient.GetPropertiesAsync()).Value.ETag.ToString();
+            if (!string.IsNullOrWhiteSpace(conditionalETag))
+            {
+                return conditionalETag;
+            }
+
+            return await TryGetBlobETagAsync(blobClient);
         }
         catch (RequestFailedException ex) when (ex.Status == 412)
         {
@@ -107,9 +113,9 @@ public class AzureBlobStorageProvider : IStorageProvider
         }
 
         var response = await blobClient.DownloadContentAsync();
-        var properties = await blobClient.GetPropertiesAsync();
+        var etag = await TryGetBlobETagAsync(blobClient);
         var entity = JsonSerializer.Deserialize<T>(response.Value.Content.ToString());
-        return new StorageObject<T>(entity, properties.Value.ETag.ToString(), true);
+        return new StorageObject<T>(entity, etag, true);
     }
 
     public async Task DeleteAsync(string path)
@@ -183,5 +189,17 @@ public class AzureBlobStorageProvider : IStorageProvider
             // Keep emulator compatibility when SDK default service versions move forward.
             ? new BlobClientOptions(BlobClientOptions.ServiceVersion.V2021_12_02)
             : new BlobClientOptions();
+    }
+
+    private static async Task<string?> TryGetBlobETagAsync(BlobClient blobClient)
+    {
+        var propertiesTask = blobClient.GetPropertiesAsync();
+        if (propertiesTask is null)
+        {
+            return null;
+        }
+
+        var propertiesResponse = await propertiesTask;
+        return propertiesResponse?.Value?.ETag.ToString();
     }
 }

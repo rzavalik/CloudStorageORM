@@ -110,7 +110,7 @@ public class CloudStorageQueryProvider(
         // For sequence-returning expressions (Where, OrderBy, etc.) use CreateQuery so
         // the EnumerableQuery provider doesn't try to box an IQueryable<T> into a TResult.
         var resultType = typeof(TResult);
-        if (IsEnumerableResult(resultType))
+        if (IsEnumerableResult(resultType) || resultType == typeof(object) && typeof(IEnumerable<TEntity>).IsAssignableFrom(rewrittenExpression.Type))
         {
             var resultQueryable = inMemoryQueryable.Provider.CreateQuery<TEntity>(rewrittenExpression);
             return (TResult)resultQueryable;
