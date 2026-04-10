@@ -152,6 +152,14 @@ await db.SaveChangesAsync();
 
 ## 🧪 Running tests locally
 
+### CI-parity local run (recommended)
+
+```bash
+./scripts/run-local-ci-tests.sh
+```
+
+This script mirrors CI by starting Azurite and LocalStack, then running restore, build, and tests with TRX and coverage collection.
+
 ### Start Azurite (Azure integration)
 
 ```bash
@@ -160,7 +168,8 @@ docker run -d \
   -p 10001:10001 \
   -p 10002:10002 \
   --name azurite \
-  mcr.microsoft.com/azure-storage/azurite
+  mcr.microsoft.com/azure-storage/azurite:latest \
+  azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0 --skipApiVersionCheck
 ```
 
 ### Run the solution tests
