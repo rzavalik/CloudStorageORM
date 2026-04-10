@@ -51,6 +51,25 @@ public class AzureBlobStorageProviderTests(StorageFixture fixture) : IClassFixtu
         files.ShouldNotBeEmpty();
         files.Count.ShouldBeGreaterThanOrEqualTo(2);
     }
+
+    [Fact]
+    public async Task SaveAsync_WithStaleEtag_ShouldThrowStoragePreconditionFailedException()
+    {
+        fixture.EnsureAvailableOrSkip();
+
+        var provider = new AzureBlobStorageProvider(fixture.ConnectionString, fixture.ContainerName);
+        var path = $"test-folder/concurrency-{Guid.NewGuid():N}.json";
+
+        await provider.SaveAsync(path, new TestEntity { Id = "etag", Name = "v1" });
+        var original = await provider.ReadWithMetadataAsync<TestEntity>(path);
+
+        await provider.SaveAsync(path, new TestEntity { Id = "etag", Name = "v2" });
+
+        var ex = await Should.ThrowAsync<Exception>(() =>
+            provider.SaveAsync(path, new TestEntity { Id = "etag", Name = "v3" }, original.ETag));
+
+        ex.Message.ShouldContain("changed by another writer");
+    }
 }
 
 public class TestEntity

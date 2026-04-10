@@ -1,4 +1,5 @@
 using System.Text.Json;
+using CloudStorageORM.Abstractions;
 using CloudStorageORM.Infrastructure;
 using CloudStorageORM.Interfaces.StorageProviders;
 using Shouldly;
@@ -275,9 +276,11 @@ public class CloudStorageTransactionManagerDurabilityTests
         await manager.StageDeleteOperationAsync("users/b.json", CancellationToken.None);
         await tx2.RollbackAsync();
 
-        storage.GetAllKeys().Any(k => k.Contains($"__cloudstorageorm/tx/{tx1.TransactionId:D}/", StringComparison.Ordinal))
+        storage.GetAllKeys().Any(k =>
+                k.Contains($"__cloudstorageorm/tx/{tx1.TransactionId:D}/", StringComparison.Ordinal))
             .ShouldBeTrue();
-        storage.GetAllKeys().Any(k => k.Contains($"__cloudstorageorm/tx/{tx2.TransactionId:D}/", StringComparison.Ordinal))
+        storage.GetAllKeys().Any(k =>
+                k.Contains($"__cloudstorageorm/tx/{tx2.TransactionId:D}/", StringComparison.Ordinal))
             .ShouldBeTrue();
     }
 
@@ -323,6 +326,12 @@ public class CloudStorageTransactionManagerDurabilityTests
             return Task.CompletedTask;
         }
 
+        public Task<string?> SaveAsync<T>(string path, T entity, string? ifMatchETag)
+        {
+            SaveAsync(path, entity);
+            return Task.FromResult<string?>("in-memory-etag");
+        }
+
         public Task<T> ReadAsync<T>(string path)
         {
             lock (_sync)
@@ -336,6 +345,13 @@ public class CloudStorageTransactionManagerDurabilityTests
             }
         }
 
+        public async Task<StorageObject<T>> ReadWithMetadataAsync<T>(string path)
+        {
+            var value = await ReadAsync<T>(path);
+            var exists = !EqualityComparer<T>.Default.Equals(value, default!);
+            return new StorageObject<T>(value, exists ? "in-memory-etag" : null, exists);
+        }
+
         public Task DeleteAsync(string path)
         {
             lock (_sync)
@@ -345,6 +361,8 @@ public class CloudStorageTransactionManagerDurabilityTests
 
             return Task.CompletedTask;
         }
+
+        public Task DeleteAsync(string path, string? ifMatchETag) => DeleteAsync(path);
 
         public Task<List<string>> ListAsync(string folderPath)
         {
@@ -391,6 +409,7 @@ public class CloudStorageTransactionManagerDurabilityTests
     {
         // ReSharper disable once PropertyCanBeMadeInitOnly.Local
         public string Id { get; set; } = string.Empty;
+
         // ReSharper disable once UnusedAutoPropertyAccessor.Local
         public string Name { get; set; } = string.Empty;
     }

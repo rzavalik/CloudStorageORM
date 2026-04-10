@@ -4,6 +4,7 @@ using System.Text.Json;
 using Amazon.S3;
 using Amazon.S3.Model;
 using CloudStorageORM.Enums;
+using CloudStorageORM.Infrastructure;
 using CloudStorageORM.Options;
 using CloudStorageORM.Providers.Aws.StorageProviders;
 using Moq;
@@ -64,6 +65,39 @@ public class AwsS3StorageProviderTests
     }
 
     [Fact]
+    public async Task SaveAsync_WithIfMatch_ShouldSendConditionalRequest()
+    {
+        var s3Mock = new Mock<IAmazonS3>();
+        PutObjectRequest? capturedRequest = null;
+        s3Mock.Setup(x => x.PutObjectAsync(It.IsAny<PutObjectRequest>(), It.IsAny<CancellationToken>()))
+            .Callback<PutObjectRequest, CancellationToken>((request, _) => capturedRequest = request)
+            .ReturnsAsync(new PutObjectResponse());
+
+        var sut = CreateSut(s3Mock);
+        await sut.SaveAsync("users/id-1.json", new TestEntity { Id = "id-1", Name = "Alice" }, "etag-1");
+
+        capturedRequest.ShouldNotBeNull();
+        capturedRequest.IfMatch.ShouldBe("etag-1");
+    }
+
+    [Fact]
+    public async Task SaveAsync_WithIfMatchAndPreconditionFailure_ShouldThrowStoragePreconditionFailedException()
+    {
+        var s3Mock = new Mock<IAmazonS3>();
+        s3Mock.Setup(x => x.PutObjectAsync(It.IsAny<PutObjectRequest>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new AmazonS3Exception("conflict")
+            {
+                StatusCode = HttpStatusCode.PreconditionFailed,
+                ErrorCode = "PreconditionFailed"
+            });
+
+        var sut = CreateSut(s3Mock);
+
+        await Should.ThrowAsync<StoragePreconditionFailedException>(() =>
+            sut.SaveAsync("users/id-1.json", new TestEntity { Id = "id-1", Name = "Alice" }, "etag-1"));
+    }
+
+    [Fact]
     public async Task ReadAsync_WhenObjectExists_ShouldReturnEntity()
     {
         var s3Mock = new Mock<IAmazonS3>();
@@ -121,6 +155,22 @@ public class AwsS3StorageProviderTests
     }
 
     [Fact]
+    public async Task DeleteAsync_WithIfMatch_ShouldSendConditionalRequest()
+    {
+        var s3Mock = new Mock<IAmazonS3>();
+        DeleteObjectRequest? capturedRequest = null;
+        s3Mock.Setup(x => x.DeleteObjectAsync(It.IsAny<DeleteObjectRequest>(), It.IsAny<CancellationToken>()))
+            .Callback<DeleteObjectRequest, CancellationToken>((request, _) => capturedRequest = request)
+            .ReturnsAsync(new DeleteObjectResponse());
+
+        var sut = CreateSut(s3Mock);
+        await sut.DeleteAsync("users/id-3.json", "etag-3");
+
+        capturedRequest.ShouldNotBeNull();
+        capturedRequest.IfMatch.ShouldBe("etag-3");
+    }
+
+    [Fact]
     public async Task ListAsync_ShouldReturnObjectKeys()
     {
         var s3Mock = new Mock<IAmazonS3>();
@@ -154,7 +204,7 @@ public class AwsS3StorageProviderTests
 
         var sut = CreateSut(s3Mock);
 
-        await Should.NotThrowAsync(() => sut.DeleteContainerAsync());
+        await Should.NotThrowAsync(sut.DeleteContainerAsync);
     }
 
     [Fact]

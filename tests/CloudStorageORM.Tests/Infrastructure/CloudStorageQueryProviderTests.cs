@@ -536,6 +536,8 @@ public class QueryTestUser
 public class RangeQueryTestUser
 {
     public int Id { get; init; }
+
+    // ReSharper disable once EntityFramework.ModelValidation.UnlimitedStringLength
     public string Name { get; init; } = string.Empty;
 }
 

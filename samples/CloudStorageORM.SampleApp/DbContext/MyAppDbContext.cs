@@ -1,4 +1,5 @@
 using CloudStorageORM.Contexts;
+using CloudStorageORM.Extensions;
 using Microsoft.EntityFrameworkCore;
 using SampleApp.Models;
 
@@ -13,6 +14,9 @@ public class MyAppDbContextInMemory(DbContextOptions<MyAppDbContextInMemory> opt
     {
         modelBuilder.Entity<User>()
             .HasKey(u => u.Id);
+
+        modelBuilder.Entity<User>()
+            .UseObjectETagConcurrency();
 
         base.OnModelCreating(modelBuilder);
     }

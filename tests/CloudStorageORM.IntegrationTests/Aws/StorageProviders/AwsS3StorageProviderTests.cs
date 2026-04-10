@@ -54,6 +54,23 @@ public class AwsS3StorageProviderTests(LocalStackFixture fixture) : IClassFixtur
         files.ShouldContain(x => x.EndsWith("list-entity2.json"));
     }
 
+    [Fact]
+    public async Task SaveAsync_WithStaleEtag_ShouldThrowStoragePreconditionFailedException()
+    {
+        fixture.EnsureAvailableOrSkip();
+
+        var path = BuildPath("concurrency");
+        await fixture.Provider.SaveAsync(path, new TestEntity { Id = "etag", Name = "v1" });
+        var original = await fixture.Provider.ReadWithMetadataAsync<TestEntity>(path);
+
+        await fixture.Provider.SaveAsync(path, new TestEntity { Id = "etag", Name = "v2" });
+
+        var ex = await Should.ThrowAsync<Exception>(() =>
+            fixture.Provider.SaveAsync(path, new TestEntity { Id = "etag", Name = "v3" }, original.ETag));
+
+        ex.Message.ShouldContain("changed by another writer");
+    }
+
     private static string BuildPath(string scenario)
     {
         return $"test-folder/{scenario}-{Guid.NewGuid():N}.json";

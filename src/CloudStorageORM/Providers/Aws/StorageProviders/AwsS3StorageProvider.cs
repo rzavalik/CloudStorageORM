@@ -6,7 +6,9 @@ using Amazon.Runtime;
 using Amazon.S3;
 using Amazon.S3.Model;
 using Amazon.S3.Util;
+using CloudStorageORM.Abstractions;
 using CloudStorageORM.Enums;
+using CloudStorageORM.Infrastructure;
 using CloudStorageORM.Interfaces.StorageProviders;
 using CloudStorageORM.Options;
 
@@ -95,20 +97,52 @@ public class AwsS3StorageProvider : IStorageProvider
 
     public async Task SaveAsync<T>(string path, T entity)
     {
+        await SaveAsync(path, entity, ifMatchETag: null);
+    }
+
+    public async Task<string?> SaveAsync<T>(string path, T entity, string? ifMatchETag)
+    {
         await EnsureBucketExistsAsync();
 
         var json = JsonSerializer.Serialize(entity);
 
-        await _s3Client.PutObjectAsync(new PutObjectRequest
+        try
         {
-            BucketName = _bucketName,
-            Key = path,
-            ContentBody = json,
-            ContentType = "application/json"
-        });
+            var response = await _s3Client.PutObjectAsync(new PutObjectRequest
+            {
+                BucketName = _bucketName,
+                Key = path,
+                ContentBody = json,
+                ContentType = "application/json",
+                IfMatch = string.IsNullOrWhiteSpace(ifMatchETag) ? null : ifMatchETag
+            });
+
+            if (!string.IsNullOrWhiteSpace(response.ETag))
+            {
+                return response.ETag;
+            }
+
+            var metadata = await _s3Client.GetObjectMetadataAsync(new GetObjectMetadataRequest
+            {
+                BucketName = _bucketName,
+                Key = path
+            });
+
+            return metadata.ETag;
+        }
+        catch (AmazonS3Exception ex) when (IsPreconditionFailed(ex))
+        {
+            throw new StoragePreconditionFailedException(path, ex);
+        }
     }
 
     public async Task<T> ReadAsync<T>(string path)
+    {
+        var storageObject = await ReadWithMetadataAsync<T>(path);
+        return storageObject.Value!;
+    }
+
+    public async Task<StorageObject<T>> ReadWithMetadataAsync<T>(string path)
     {
         await EnsureBucketExistsAsync();
 
@@ -122,26 +156,53 @@ public class AwsS3StorageProvider : IStorageProvider
 
             using var reader = new StreamReader(response.ResponseStream);
             var json = await reader.ReadToEndAsync();
-            return JsonSerializer.Deserialize<T>(json)!;
+            var etag = response.ETag;
+            if (!string.IsNullOrWhiteSpace(etag))
+            {
+                return new StorageObject<T>(JsonSerializer.Deserialize<T>(json), etag, true);
+            }
+
+            var metadata = await _s3Client.GetObjectMetadataAsync(new GetObjectMetadataRequest
+            {
+                BucketName = _bucketName,
+                Key = path
+            });
+
+            etag = metadata.ETag;
+
+            return new StorageObject<T>(JsonSerializer.Deserialize<T>(json), etag, true);
         }
         catch (AmazonS3Exception ex) when (
             ex.StatusCode == HttpStatusCode.NotFound ||
             string.Equals(ex.ErrorCode, "NoSuchKey", StringComparison.OrdinalIgnoreCase) ||
             string.Equals(ex.ErrorCode, "NoSuchBucket", StringComparison.OrdinalIgnoreCase))
         {
-            return default!;
+            return new StorageObject<T>(default, null, false);
         }
     }
 
     public async Task DeleteAsync(string path)
     {
+        await DeleteAsync(path, ifMatchETag: null);
+    }
+
+    public async Task DeleteAsync(string path, string? ifMatchETag)
+    {
         await EnsureBucketExistsAsync();
 
-        await _s3Client.DeleteObjectAsync(new DeleteObjectRequest
+        try
         {
-            BucketName = _bucketName,
-            Key = path
-        });
+            await _s3Client.DeleteObjectAsync(new DeleteObjectRequest
+            {
+                BucketName = _bucketName,
+                Key = path,
+                IfMatch = string.IsNullOrWhiteSpace(ifMatchETag) ? null : ifMatchETag
+            });
+        }
+        catch (AmazonS3Exception ex) when (IsPreconditionFailed(ex))
+        {
+            throw new StoragePreconditionFailedException(path, ex);
+        }
     }
 
     public async Task<List<string>> ListAsync(string folderPath)
@@ -203,5 +264,11 @@ public class AwsS3StorageProvider : IStorageProvider
         {
             _bucketInitLock.Release();
         }
+    }
+
+    private static bool IsPreconditionFailed(AmazonS3Exception ex)
+    {
+        return ex.StatusCode == HttpStatusCode.PreconditionFailed
+               || string.Equals(ex.ErrorCode, "PreconditionFailed", StringComparison.OrdinalIgnoreCase);
     }
 }

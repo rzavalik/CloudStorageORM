@@ -3,7 +3,8 @@
 **Simplify persistence. Embrace scalability. Build the future.**
 
 CloudStorageORM is an Entity Framework-style provider that persists entities into cloud object storage.
-The current `main` branch targets **.NET 10**, uses **EF Core 9**, and currently ships with **Azure Blob Storage** and **AWS S3** providers.
+The current `main` branch targets **.NET 10**, uses **EF Core 9**, and currently ships with **Azure Blob Storage** and *
+*AWS S3** providers.
 Support for **Google Cloud Storage** remains on the roadmap.
 
 ![License](https://img.shields.io/badge/license-GPLv3-blue)
@@ -53,7 +54,8 @@ dotnet restore CloudStorageORM.sln
 
 ## 🚀 Getting started
 
-The current recommended integration pattern is to configure a regular EF Core `DbContext` with `UseCloudStorageOrm(...)`.
+The current recommended integration pattern is to configure a regular EF Core `DbContext` with
+`UseCloudStorageOrm(...)`.
 
 ```csharp
 using CloudStorageORM.Contexts;
@@ -118,18 +120,33 @@ await db.SaveChangesAsync();
 ## 🧭 Important notes for the current branch
 
 - The base context namespace is now `CloudStorageORM.Contexts`.
-- Configuration uses composition on `CloudStorageOptions`: common fields stay on the root, while provider-specific fields are under `storage.Azure` and `storage.Aws`.
+- Configuration uses composition on `CloudStorageOptions`: common fields stay on the root, while provider-specific
+  fields are under `storage.Azure` and `storage.Aws`.
 - `CloudStorageOptions.ConnectionString` was removed; use `storage.Azure.ConnectionString` for Azure configuration.
-- Primary-key query predicates now support direct range-aware loading for `>`, `>=`, `<`, and `<=` in addition to equality-based lookups.
+- Primary-key query predicates now support direct range-aware loading for `>`, `>=`, `<`, and `<=` in addition to
+  equality-based lookups.
 - Coding style is enforced with **file-scoped namespaces** (`namespace X;`).
 - The sample app is covered by an integration test that verifies `dotnet run` exits successfully.
 - Integration fixtures can skip Azure/AWS scenarios when Azurite/LocalStack are unavailable.
-- CloudStorage transaction support now uses a durable transaction journal under `__cloudstorageorm/tx/<transactionId>/manifest.json`.
-- `SaveChanges` during an active transaction stages durable operations in the manifest; `Commit` marks the manifest as committed and replays operations; `Rollback` marks the transaction as aborted.
-- Each transaction has a unique `TransactionId` (`Guid`) and only one active transaction is allowed per `DbContext` instance.
-- On startup of a new transaction manager instance, committed manifests are replayed and finalized (`Completed`), while pre-commit manifests are marked as aborted (`Aborted`).
-- Future versions may add provider-native temporary locking (for example, Azure blob leases and AWS conditional/object-lock strategies) to improve concurrent-writer coordination.
-- `IDatabaseCreator` behavior is still minimal right now: schema-style database lifecycle methods are not fully implemented because object storage does not map 1:1 to relational database creation semantics.
+- CloudStorage transaction support now uses a durable transaction journal under
+  `__cloudstorageorm/tx/<transactionId>/manifest.json`.
+- `SaveChanges` during an active transaction stages durable operations in the manifest; `Commit` marks the manifest as
+  committed and replays operations; `Rollback` marks the transaction as aborted.
+- Each transaction has a unique `TransactionId` (`Guid`) and only one active transaction is allowed per `DbContext`
+  instance.
+- On startup of a new transaction manager instance, committed manifests are replayed and finalized (`Completed`), while
+  pre-commit manifests are marked as aborted (`Aborted`).
+- Opt-in optimistic concurrency is available through object-store ETags. Configure entities with
+  `modelBuilder.Entity<TEntity>().UseObjectETagConcurrency()` (shadow `ETag`) or
+  `UseObjectETagConcurrency(e => e.ETag)` (mapped property).
+- Entities can optionally implement `IETag` to expose the current ETag value after materialization and successful saves;
+  this interface is not required.
+- When ETag concurrency is enabled, updates/deletes use provider-native `If-Match` conditions (Azure Blob and AWS S3)
+  and conflicts are raised as `DbUpdateConcurrencyException`.
+- Future versions may add provider-native temporary locking (for example, Azure blob leases and AWS
+  conditional/object-lock strategies) to improve concurrent-writer coordination.
+- `IDatabaseCreator` behavior is still minimal right now: schema-style database lifecycle methods are not fully
+  implemented because object storage does not map 1:1 to relational database creation semantics.
 
 ---
 
@@ -240,4 +257,5 @@ Please read [CONTRIBUTING.md](./CONTRIBUTING.md) before opening a PR.
 ---
 
 
-> _CloudStorageORM aims to make cloud object storage feel familiar to EF-oriented .NET applications, while staying explicit about the current provider and platform limits._
+> _CloudStorageORM aims to make cloud object storage feel familiar to EF-oriented .NET applications, while staying
+explicit about the current provider and platform limits._
