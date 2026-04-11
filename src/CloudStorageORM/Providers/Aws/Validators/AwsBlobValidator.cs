@@ -4,6 +4,7 @@ namespace CloudStorageORM.Providers.Aws.Validators;
 
 public class AwsBlobValidator : IBlobValidator
 {
+    /// <inheritdoc />
     public bool IsBlobNameValid(string? blobName)
     {
         if (string.IsNullOrWhiteSpace(blobName) || blobName.Length > 1024)

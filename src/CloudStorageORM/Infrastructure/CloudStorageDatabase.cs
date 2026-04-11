@@ -15,6 +15,9 @@ using Microsoft.EntityFrameworkCore.Update;
 
 namespace CloudStorageORM.Infrastructure;
 
+/// <summary>
+/// IDatabase implementation that persists EF entity changes to object storage.
+/// </summary>
 public class CloudStorageDatabase(
     IModel model,
     IDatabaseCreator databaseCreator,
@@ -46,12 +49,27 @@ public class CloudStorageDatabase(
                                                                          throw new ArgumentNullException(
                                                                              nameof(executionStrategyFactory));
 
+    /// <summary>
+    /// Ensures the backing store is created for the current provider.
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token for the async operation.</param>
+    /// <returns>A task that completes when creation has been verified or performed.</returns>
     public Task EnsureCreatedAsync(CancellationToken cancellationToken = default)
         => Creator.EnsureCreatedAsync(cancellationToken);
 
+    /// <summary>
+    /// Ensures the backing store is deleted for the current provider.
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token for the async operation.</param>
+    /// <returns>A task that completes when deletion has been verified or performed.</returns>
     public Task EnsureDeletedAsync(CancellationToken cancellationToken = default)
         => Creator.EnsureDeletedAsync(cancellationToken);
 
+    /// <summary>
+    /// Persists pending update entries to object storage synchronously.
+    /// </summary>
+    /// <param name="entries">Update entries representing tracked entity changes.</param>
+    /// <returns>The number of persisted changes.</returns>
     public int SaveChanges(IList<IUpdateEntry> entries)
     {
         var request = ProcessChangesAsync(entries, CancellationToken.None);
@@ -59,6 +77,12 @@ public class CloudStorageDatabase(
         return request.Result;
     }
 
+    /// <summary>
+    /// Persists pending update entries to object storage asynchronously.
+    /// </summary>
+    /// <param name="entries">Update entries representing tracked entity changes.</param>
+    /// <param name="cancellationToken">Cancellation token for the async operation.</param>
+    /// <returns>The number of persisted changes.</returns>
     public async Task<int> SaveChangesAsync(IList<IUpdateEntry> entries,
         CancellationToken cancellationToken = default)
     {
@@ -334,6 +358,17 @@ public class CloudStorageDatabase(
         return results;
     }
 
+    /// <summary>
+    /// Loads all entities of a given type and attaches them to the provided DbContext.
+    /// </summary>
+    /// <typeparam name="TEntity">Entity type to load.</typeparam>
+    /// <param name="context">DbContext used for tracking loaded entities.</param>
+    /// <returns>All existing entities for the requested type.</returns>
+    /// <example>
+    /// <code>
+    /// var users = await database.LoadEntitiesAsync&lt;User&gt;(context);
+    /// </code>
+    /// </example>
     public async Task<IList<TEntity>> LoadEntitiesAsync<TEntity>(DbContext context)
         where TEntity : class
     {
@@ -342,6 +377,18 @@ public class CloudStorageDatabase(
             context);
     }
 
+    /// <summary>
+    /// Loads a single entity by primary-key value from object storage and attaches it to the context.
+    /// </summary>
+    /// <typeparam name="TEntity">Entity type to load.</typeparam>
+    /// <param name="keyValue">Primary-key value used to resolve the blob path.</param>
+    /// <param name="context">Optional context used for tracking; defaults to the current context.</param>
+    /// <returns>The loaded entity when found; otherwise <see langword="null" />.</returns>
+    /// <example>
+    /// <code>
+    /// var user = await database.TryLoadByPrimaryKeyAsync&lt;User&gt;(42);
+    /// </code>
+    /// </example>
     public async Task<TEntity?> TryLoadByPrimaryKeyAsync<TEntity>(object keyValue, DbContext? context = null)
         where TEntity : class
     {
@@ -353,6 +400,21 @@ public class CloudStorageDatabase(
         return entity;
     }
 
+    /// <summary>
+    /// Loads entities whose primary keys are within the provided range and attaches them to the context.
+    /// </summary>
+    /// <typeparam name="TEntity">Entity type to load.</typeparam>
+    /// <param name="lowerBound">Optional lower bound key value.</param>
+    /// <param name="lowerInclusive"><see langword="true" /> to include the lower bound.</param>
+    /// <param name="upperBound">Optional upper bound key value.</param>
+    /// <param name="upperInclusive"><see langword="true" /> to include the upper bound.</param>
+    /// <param name="context">Optional context used for tracking; defaults to the current context.</param>
+    /// <returns>Entities whose storage keys satisfy the specified range.</returns>
+    /// <example>
+    /// <code>
+    /// var users = await database.LoadByPrimaryKeyRangeAsync&lt;User&gt;(100, true, 200, false);
+    /// </code>
+    /// </example>
     public async Task<IList<TEntity>> LoadByPrimaryKeyRangeAsync<TEntity>(
         object? lowerBound,
         bool lowerInclusive,
@@ -402,6 +464,17 @@ public class CloudStorageDatabase(
         return results;
     }
 
+    /// <summary>
+    /// Loads all entities for the specified blob prefix and attaches them to the current context.
+    /// </summary>
+    /// <typeparam name="TEntity">Entity type to load.</typeparam>
+    /// <param name="containerName">Blob prefix or folder name to enumerate.</param>
+    /// <returns>A list containing all deserialized entities found under the prefix.</returns>
+    /// <example>
+    /// <code>
+    /// var users = await database.ToListAsync&lt;User&gt;("users");
+    /// </code>
+    /// </example>
     public async Task<IList<TEntity>> ToListAsync<TEntity>(string containerName)
         where TEntity : class
     {
@@ -428,12 +501,29 @@ public class CloudStorageDatabase(
         return results;
     }
 
+    /// <summary>
+    /// Compiles a query expression into an executable delegate.
+    /// </summary>
+    /// <typeparam name="TResult">Compiled query result type.</typeparam>
+    /// <param name="query">Query expression to compile.</param>
+    /// <param name="async">Whether query compilation targets async execution.</param>
+    /// <param name="nonNullableReferenceTypeParameters">Set of non-nullable parameter names.</param>
+    /// <returns>A compiled query delegate.</returns>
+    /// <exception cref="NotImplementedException">Always thrown in the current implementation.</exception>
     public Expression<Func<QueryContext, TResult>> CompileQueryExpression<TResult>(Expression query, bool async,
         IReadOnlySet<string> nonNullableReferenceTypeParameters)
     {
         throw new NotImplementedException();
     }
 
+    /// <summary>
+    /// Compiles a query expression into an executable delegate.
+    /// </summary>
+    /// <typeparam name="TResult">Compiled query result type.</typeparam>
+    /// <param name="query">Query expression to compile.</param>
+    /// <param name="async">Whether query compilation targets async execution.</param>
+    /// <returns>A compiled query delegate.</returns>
+    /// <exception cref="NotImplementedException">Always thrown in the current implementation.</exception>
     public Expression<Func<QueryContext, TResult>> CompileQueryExpression<TResult>(Expression query, bool async)
     {
         throw new NotImplementedException();

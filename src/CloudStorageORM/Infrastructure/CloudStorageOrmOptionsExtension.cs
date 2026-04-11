@@ -16,8 +16,20 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace CloudStorageORM.Infrastructure;
 
+/// <summary>
+/// EF Core options extension that wires CloudStorageORM services and settings.
+/// </summary>
 public class CloudStorageOrmOptionsExtension : IDbContextOptionsExtension
 {
+    /// <summary>
+    /// Creates a new CloudStorageORM options extension.
+    /// </summary>
+    /// <param name="options">Cloud storage options used to configure provider services.</param>
+    /// <example>
+    /// <code>
+    /// var extension = new CloudStorageOrmOptionsExtension(options);
+    /// </code>
+    /// </example>
     public CloudStorageOrmOptionsExtension(CloudStorageOptions options)
     {
         Options = options;
@@ -26,8 +38,10 @@ public class CloudStorageOrmOptionsExtension : IDbContextOptionsExtension
 
     public CloudStorageOptions Options { get; }
 
+    /// <inheritdoc />
     public DbContextOptionsExtensionInfo Info { get; }
 
+    /// <inheritdoc />
     public void ApplyServices(IServiceCollection services)
     {
         CloudStorageOptionsValidator.Validate(Options);
@@ -60,6 +74,7 @@ public class CloudStorageOrmOptionsExtension : IDbContextOptionsExtension
         services.AddEntityFrameworkCloudStorageOrm(Options);
     }
 
+    /// <inheritdoc />
     public void Validate(IDbContextOptions options)
     {
         CloudStorageOptionsValidator.Validate(Options);

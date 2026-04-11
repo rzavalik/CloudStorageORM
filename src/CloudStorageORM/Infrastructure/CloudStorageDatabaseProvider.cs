@@ -7,13 +7,28 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace CloudStorageORM.Infrastructure;
 
+/// <summary>
+/// EF Core database-provider descriptor for CloudStorageORM.
+/// </summary>
 public class CloudStorageDatabaseProvider : IDatabaseProvider
 {
+    /// <inheritdoc />
     public string Name => "CloudStorageORM.Provider";
 
+    /// <inheritdoc />
     public bool IsConfigured(IDbContextOptions options)
          => true;
 
+    /// <summary>
+    /// Creates the provider-specific <see cref="IDatabase" /> instance from EF Core facade dependencies.
+    /// </summary>
+    /// <param name="dependencies">Resolved EF Core database-facade dependencies.</param>
+    /// <returns>A configured <see cref="CloudStorageDatabase" /> instance.</returns>
+    /// <example>
+    /// <code>
+    /// var database = CloudStorageDatabaseProvider.Create(dependencies);
+    /// </code>
+    /// </example>
     public static IDatabase Create(IDatabaseFacadeDependencies dependencies)
     {
         var databaseCreator = dependencies.DatabaseCreator;

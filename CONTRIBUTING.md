@@ -100,6 +100,13 @@ The current branch expects, among other things:
 - `var` usage preferred in the configured style rules
 - standard solution-wide formatting via `dotnet format`
 
+Public API documentation expectations:
+
+- document all public methods/properties with XML comments
+- prefer documenting contracts on public interfaces
+- for implementations of documented interfaces, use `<inheritdoc />` instead of duplicating XML text
+- when no interface exists, document the public member directly on the class
+
 Run:
 
 ```bash

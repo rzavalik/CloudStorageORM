@@ -5,6 +5,9 @@ using Microsoft.EntityFrameworkCore.Query;
 
 namespace CloudStorageORM.Infrastructure;
 
+/// <summary>
+/// Query provider that executes LINQ expressions against object-storage-backed entities.
+/// </summary>
 public class CloudStorageQueryProvider(
     CloudStorageDatabase database,
     IBlobPathResolver blobPathResolver)
@@ -22,6 +25,7 @@ public class CloudStorageQueryProvider(
         );
     }
 
+    /// <inheritdoc />
     public IQueryable CreateQuery(Expression expression)
     {
         var elementType = expression.Type.GetGenericArguments().First();
@@ -29,21 +33,36 @@ public class CloudStorageQueryProvider(
         return (IQueryable)Activator.CreateInstance(queryableType, this, expression)!;
     }
 
+    /// <inheritdoc />
     public IQueryable<TElement> CreateQuery<TElement>(Expression expression)
     {
         return new CloudStorageQueryable<TElement>(this, expression);
     }
 
+    /// <inheritdoc />
     public object Execute(Expression expression)
     {
         return ExecuteCoreAsync<object>(expression).GetAwaiter().GetResult();
     }
 
+    /// <inheritdoc />
     public TResult Execute<TResult>(Expression expression)
     {
         return ExecuteCoreAsync<TResult>(expression).GetAwaiter().GetResult();
     }
 
+    /// <summary>
+    /// Executes a LINQ expression asynchronously and returns the materialized result.
+    /// </summary>
+    /// <typeparam name="TResult">Expected query result type.</typeparam>
+    /// <param name="expression">Expression tree to execute.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The query result.</returns>
+    /// <example>
+    /// <code>
+    /// var result = await provider.ExecuteAsync&lt;IEnumerable&lt;User&gt;&gt;(query.Expression);
+    /// </code>
+    /// </example>
     public async Task<TResult> ExecuteAsync<TResult>(Expression expression,
         CancellationToken cancellationToken = default)
     {
@@ -110,7 +129,8 @@ public class CloudStorageQueryProvider(
         // For sequence-returning expressions (Where, OrderBy, etc.) use CreateQuery so
         // the EnumerableQuery provider doesn't try to box an IQueryable<T> into a TResult.
         var resultType = typeof(TResult);
-        if (IsEnumerableResult(resultType) || resultType == typeof(object) && typeof(IEnumerable<TEntity>).IsAssignableFrom(rewrittenExpression.Type))
+        if (IsEnumerableResult(resultType) || resultType == typeof(object) &&
+            typeof(IEnumerable<TEntity>).IsAssignableFrom(rewrittenExpression.Type))
         {
             var resultQueryable = inMemoryQueryable.Provider.CreateQuery<TEntity>(rewrittenExpression);
             return (TResult)resultQueryable;
@@ -704,11 +724,24 @@ public class CloudStorageQueryProvider(
         public bool IsNone => !IsEquality && LowerBound is null && UpperBound is null;
         public bool HasRangeBound => LowerBound is not null || UpperBound is not null;
 
+        /// <summary>
+        /// Creates an equality-based primary-key constraint.
+        /// </summary>
+        /// <param name="equalityValue">Primary-key value that must match exactly.</param>
+        /// <returns>A constraint representing primary-key equality.</returns>
         public static PrimaryKeyConstraint ForEquality(object equalityValue)
         {
             return new PrimaryKeyConstraint(true, equalityValue, null, false, null, false);
         }
 
+        /// <summary>
+        /// Creates a range-based primary-key constraint.
+        /// </summary>
+        /// <param name="lowerBound">Optional lower bound value.</param>
+        /// <param name="lowerInclusive"><see langword="true" /> when the lower bound is inclusive.</param>
+        /// <param name="upperBound">Optional upper bound value.</param>
+        /// <param name="upperInclusive"><see langword="true" /> when the upper bound is inclusive.</param>
+        /// <returns>A constraint representing a primary-key range.</returns>
         public static PrimaryKeyConstraint ForRange(object? lowerBound, bool lowerInclusive, object? upperBound,
             bool upperInclusive)
         {

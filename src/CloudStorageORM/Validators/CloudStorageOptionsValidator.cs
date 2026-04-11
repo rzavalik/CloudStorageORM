@@ -3,8 +3,28 @@ using CloudStorageORM.Options;
 
 namespace CloudStorageORM.Validators;
 
+/// <summary>
+/// Validates CloudStorageORM configuration options before provider initialization.
+/// </summary>
 public static class CloudStorageOptionsValidator
 {
+    /// <summary>
+    /// Validates common and provider-specific option fields.
+    /// </summary>
+    /// <param name="options">Options instance to validate.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="options" /> is <see langword="null" />.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when required fields are missing for the selected provider.</exception>
+    /// <exception cref="NotSupportedException">Thrown when the provider is not supported.</exception>
+    /// <example>
+    /// <code>
+    /// CloudStorageOptionsValidator.Validate(new CloudStorageORM.Options.CloudStorageOptions
+    /// {
+    ///     Provider = CloudStorageORM.Enums.CloudProvider.Aws,
+    ///     ContainerName = "app-data",
+    ///     Aws = { Region = "us-east-1", AccessKeyId = "test", SecretAccessKey = "test" }
+    /// });
+    /// </code>
+    /// </example>
     public static void Validate(CloudStorageOptions options)
     {
         ArgumentNullException.ThrowIfNull(options);

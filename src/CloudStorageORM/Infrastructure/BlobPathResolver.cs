@@ -12,6 +12,7 @@ public class BlobPathResolver(IStorageProvider storageProvider) : IBlobPathResol
                                                          ?? throw new ArgumentNullException(
                                                              nameof(storageProvider));
 
+    /// <inheritdoc />
     public string GetBlobName(Type type)
     {
         var name = type.Name.ToLowerInvariant();
@@ -52,6 +53,7 @@ public class BlobPathResolver(IStorageProvider storageProvider) : IBlobPathResol
             : _storageProvider.SanitizeBlobName(SanitizeLocally(name));
     }
 
+    /// <inheritdoc />
     public string GetPath(Type type, object keyValue)
     {
         if (keyValue is null || string.IsNullOrWhiteSpace(keyValue.ToString()))
@@ -75,6 +77,7 @@ public class BlobPathResolver(IStorageProvider storageProvider) : IBlobPathResol
             .Replace("]", "_");
     }
 
+    /// <inheritdoc />
     public string GetPath(IUpdateEntry entry)
     {
         var keyProperty = entry.EntityType.FindPrimaryKey()?.Properties.FirstOrDefault();

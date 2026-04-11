@@ -6,14 +6,32 @@ using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace CloudStorageORM.Validators;
 
+/// <summary>
+/// Validates entity model metadata such as blob naming, keys, and JSON serializability.
+/// </summary>
+/// <param name="blobValidator">Blob-name validator used to enforce provider naming rules.</param>
+/// <param name="blobPathResolver">Path resolver used for default blob-name resolution.</param>
 public sealed class ModelValidator(
     IBlobValidator blobValidator,
     IBlobPathResolver blobPathResolver)
 {
-    private readonly IBlobPathResolver _blobPathResolver = blobPathResolver ?? throw new ArgumentNullException(nameof(blobPathResolver));
+    private readonly IBlobPathResolver _blobPathResolver =
+        blobPathResolver ?? throw new ArgumentNullException(nameof(blobPathResolver));
 
-    private IBlobValidator BlobValidator { get; set; } = blobValidator ?? throw new ArgumentNullException(nameof(blobValidator));
+    private IBlobValidator BlobValidator { get; set; } =
+        blobValidator ?? throw new ArgumentNullException(nameof(blobValidator));
 
+    /// <summary>
+    /// Validates each entity mapped in the provided EF model.
+    /// </summary>
+    /// <param name="model">Mutable model containing entity metadata to validate.</param>
+    /// <exception cref="InvalidOperationException">Thrown when an entity has an invalid blob name, missing key, or is not serializable.</exception>
+    /// <example>
+    /// <code>
+    /// var validator = new ModelValidator(blobValidator, blobPathResolver);
+    /// validator.Validate(modelBuilder.Model);
+    /// </code>
+    /// </example>
     public void Validate(IMutableModel model)
     {
         foreach (var entity in model.GetEntityTypes())
@@ -21,8 +39,8 @@ public sealed class ModelValidator(
             var clrType = entity.ClrType;
 
             var blobSettingsAttributes = clrType.GetCustomAttributes(typeof(BlobSettingsAttribute), false)
-                                                .Cast<BlobSettingsAttribute>()
-                                                .ToList();
+                .Cast<BlobSettingsAttribute>()
+                .ToList();
 
             // check each attribute per entity
             foreach (var blobSettings in blobSettingsAttributes)
@@ -46,7 +64,8 @@ public sealed class ModelValidator(
     {
         if (!BlobValidator.IsBlobNameValid(blobName))
         {
-            throw new InvalidOperationException($"Invalid blob name '{entity.Name}' for entity type '{entity.ClrType.Name}'.");
+            throw new InvalidOperationException(
+                $"Invalid blob name '{entity.Name}' for entity type '{entity.ClrType.Name}'.");
         }
     }
 
@@ -54,7 +73,8 @@ public sealed class ModelValidator(
     {
         if (entity.FindPrimaryKey() == null)
         {
-            throw new InvalidOperationException($"Entity type '{entity.ClrType.Name}' does not have a primary key defined.");
+            throw new InvalidOperationException(
+                $"Entity type '{entity.ClrType.Name}' does not have a primary key defined.");
         }
     }
 

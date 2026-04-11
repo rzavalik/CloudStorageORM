@@ -14,6 +14,9 @@ using CloudStorageORM.Options;
 
 namespace CloudStorageORM.Providers.Aws.StorageProviders;
 
+/// <summary>
+/// Amazon S3 implementation of <see cref="IStorageProvider" />.
+/// </summary>
 public class AwsS3StorageProvider : IStorageProvider
 {
     private readonly string _bucketName;
@@ -48,6 +51,15 @@ public class AwsS3StorageProvider : IStorageProvider
     private static Func<IAmazonS3, string, Task<bool>> BucketExistsAsyncFactory { get; set; }
         = AmazonS3Util.DoesS3BucketExistV2Async;
 
+    /// <summary>
+    /// Creates a new Amazon S3 storage provider from CloudStorageORM options.
+    /// </summary>
+    /// <param name="options">Validated CloudStorageORM options containing AWS credentials, region, and bucket name.</param>
+    /// <example>
+    /// <code>
+    /// var provider = new AwsS3StorageProvider(options);
+    /// </code>
+    /// </example>
     public AwsS3StorageProvider(CloudStorageOptions options)
     {
         ArgumentNullException.ThrowIfNull(options);
@@ -63,8 +75,10 @@ public class AwsS3StorageProvider : IStorageProvider
         _s3Client = s3Client;
     }
 
+    /// <inheritdoc />
     public CloudProvider CloudProvider => CloudProvider.Aws;
 
+    /// <inheritdoc />
     public async Task DeleteContainerAsync()
     {
         try
@@ -80,6 +94,7 @@ public class AwsS3StorageProvider : IStorageProvider
         }
     }
 
+    /// <inheritdoc />
     public async Task CreateContainerIfNotExistsAsync()
     {
         if (await BucketExistsAsyncFactory(_s3Client, _bucketName))
@@ -95,11 +110,13 @@ public class AwsS3StorageProvider : IStorageProvider
         _isBucketInitialized = true;
     }
 
+    /// <inheritdoc />
     public async Task SaveAsync<T>(string path, T entity)
     {
         await SaveAsync(path, entity, ifMatchETag: null);
     }
 
+    /// <inheritdoc />
     public async Task<string?> SaveAsync<T>(string path, T entity, string? ifMatchETag)
     {
         await EnsureBucketExistsAsync();
@@ -139,12 +156,14 @@ public class AwsS3StorageProvider : IStorageProvider
         }
     }
 
+    /// <inheritdoc />
     public async Task<T> ReadAsync<T>(string path)
     {
         var storageObject = await ReadWithMetadataAsync<T>(path);
         return storageObject.Value!;
     }
 
+    /// <inheritdoc />
     public async Task<StorageObject<T>> ReadWithMetadataAsync<T>(string path)
     {
         await EnsureBucketExistsAsync();
@@ -178,11 +197,13 @@ public class AwsS3StorageProvider : IStorageProvider
         }
     }
 
+    /// <inheritdoc />
     public async Task DeleteAsync(string path)
     {
         await DeleteAsync(path, ifMatchETag: null);
     }
 
+    /// <inheritdoc />
     public async Task DeleteAsync(string path, string? ifMatchETag)
     {
         await EnsureBucketExistsAsync();
@@ -202,6 +223,7 @@ public class AwsS3StorageProvider : IStorageProvider
         }
     }
 
+    /// <inheritdoc />
     public async Task<List<string>> ListAsync(string folderPath)
     {
         await EnsureBucketExistsAsync();
@@ -226,6 +248,7 @@ public class AwsS3StorageProvider : IStorageProvider
         return result;
     }
 
+    /// <inheritdoc />
     public string SanitizeBlobName(string rawName)
     {
         var invalidChars = new[] { '\\', '/', '?', '#', '[', ']', ' ', '+', '`', '"' };

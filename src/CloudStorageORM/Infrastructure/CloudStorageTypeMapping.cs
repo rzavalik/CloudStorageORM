@@ -5,8 +5,15 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace CloudStorageORM.Infrastructure;
 
+/// <summary>
+/// Type mapping used by CloudStorageORM for EF Core value conversion services.
+/// </summary>
 public class CloudStorageTypeMapping : CoreTypeMapping
 {
+    /// <summary>
+    /// Creates a new mapping for the specified CLR type.
+    /// </summary>
+    /// <param name="clrType">CLR type to map.</param>
     public CloudStorageTypeMapping(Type clrType)
         : base(new CoreTypeMappingParameters(clrType))
     {
@@ -17,6 +24,7 @@ public class CloudStorageTypeMapping : CoreTypeMapping
     {
     }
 
+    /// <inheritdoc />
     public override CoreTypeMapping WithComposedConverter(
         ValueConverter? converter,
         ValueComparer? comparer = null,

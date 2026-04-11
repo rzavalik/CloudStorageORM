@@ -11,6 +11,9 @@ using CloudStorageORM.Options;
 
 namespace CloudStorageORM.Providers.Azure.StorageProviders;
 
+/// <summary>
+/// Azure Blob Storage implementation of <see cref="IStorageProvider" />.
+/// </summary>
 public class AzureBlobStorageProvider : IStorageProvider
 {
     private readonly BlobContainerClient _containerClient;
@@ -28,34 +31,62 @@ public class AzureBlobStorageProvider : IStorageProvider
             containerName,
             CreateBlobClientOptions(connectionString));
 
-    public AzureBlobStorageProvider(
-        CloudStorageOptions options)
+    /// <summary>
+    /// Creates a new Azure Blob Storage provider from CloudStorageORM options.
+    /// </summary>
+    /// <param name="options">Validated CloudStorageORM options containing the Azure connection string and container name.</param>
+    /// <example>
+    /// <code>
+    /// var provider = new AzureBlobStorageProvider(options);
+    /// </code>
+    /// </example>
+    public AzureBlobStorageProvider(CloudStorageOptions options)
     {
         _containerClient = OptionsContainerClientFactory(options);
         _containerClient.CreateIfNotExists();
     }
 
+    /// <summary>
+    /// Creates a new Azure Blob Storage provider using an existing container client.
+    /// </summary>
+    /// <param name="blobServiceClient">The container client to use for storage operations.</param>
+    /// <example>
+    /// <code>
+    /// var provider = new AzureBlobStorageProvider(containerClient);
+    /// </code>
+    /// </example>
     public AzureBlobStorageProvider(BlobContainerClient blobServiceClient)
     {
         _containerClient = blobServiceClient;
         _containerClient.CreateIfNotExists();
     }
 
-    public AzureBlobStorageProvider(
-        string connectionString,
-        string containerName)
+    /// <summary>
+    /// Creates a new Azure Blob Storage provider from a connection string and container name.
+    /// </summary>
+    /// <param name="connectionString">Azure Storage connection string.</param>
+    /// <param name="containerName">Azure container name.</param>
+    /// <example>
+    /// <code>
+    /// var provider = new AzureBlobStorageProvider("UseDevelopmentStorage=true", "app-data");
+    /// </code>
+    /// </example>
+    public AzureBlobStorageProvider(string connectionString, string containerName)
     {
         _containerClient = ConnectionContainerClientFactory(connectionString, containerName);
         _containerClient.CreateIfNotExists();
     }
 
+    /// <inheritdoc />
     public CloudProvider CloudProvider => CloudProvider.Azure;
 
+    /// <inheritdoc />
     public async Task SaveAsync<T>(string path, T entity)
     {
         await SaveAsync(path, entity, ifMatchETag: null);
     }
 
+    /// <inheritdoc />
     public async Task<string?> SaveAsync<T>(string path, T entity, string? ifMatchETag)
     {
         var blobClient = _containerClient.GetBlobClient(path);
@@ -98,12 +129,14 @@ public class AzureBlobStorageProvider : IStorageProvider
         }
     }
 
+    /// <inheritdoc />
     public async Task<T> ReadAsync<T>(string path)
     {
         var storageObject = await ReadWithMetadataAsync<T>(path);
         return storageObject.Value!;
     }
 
+    /// <inheritdoc />
     public async Task<StorageObject<T>> ReadWithMetadataAsync<T>(string path)
     {
         var blobClient = _containerClient.GetBlobClient(path);
@@ -118,11 +151,13 @@ public class AzureBlobStorageProvider : IStorageProvider
         return new StorageObject<T>(entity, etag, true);
     }
 
+    /// <inheritdoc />
     public async Task DeleteAsync(string path)
     {
         await DeleteAsync(path, ifMatchETag: null);
     }
 
+    /// <inheritdoc />
     public async Task DeleteAsync(string path, string? ifMatchETag)
     {
         var blobClient = _containerClient.GetBlobClient(path);
@@ -148,6 +183,7 @@ public class AzureBlobStorageProvider : IStorageProvider
         }
     }
 
+    /// <inheritdoc />
     public async Task<List<string>> ListAsync(string folderPath)
     {
         var result = new List<string>();
@@ -163,13 +199,16 @@ public class AzureBlobStorageProvider : IStorageProvider
         return result;
     }
 
+    /// <inheritdoc />
     public async Task DeleteContainerAsync() => await _containerClient.DeleteIfExistsAsync();
 
+    /// <inheritdoc />
     public async Task CreateContainerIfNotExistsAsync()
     {
         await _containerClient.CreateIfNotExistsAsync();
     }
 
+    /// <inheritdoc />
     public string SanitizeBlobName(string rawName)
     {
         var invalidChars = new[] { '\\', '/', '?', '#', '[', ']', ' ', '+', '`', '"' };

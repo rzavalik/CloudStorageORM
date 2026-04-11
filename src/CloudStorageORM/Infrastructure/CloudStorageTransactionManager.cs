@@ -4,6 +4,9 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 namespace CloudStorageORM.Infrastructure;
 
+/// <summary>
+/// Transaction manager that stages object-storage operations and optionally persists a durable journal.
+/// </summary>
 public class CloudStorageTransactionManager : IDbContextTransactionManager
 {
     private const string TransactionPrefix = "__cloudstorageorm/tx";
@@ -16,15 +19,23 @@ public class CloudStorageTransactionManager : IDbContextTransactionManager
     private DurableTransactionManifest? _activeManifest;
     private bool _recoveryCompleted;
 
+    /// <summary>
+    /// Creates a transaction manager without durable journal support.
+    /// </summary>
     public CloudStorageTransactionManager()
     {
     }
 
+    /// <summary>
+    /// Creates a transaction manager with durable journal support backed by object storage.
+    /// </summary>
+    /// <param name="storageProvider">Storage provider used to persist transaction manifests.</param>
     public CloudStorageTransactionManager(IStorageProvider storageProvider)
     {
         _storageProvider = storageProvider;
     }
 
+    /// <inheritdoc />
     public IDbContextTransaction BeginTransaction()
     {
         EnsureRecoveryCompletedAsync(CancellationToken.None).GetAwaiter().GetResult();
@@ -44,32 +55,38 @@ public class CloudStorageTransactionManager : IDbContextTransactionManager
         }
     }
 
+    /// <inheritdoc />
     public async Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default)
     {
         await EnsureRecoveryCompletedAsync(cancellationToken);
         return BeginTransaction();
     }
 
+    /// <inheritdoc />
     public void CommitTransaction()
     {
         GetCurrentTransactionOrThrow().Commit();
     }
 
+    /// <inheritdoc />
     public void RollbackTransaction()
     {
         GetCurrentTransactionOrThrow().Rollback();
     }
 
+    /// <inheritdoc />
     public Task CommitTransactionAsync(CancellationToken cancellationToken = default)
     {
         return GetCurrentTransactionOrThrow().CommitAsync(cancellationToken);
     }
 
+    /// <inheritdoc />
     public Task RollbackTransactionAsync(CancellationToken cancellationToken = default)
     {
         return GetCurrentTransactionOrThrow().RollbackAsync(cancellationToken);
     }
 
+    /// <inheritdoc />
     public void ResetState()
     {
         lock (_sync)
@@ -80,12 +97,14 @@ public class CloudStorageTransactionManager : IDbContextTransactionManager
         }
     }
 
+    /// <inheritdoc />
     public Task ResetStateAsync(CancellationToken cancellationToken = default)
     {
         ResetState();
         return Task.CompletedTask;
     }
 
+    /// <inheritdoc />
     public IDbContextTransaction? CurrentTransaction
     {
         get
@@ -390,6 +409,11 @@ public class CloudStorageTransactionManager : IDbContextTransactionManager
         // ReSharper disable once AutoPropertyCanBeMadeGetOnly.Local
         public List<DurableTransactionOperation> Operations { get; set; } = [];
 
+        /// <summary>
+        /// Creates a new manifest for a transaction in the preparing state.
+        /// </summary>
+        /// <param name="transactionId">Unique transaction identifier.</param>
+        /// <returns>A new durable transaction manifest.</returns>
         public static DurableTransactionManifest Create(Guid transactionId)
         {
             return new DurableTransactionManifest
