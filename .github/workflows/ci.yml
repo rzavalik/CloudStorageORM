@@ -238,6 +238,10 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore CloudStorageORM.sln
 
+    - name: Install DocFX material template
+      shell: bash
+      run: ./scripts/setup-docfx-material.sh
+
     - name: Build documentation site
       run: docfx docfx.json
 
@@ -262,4 +266,3 @@ jobs:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: ./_site
         publish_branch: gh-pages
-

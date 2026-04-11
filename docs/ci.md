@@ -47,11 +47,12 @@ In parallel, CI also executes a `Build Docs (DocFX)` job:
 1. checkout
 2. .NET SDK setup (`10.0.x`)
 3. install DocFX global tool
-4. `dotnet restore CloudStorageORM.sln`
-5. `docfx docfx.json` (site output in `_site`)
-6. upload `_site` as `docs-site` artifact
-7. deploy `_site` to `gh-pages-preview` on pushes to `feature/docs`
-8. deploy `_site` to `gh-pages` on pushes to `main`
+4. run `./scripts/setup-docfx-material.sh` to install `docfx-material` into `templates/material`
+5. `dotnet restore CloudStorageORM.sln`
+6. `docfx docfx.json` (site output in `_site`)
+7. upload `_site` as `docs-site` artifact
+8. deploy `_site` to `gh-pages-preview` on pushes to `feature/docs`
+9. deploy `_site` to `gh-pages` on pushes to `main`
 
 For pull requests, CI treats a change as docs-only only when every changed file stays within the docs allowlist:
 `docs/**`, `docfx.json`, `README.md`, `CONTRIBUTING.md`, `ROADMAP.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md`,
@@ -143,5 +144,4 @@ dotnet tool run reportgenerator \
 - If AWS tests fail early, verify LocalStack health and `CLOUDSTORAGEORM_AWS_*` values.
 - If report generation fails, verify `dotnet-tools.json` is restored (`dotnet tool restore`).
 - If test reporting fails, inspect generated `TestResults/*.trx` files first.
-- If DocFX build fails, run `docfx docfx.json` locally and verify generated files under `_site`.
-
+- If DocFX build fails, run `./scripts/setup-docfx-material.sh` and then `docfx docfx.json` locally.

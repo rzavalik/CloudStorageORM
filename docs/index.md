@@ -9,7 +9,7 @@ CloudStorageORM is an EF-style provider over cloud object storage.
 - [Testing with Azurite](testing-with-azurite.md)
 - [Testing with LocalStack](testing-with-localstack.md)
 - [CI workflow](ci.md)
-- [API reference](../api/toc.yml)
+- [API reference](api-reference.md)
 
 ## Notes
 

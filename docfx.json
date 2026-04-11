@@ -25,12 +25,21 @@
       {
         "files": [
           "README.md",
-          "ROADMAP.md"
+          "ROADMAP.md",
+          "CONTRIBUTING.md",
+          "SECURITY.md"
         ]
       },
       {
         "files": [
           "api/**.yml"
+        ]
+      }
+    ],
+    "resource": [
+      {
+        "files": [
+          "LICENSE"
         ]
       }
     ],
@@ -40,9 +49,13 @@
       "_appTitle": "CloudStorageORM",
       "_enableSearch": true
     },
+    "postProcessors": [
+      "ExtractSearchIndex"
+    ],
     "template": [
       "default",
-      "modern"
+      "modern",
+      "templates/material"
     ]
   }
 }

@@ -11,5 +11,4 @@
 - name: CI workflow
   href: ci.md
 - name: API reference
-  href: ../api/toc.yml
-
+  href: api-reference.md
