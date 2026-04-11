@@ -1,6 +1,7 @@
 # 📦 CloudStorageORM - Library Documentation
 
 **Target Framework**: `net10.0`  
+**Current Release**: `v1.0.12`  
 **Language Version**: `C# 14`  
 **EF Core Packages**: `Microsoft.EntityFrameworkCore 9.0.4`, `Microsoft.EntityFrameworkCore.Relational 9.0.4`  
 **Testing**: `xUnit`, `Shouldly`, `Moq`, `Coverlet`, `ReportGenerator`

@@ -123,6 +123,7 @@ This script mirrors CI startup/test behavior and runs Azurite with `--skipApiVer
 If your change touches Azure provider behavior, sample app behavior, or end-to-end query execution, start Azurite first:
 
 ```bash
+docker rm -f azurite || true
 docker run -d \
   -p 10000:10000 \
   -p 10001:10001 \
@@ -137,6 +138,7 @@ docker run -d \
 If your change touches AWS provider behavior, start LocalStack with S3 enabled:
 
 ```bash
+docker rm -f localstack || true
 docker run -d \
   -p 4566:4566 \
   --name localstack \

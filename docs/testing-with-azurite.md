@@ -21,6 +21,7 @@ For AWS S3 local emulation, see [testing-with-localstack.md](./testing-with-loca
 ## Start Azurite
 
 ```bash
+docker rm -f azurite || true
 docker run -d \
   -p 10000:10000 \
   -p 10001:10001 \

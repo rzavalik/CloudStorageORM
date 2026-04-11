@@ -21,6 +21,7 @@ Support for **Google Cloud Storage** remains on the roadmap.
 
 ## ✨ Current status
 
+- ✅ Current release line: `v1.0.12`
 - ✅ Targets `net10.0`
 - ✅ Azure Blob Storage provider is implemented
 - ✅ AWS S3 provider is implemented
@@ -163,6 +164,7 @@ This script mirrors CI by starting Azurite and LocalStack, then running restore,
 ### Start Azurite (Azure integration)
 
 ```bash
+docker rm -f azurite || true
 docker run -d \
   -p 10000:10000 \
   -p 10001:10001 \
@@ -181,6 +183,7 @@ dotnet test CloudStorageORM.sln --nologo -v minimal
 ### Start LocalStack (AWS integration)
 
 ```bash
+docker rm -f localstack || true
 docker run -d \
   -p 4566:4566 \
   --name localstack \

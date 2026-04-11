@@ -2,6 +2,7 @@
 
 This repository validates build, tests, and coverage through the `Build and Test` workflow.
 Package publishing is handled by `.github/workflows/publish.yml`, which validates that the packed NuGet includes `README.md` and correct repository/readme metadata before push, then publishes to both NuGet.org and GitHub Packages.
+Publishing runs on `v*.*.*` tags (for example, `v1.0.12`) or manual dispatch.
 
 ---
 
@@ -45,7 +46,7 @@ The Node.js 24 opt-in keeps workflows aligned with GitHub Actions runtime deprec
 
 CI starts:
 
-- Azurite on `10000`, `10001`, `10002`
+- Azurite (`mcr.microsoft.com/azure-storage/azurite`, unpinned/latest tag) on `10000`, `10001`, `10002`
 - LocalStack (`localstack/localstack:3`) on `4566`
 
 AWS test environment variables are injected in CI:
