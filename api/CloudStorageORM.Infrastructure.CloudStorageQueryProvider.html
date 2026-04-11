@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Class CloudStorageQueryProvider | CloudStorageORM </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Class CloudStorageQueryProvider | CloudStorageORM ">
+      
+      <meta name="description" content="Query provider that executes LINQ expressions against object-storage-backed entities.">
+      <link rel="icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/rzavalik/CloudStorageORM/new/feature/docs/apiSpec/new?filename=CloudStorageORM_Infrastructure_CloudStorageQueryProvider.md&amp;value=---%0Auid%3A%20CloudStorageORM.Infrastructure.CloudStorageQueryProvider%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../logo.svg" alt="CloudStorageORM">
+            CloudStorageORM
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+
+      <div class="content">
+        <div class="actionbar">
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="CloudStorageORM.Infrastructure.CloudStorageQueryProvider">
+
+
+
+  <h1 id="CloudStorageORM_Infrastructure_CloudStorageQueryProvider" data-uid="CloudStorageORM.Infrastructure.CloudStorageQueryProvider" class="text-break">
+Class CloudStorageQueryProvider  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/feature/docs/src/CloudStorageORM/Infrastructure/CloudStorageQueryProvider.cs/#L11"><i class="bi bi-code-slash"></i></a>
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="CloudStorageORM.html">CloudStorageORM</a>.<a class="xref" href="CloudStorageORM.Infrastructure.html">Infrastructure</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>CloudStorageORM.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"><p>Query provider that executes LINQ expressions against object-storage-backed entities.</p>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class CloudStorageQueryProvider : IAsyncQueryProvider, IQueryProvider</code></pre>
+  </div>
+
+
+
+
+  <dl class="typelist inheritance">
+    <dt>Inheritance</dt>
+    <dd>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
+      <div><span class="xref">CloudStorageQueryProvider</span></div>
+    </dd>
+  </dl>
+
+  <dl class="typelist implements">
+    <dt>Implements</dt>
+    <dd>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/microsoft.entityframeworkcore.query.iasyncqueryprovider">IAsyncQueryProvider</a></div>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.linq.iqueryprovider">IQueryProvider</a></div>
+    </dd>
+  </dl>
+
+
+  <dl class="typelist inheritedMembers">
+    <dt>Inherited Members</dt>
+    <dd>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)">object.Equals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gethashcode">object.GetHashCode()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gettype">object.GetType()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone">object.MemberwiseClone()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.tostring">object.ToString()</a>
+    </div>
+  </dd></dl>
+
+
+
+
+
+
+  <h2 class="section" id="constructors">Constructors
+</h2>
+
+
+  <a id="CloudStorageORM_Infrastructure_CloudStorageQueryProvider__ctor_" data-uid="CloudStorageORM.Infrastructure.CloudStorageQueryProvider.#ctor*"></a>
+
+  <h3 id="CloudStorageORM_Infrastructure_CloudStorageQueryProvider__ctor_CloudStorageORM_Infrastructure_CloudStorageDatabase_CloudStorageORM_Interfaces_Infrastructure_IBlobPathResolver_" data-uid="CloudStorageORM.Infrastructure.CloudStorageQueryProvider.#ctor(CloudStorageORM.Infrastructure.CloudStorageDatabase,CloudStorageORM.Interfaces.Infrastructure.IBlobPathResolver)">
+  CloudStorageQueryProvider(CloudStorageDatabase, IBlobPathResolver)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/feature/docs/src/CloudStorageORM/Infrastructure/CloudStorageQueryProvider.cs/#L11"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Query provider that executes LINQ expressions against object-storage-backed entities.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public CloudStorageQueryProvider(CloudStorageDatabase database, IBlobPathResolver blobPathResolver)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>database</code> <a class="xref" href="CloudStorageORM.Infrastructure.CloudStorageDatabase.html">CloudStorageDatabase</a></dt>
+    <dd></dd>
+    <dt><code>blobPathResolver</code> <a class="xref" href="CloudStorageORM.Interfaces.Infrastructure.IBlobPathResolver.html">IBlobPathResolver</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="methods">Methods
+</h2>
+
+
+  <a id="CloudStorageORM_Infrastructure_CloudStorageQueryProvider_CreateQuery_" data-uid="CloudStorageORM.Infrastructure.CloudStorageQueryProvider.CreateQuery*"></a>
+
+  <h3 id="CloudStorageORM_Infrastructure_CloudStorageQueryProvider_CreateQuery_System_Linq_Expressions_Expression_" data-uid="CloudStorageORM.Infrastructure.CloudStorageQueryProvider.CreateQuery(System.Linq.Expressions.Expression)">
+  CreateQuery(Expression)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/feature/docs/src/CloudStorageORM/Infrastructure/CloudStorageQueryProvider.cs/#L29"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Constructs an <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.linq.iqueryable">IQueryable</a> object that can evaluate the query represented by a specified expression tree.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IQueryable CreateQuery(Expression expression)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>expression</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.linq.expressions.expression">Expression</a></dt>
+    <dd><p>An expression tree that represents a LINQ query.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.linq.iqueryable">IQueryable</a></dt>
+    <dd><p>An <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.linq.iqueryable">IQueryable</a> that can evaluate the query represented by the specified expression tree.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="CloudStorageORM_Infrastructure_CloudStorageQueryProvider_CreateQuery_" data-uid="CloudStorageORM.Infrastructure.CloudStorageQueryProvider.CreateQuery*"></a>
+
+  <h3 id="CloudStorageORM_Infrastructure_CloudStorageQueryProvider_CreateQuery__1_System_Linq_Expressions_Expression_" data-uid="CloudStorageORM.Infrastructure.CloudStorageQueryProvider.CreateQuery``1(System.Linq.Expressions.Expression)">
+  CreateQuery&lt;TElement&gt;(Expression)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/feature/docs/src/CloudStorageORM/Infrastructure/CloudStorageQueryProvider.cs/#L37"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Constructs an <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.linq.iqueryable-1">IQueryable&lt;T&gt;</a> object that can evaluate the query represented by a specified expression tree.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IQueryable&lt;TElement&gt; CreateQuery&lt;TElement&gt;(Expression expression)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>expression</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.linq.expressions.expression">Expression</a></dt>
+    <dd><p>An expression tree that represents a LINQ query.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.linq.iqueryable-1">IQueryable</a>&lt;TElement&gt;</dt>
+    <dd><p>An <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.linq.iqueryable-1">IQueryable&lt;T&gt;</a> that can evaluate the query represented by the specified expression tree.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>TElement</code></dt>
+    <dd><p>The type of the elements of the <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.linq.iqueryable-1">IQueryable&lt;T&gt;</a> that is returned.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <a id="CloudStorageORM_Infrastructure_CloudStorageQueryProvider_Execute_" data-uid="CloudStorageORM.Infrastructure.CloudStorageQueryProvider.Execute*"></a>
+
+  <h3 id="CloudStorageORM_Infrastructure_CloudStorageQueryProvider_Execute_System_Linq_Expressions_Expression_" data-uid="CloudStorageORM.Infrastructure.CloudStorageQueryProvider.Execute(System.Linq.Expressions.Expression)">
+  Execute(Expression)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/feature/docs/src/CloudStorageORM/Infrastructure/CloudStorageQueryProvider.cs/#L43"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Executes the query represented by a specified expression tree.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public object Execute(Expression expression)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>expression</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.linq.expressions.expression">Expression</a></dt>
+    <dd><p>An expression tree that represents a LINQ query.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></dt>
+    <dd><p>The value that results from executing the specified query.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="CloudStorageORM_Infrastructure_CloudStorageQueryProvider_ExecuteAsync_" data-uid="CloudStorageORM.Infrastructure.CloudStorageQueryProvider.ExecuteAsync*"></a>
+
+  <h3 id="CloudStorageORM_Infrastructure_CloudStorageQueryProvider_ExecuteAsync__1_System_Linq_Expressions_Expression_System_Threading_CancellationToken_" data-uid="CloudStorageORM.Infrastructure.CloudStorageQueryProvider.ExecuteAsync``1(System.Linq.Expressions.Expression,System.Threading.CancellationToken)">
+  ExecuteAsync&lt;TResult&gt;(Expression, CancellationToken)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/feature/docs/src/CloudStorageORM/Infrastructure/CloudStorageQueryProvider.cs/#L66"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Executes a LINQ expression asynchronously and returns the materialized result.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task&lt;TResult&gt; ExecuteAsync&lt;TResult&gt;(Expression expression, CancellationToken cancellationToken = default)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>expression</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.linq.expressions.expression">Expression</a></dt>
+    <dd><p>Expression tree to execute.</p>
+</dd>
+    <dt><code>cancellationToken</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.cancellationtoken">CancellationToken</a></dt>
+    <dd><p>Cancellation token.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task-1">Task</a>&lt;TResult&gt;</dt>
+    <dd><p>The query result.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>TResult</code></dt>
+    <dd><p>Expected query result type.</p>
+</dd>
+  </dl>
+
+
+
+
+
+  <h4 class="section" id="CloudStorageORM_Infrastructure_CloudStorageQueryProvider_ExecuteAsync__1_System_Linq_Expressions_Expression_System_Threading_CancellationToken__examples">Examples</h4>
+  <pre><code class="lang-csharp">var result = await provider.ExecuteAsync&lt;IEnumerable&lt;User&gt;&gt;(query.Expression);</code></pre>
+
+
+
+
+
+
+  <a id="CloudStorageORM_Infrastructure_CloudStorageQueryProvider_Execute_" data-uid="CloudStorageORM.Infrastructure.CloudStorageQueryProvider.Execute*"></a>
+
+  <h3 id="CloudStorageORM_Infrastructure_CloudStorageQueryProvider_Execute__1_System_Linq_Expressions_Expression_" data-uid="CloudStorageORM.Infrastructure.CloudStorageQueryProvider.Execute``1(System.Linq.Expressions.Expression)">
+  Execute&lt;TResult&gt;(Expression)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/feature/docs/src/CloudStorageORM/Infrastructure/CloudStorageQueryProvider.cs/#L49"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Executes the strongly-typed query represented by a specified expression tree.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public TResult Execute&lt;TResult&gt;(Expression expression)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>expression</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.linq.expressions.expression">Expression</a></dt>
+    <dd><p>An expression tree that represents a LINQ query.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><span class="xref">TResult</span></dt>
+    <dd><p>The value that results from executing the specified query.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>TResult</code></dt>
+    <dd><p>The type of the value that results from executing the query.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/rzavalik/CloudStorageORM/blob/feature/docs/src/CloudStorageORM/Infrastructure/CloudStorageQueryProvider.cs/#L11" class="edit-link">Edit this page</a>
+        </div>
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

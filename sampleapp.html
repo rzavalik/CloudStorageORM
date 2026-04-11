@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>CloudStorageORM.SampleApp | CloudStorageORM </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="CloudStorageORM.SampleApp | CloudStorageORM ">
+      
+      
+      <link rel="icon" href="favicon.ico">
+      <link rel="stylesheet" href="public/docfx.min.css">
+      <link rel="stylesheet" href="public/main.css">
+      <meta name="docfx:navrel" content="toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/rzavalik/CloudStorageORM/blob/feature/docs/docs/sampleapp.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="index.html">
+            <img id="logo" class="svg" src="logo.svg" alt="CloudStorageORM">
+            CloudStorageORM
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+
+      <div class="content">
+        <div class="actionbar">
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="cloudstorageormsampleapp">CloudStorageORM.SampleApp</h1>
+
+<p><code>CloudStorageORM.SampleApp</code> demonstrates the current provider behavior on <code>main</code> by running the <strong>same application flow</strong> three times:</p>
+<ol>
+<li>once with <strong>EF Core InMemory</strong></li>
+<li>once with <strong>CloudStorageORM + Azure Blob Storage</strong></li>
+<li>once with <strong>CloudStorageORM + AWS S3</strong></li>
+</ol>
+<p>The sample currently targets <strong>.NET 10</strong> and uses <strong>Azurite</strong> + <strong>LocalStack</strong> by default for local cloud emulation.</p>
+<hr>
+<h2 id="what-the-sample-proves">What the sample proves</h2>
+<p>For all storage modes, the app executes the same steps:</p>
+<ol>
+<li>list users</li>
+<li>create a user</li>
+<li>list users again</li>
+<li>update the user</li>
+<li>find the updated user through a LINQ query</li>
+<li>delete the user</li>
+<li>confirm the entity is gone</li>
+</ol>
+<p>For CloudStorageORM-backed runs (Azure and AWS), the app also verifies transaction semantics:</p>
+<ol start="8">
+<li>add a user inside a transaction and roll back (must not persist)</li>
+<li>add a user inside a transaction and commit (must persist)</li>
+</ol>
+<p>This scenario validates transaction staging/commit behavior backed by the durable journal under <code>__cloudstorageorm/tx/</code>.</p>
+<p>This is important because the goal of the sample is not just CRUD; it is demonstrating that the CloudStorageORM provider behaves close to familiar EF usage for the same application code.</p>
+<hr>
+<h2 id="current-sample-structure">Current sample structure</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">File</th>
+<th style="text-align: left;">Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>samples/CloudStorageORM.SampleApp/Program.cs</code></td>
+<td style="text-align: left;">Drives the three runs and prints the console output</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>samples/CloudStorageORM.SampleApp/DbContext/MyAppDbContext.cs</code></td>
+<td style="text-align: left;">Defines the InMemory and CloudStorageORM contexts</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>samples/CloudStorageORM.SampleApp/Models/User.cs</code></td>
+<td style="text-align: left;">Sample entity persisted to storage</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="key-behavior-on-the-current-branch">Key behavior on the current branch</h2>
+<ul>
+<li>The CloudStorageORM path is configured with <code>UseCloudStorageOrm(...)</code>.</li>
+<li>The sample uses <code>SaveChangesAsync()</code> for create, update, and delete.</li>
+<li>Listing uses <code>ToListAsync()</code>.</li>
+<li>Finding and updating use LINQ with <code>FirstOrDefault(...)</code>.</li>
+<li>The same domain model and CRUD flow are exercised for all providers.</li>
+<li>Each run clears existing users first to avoid leftover objects from previous executions.</li>
+<li>The sample uses a deterministic user ID (<code>sample-user-001</code>) for predictable output and easier assertions.</li>
+</ul>
+<hr>
+<h2 id="how-to-run-locally">How to run locally</h2>
+<h3 id="prerequisites">Prerequisites</h3>
+<ul>
+<li>.NET 10 SDK</li>
+<li>Docker (recommended, for Azurite + LocalStack)</li>
+</ul>
+<h3 id="start-azurite">Start Azurite</h3>
+<pre><code class="lang-bash">docker run -d \
+  -p 10000:10000 \
+  -p 10001:10001 \
+  -p 10002:10002 \
+  --name azurite \
+  mcr.microsoft.com/azure-storage/azurite
+</code></pre>
+<h3 id="start-localstack-s3">Start LocalStack (S3)</h3>
+<pre><code class="lang-bash">docker run -d \
+  -p 4566:4566 \
+  --name localstack \
+  -e SERVICES=s3 \
+  -e AWS_DEFAULT_REGION=us-east-1 \
+  localstack/localstack:3
+</code></pre>
+<h3 id="run-the-sample-from-the-repository-root">Run the sample from the repository root</h3>
+<pre><code class="lang-bash">dotnet run --project samples/CloudStorageORM.SampleApp/SampleApp.csproj
+</code></pre>
+<hr>
+<h2 id="what-you-should-expect-to-see">What you should expect to see</h2>
+<p>The console output is split into three sections:</p>
+<ul>
+<li><code>Running using EF InMemory Provider...</code></li>
+<li><code>Running using EF Azure Provider...</code></li>
+<li><code>Running using EF Aws Provider...</code></li>
+</ul>
+<p>All sections should complete successfully and finish with messages like:</p>
+<pre><code class="lang-text">🏁 SampleApp Finished for MyAppDbContextInMemory.
+🏁 SampleApp Finished for MyAppDbContextCloudStorage.
+🏁 SampleApp Finished for MyAppDbContextCloudStorage.
+🏁 SampleApp Finished.
+</code></pre>
+<hr>
+<h2 id="configuration-details">Configuration details</h2>
+<p>The sample currently uses environment-based configuration with defaults:</p>
+<ul>
+<li>Azure connection string: <code>UseDevelopmentStorage=true</code></li>
+<li>Azure container: <code>sampleapp-container</code></li>
+<li>AWS endpoint: <code>http://localhost:4566</code></li>
+<li>AWS region: <code>us-east-1</code></li>
+<li>AWS credentials: <code>test</code> / <code>test</code></li>
+</ul>
+<p>You can override values with env vars (for example <code>CLOUDSTORAGEORM_AZURE_CONNECTION_STRING</code>, <code>CLOUDSTORAGEORM_AWS_SERVICE_URL</code>, <code>CLOUDSTORAGEORM_AWS_BUCKET</code>).</p>
+<hr>
+<h2 id="regression-safety">Regression safety</h2>
+<p>This sample is also covered by an integration test:</p>
+<ul>
+<li><code>tests/CloudStorageORM.IntegrationTests/ProgramExitTests.cs</code></li>
+<li><code>tests/CloudStorageORM.IntegrationTests/Aws/ProgramExitAwsTests.cs</code></li>
+</ul>
+<p>Those tests launch the sample through <code>dotnet run</code> and verify it exits with code <code>0</code> and prints <code>SampleApp Finished</code>.</p>
+<hr>
+<h2 id="why-this-sample-matters">Why this sample matters</h2>
+<p>The sample is the clearest executable proof, on the current branch, that CloudStorageORM is intended to be consumed like an EF provider rather than through a completely separate repository API.
+It also serves as a guardrail for query execution changes, provider behavior, and end-to-end startup wiring.</p>
+<hr>
+<h2 id="related-docs">Related docs</h2>
+<ul>
+<li><a href="README.html">README</a></li>
+<li><a href="CloudStorageORM.html">Library documentation</a></li>
+<li><a href="testing-with-azurite.html">Testing with Azurite</a></li>
+<li><a href="testing-with-localstack.html">Testing with LocalStack</a></li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/rzavalik/CloudStorageORM/blob/feature/docs/docs/sampleapp.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

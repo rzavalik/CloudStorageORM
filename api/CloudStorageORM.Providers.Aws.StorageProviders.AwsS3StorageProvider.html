@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Class AwsS3StorageProvider | CloudStorageORM </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Class AwsS3StorageProvider | CloudStorageORM ">
+      
+      <meta name="description" content="Amazon S3 implementation of .">
+      <link rel="icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/rzavalik/CloudStorageORM/new/feature/docs/apiSpec/new?filename=CloudStorageORM_Providers_Aws_StorageProviders_AwsS3StorageProvider.md&amp;value=---%0Auid%3A%20CloudStorageORM.Providers.Aws.StorageProviders.AwsS3StorageProvider%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../logo.svg" alt="CloudStorageORM">
+            CloudStorageORM
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+
+      <div class="content">
+        <div class="actionbar">
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="CloudStorageORM.Providers.Aws.StorageProviders.AwsS3StorageProvider">
+
+
+
+  <h1 id="CloudStorageORM_Providers_Aws_StorageProviders_AwsS3StorageProvider" data-uid="CloudStorageORM.Providers.Aws.StorageProviders.AwsS3StorageProvider" class="text-break">
+Class AwsS3StorageProvider  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/feature/docs/src/CloudStorageORM/Providers/Aws/StorageProviders/AwsS3StorageProvider.cs/#L20"><i class="bi bi-code-slash"></i></a>
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="CloudStorageORM.html">CloudStorageORM</a>.<a class="xref" href="CloudStorageORM.Providers.html">Providers</a>.<a class="xref" href="CloudStorageORM.Providers.Aws.html">Aws</a>.<a class="xref" href="CloudStorageORM.Providers.Aws.StorageProviders.html">StorageProviders</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>CloudStorageORM.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"><p>Amazon S3 implementation of <a class="xref" href="CloudStorageORM.Interfaces.StorageProviders.IStorageProvider.html">IStorageProvider</a>.</p>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class AwsS3StorageProvider : IStorageProvider</code></pre>
+  </div>
+
+
+
+
+  <dl class="typelist inheritance">
+    <dt>Inheritance</dt>
+    <dd>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
+      <div><span class="xref">AwsS3StorageProvider</span></div>
+    </dd>
+  </dl>
+
+  <dl class="typelist implements">
+    <dt>Implements</dt>
+    <dd>
+      <div><a class="xref" href="CloudStorageORM.Interfaces.StorageProviders.IStorageProvider.html">IStorageProvider</a></div>
+    </dd>
+  </dl>
+
+
+  <dl class="typelist inheritedMembers">
+    <dt>Inherited Members</dt>
+    <dd>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)">object.Equals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gethashcode">object.GetHashCode()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gettype">object.GetType()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone">object.MemberwiseClone()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.tostring">object.ToString()</a>
+    </div>
+  </dd></dl>
+
+
+
+
+
+
+  <h2 class="section" id="constructors">Constructors
+</h2>
+
+
+  <a id="CloudStorageORM_Providers_Aws_StorageProviders_AwsS3StorageProvider__ctor_" data-uid="CloudStorageORM.Providers.Aws.StorageProviders.AwsS3StorageProvider.#ctor*"></a>
+
+  <h3 id="CloudStorageORM_Providers_Aws_StorageProviders_AwsS3StorageProvider__ctor_CloudStorageORM_Options_CloudStorageOptions_" data-uid="CloudStorageORM.Providers.Aws.StorageProviders.AwsS3StorageProvider.#ctor(CloudStorageORM.Options.CloudStorageOptions)">
+  AwsS3StorageProvider(CloudStorageOptions)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/feature/docs/src/CloudStorageORM/Providers/Aws/StorageProviders/AwsS3StorageProvider.cs/#L63"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Creates a new Amazon S3 storage provider from CloudStorageORM options.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public AwsS3StorageProvider(CloudStorageOptions options)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>options</code> <a class="xref" href="CloudStorageORM.Options.CloudStorageOptions.html">CloudStorageOptions</a></dt>
+    <dd><p>Validated CloudStorageORM options containing AWS credentials, region, and bucket name.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+  <h4 class="section" id="CloudStorageORM_Providers_Aws_StorageProviders_AwsS3StorageProvider__ctor_CloudStorageORM_Options_CloudStorageOptions__examples">Examples</h4>
+  <pre><code class="lang-csharp">var provider = new AwsS3StorageProvider(options);</code></pre>
+
+
+
+
+
+
+  <h2 class="section" id="properties">Properties
+</h2>
+
+
+  <a id="CloudStorageORM_Providers_Aws_StorageProviders_AwsS3StorageProvider_CloudProvider_" data-uid="CloudStorageORM.Providers.Aws.StorageProviders.AwsS3StorageProvider.CloudProvider*"></a>
+
+  <h3 id="CloudStorageORM_Providers_Aws_StorageProviders_AwsS3StorageProvider_CloudProvider" data-uid="CloudStorageORM.Providers.Aws.StorageProviders.AwsS3StorageProvider.CloudProvider">
+  CloudProvider
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/feature/docs/src/CloudStorageORM/Providers/Aws/StorageProviders/AwsS3StorageProvider.cs/#L79"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets the cloud provider represented by this storage implementation.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public CloudProvider CloudProvider { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="CloudStorageORM.Enums.CloudProvider.html">CloudProvider</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h2 class="section" id="methods">Methods
+</h2>
+
+
+  <a id="CloudStorageORM_Providers_Aws_StorageProviders_AwsS3StorageProvider_CreateContainerIfNotExistsAsync_" data-uid="CloudStorageORM.Providers.Aws.StorageProviders.AwsS3StorageProvider.CreateContainerIfNotExistsAsync*"></a>
+
+  <h3 id="CloudStorageORM_Providers_Aws_StorageProviders_AwsS3StorageProvider_CreateContainerIfNotExistsAsync" data-uid="CloudStorageORM.Providers.Aws.StorageProviders.AwsS3StorageProvider.CreateContainerIfNotExistsAsync">
+  CreateContainerIfNotExistsAsync()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/feature/docs/src/CloudStorageORM/Providers/Aws/StorageProviders/AwsS3StorageProvider.cs/#L98"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Creates the container or bucket if it does not already exist.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task CreateContainerIfNotExistsAsync()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task">Task</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+  <h4 class="section" id="CloudStorageORM_Providers_Aws_StorageProviders_AwsS3StorageProvider_CreateContainerIfNotExistsAsync_examples">Examples</h4>
+  <pre><code class="lang-csharp">await storageProvider.CreateContainerIfNotExistsAsync();</code></pre>
+
+
+
+
+
+
+  <a id="CloudStorageORM_Providers_Aws_StorageProviders_AwsS3StorageProvider_DeleteAsync_" data-uid="CloudStorageORM.Providers.Aws.StorageProviders.AwsS3StorageProvider.DeleteAsync*"></a>
+
+  <h3 id="CloudStorageORM_Providers_Aws_StorageProviders_AwsS3StorageProvider_DeleteAsync_System_String_" data-uid="CloudStorageORM.Providers.Aws.StorageProviders.AwsS3StorageProvider.DeleteAsync(System.String)">
+  DeleteAsync(string)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/feature/docs/src/CloudStorageORM/Providers/Aws/StorageProviders/AwsS3StorageProvider.cs/#L201"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Deletes an object from storage without an ETag precondition.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task DeleteAsync(string path)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>path</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd><p>Object path inside the container.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task">Task</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+  <h4 class="section" id="CloudStorageORM_Providers_Aws_StorageProviders_AwsS3StorageProvider_DeleteAsync_System_String__examples">Examples</h4>
+  <pre><code class="lang-csharp">await storageProvider.DeleteAsync("users/42.json");</code></pre>
+
+
+
+
+
+
+  <a id="CloudStorageORM_Providers_Aws_StorageProviders_AwsS3StorageProvider_DeleteAsync_" data-uid="CloudStorageORM.Providers.Aws.StorageProviders.AwsS3StorageProvider.DeleteAsync*"></a>
+
+  <h3 id="CloudStorageORM_Providers_Aws_StorageProviders_AwsS3StorageProvider_DeleteAsync_System_String_System_String_" data-uid="CloudStorageORM.Providers.Aws.StorageProviders.AwsS3StorageProvider.DeleteAsync(System.String,System.String)">
+  DeleteAsync(string, string?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/feature/docs/src/CloudStorageORM/Providers/Aws/StorageProviders/AwsS3StorageProvider.cs/#L207"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Deletes an object from storage using an optional ETag precondition.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task DeleteAsync(string path, string? ifMatchETag)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>path</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd><p>Object path inside the container.</p>
+</dd>
+    <dt><code>ifMatchETag</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd><p>Expected ETag value used for optimistic concurrency.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task">Task</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+  <h4 class="section" id="CloudStorageORM_Providers_Aws_StorageProviders_AwsS3StorageProvider_DeleteAsync_System_String_System_String__examples">Examples</h4>
+  <pre><code class="lang-csharp">await storageProvider.DeleteAsync("users/42.json", currentEtag);</code></pre>
+
+
+
+
+
+
+  <a id="CloudStorageORM_Providers_Aws_StorageProviders_AwsS3StorageProvider_DeleteContainerAsync_" data-uid="CloudStorageORM.Providers.Aws.StorageProviders.AwsS3StorageProvider.DeleteContainerAsync*"></a>
+
+  <h3 id="CloudStorageORM_Providers_Aws_StorageProviders_AwsS3StorageProvider_DeleteContainerAsync" data-uid="CloudStorageORM.Providers.Aws.StorageProviders.AwsS3StorageProvider.DeleteContainerAsync">
+  DeleteContainerAsync()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/feature/docs/src/CloudStorageORM/Providers/Aws/StorageProviders/AwsS3StorageProvider.cs/#L82"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Deletes the underlying container or bucket when it exists.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task DeleteContainerAsync()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task">Task</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+  <h4 class="section" id="CloudStorageORM_Providers_Aws_StorageProviders_AwsS3StorageProvider_DeleteContainerAsync_examples">Examples</h4>
+  <pre><code class="lang-csharp">await storageProvider.DeleteContainerAsync();</code></pre>
+
+
+
+
+
+
+  <a id="CloudStorageORM_Providers_Aws_StorageProviders_AwsS3StorageProvider_ListAsync_" data-uid="CloudStorageORM.Providers.Aws.StorageProviders.AwsS3StorageProvider.ListAsync*"></a>
+
+  <h3 id="CloudStorageORM_Providers_Aws_StorageProviders_AwsS3StorageProvider_ListAsync_System_String_" data-uid="CloudStorageORM.Providers.Aws.StorageProviders.AwsS3StorageProvider.ListAsync(System.String)">
+  ListAsync(string)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/feature/docs/src/CloudStorageORM/Providers/Aws/StorageProviders/AwsS3StorageProvider.cs/#L227"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Lists object paths under a folder-like prefix.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task&lt;List&lt;string&gt;&gt; ListAsync(string folderPath)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>folderPath</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd><p>Folder or prefix to search.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task-1">Task</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1">List</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a>&gt;&gt;</dt>
+    <dd><p>List of matching object paths.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+  <h4 class="section" id="CloudStorageORM_Providers_Aws_StorageProviders_AwsS3StorageProvider_ListAsync_System_String__examples">Examples</h4>
+  <pre><code class="lang-csharp">var keys = await storageProvider.ListAsync("users/");</code></pre>
+
+
+
+
+
+
+  <a id="CloudStorageORM_Providers_Aws_StorageProviders_AwsS3StorageProvider_ReadAsync_" data-uid="CloudStorageORM.Providers.Aws.StorageProviders.AwsS3StorageProvider.ReadAsync*"></a>
+
+  <h3 id="CloudStorageORM_Providers_Aws_StorageProviders_AwsS3StorageProvider_ReadAsync__1_System_String_" data-uid="CloudStorageORM.Providers.Aws.StorageProviders.AwsS3StorageProvider.ReadAsync``1(System.String)">
+  ReadAsync&lt;T&gt;(string)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/feature/docs/src/CloudStorageORM/Providers/Aws/StorageProviders/AwsS3StorageProvider.cs/#L160"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reads and deserializes an entity payload from object storage.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task&lt;T&gt; ReadAsync&lt;T&gt;(string path)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>path</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd><p>Object path inside the container.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task-1">Task</a>&lt;T&gt;</dt>
+    <dd><p>The deserialized entity payload.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>T</code></dt>
+    <dd><p>Entity payload type to deserialize.</p>
+</dd>
+  </dl>
+
+
+
+
+
+  <h4 class="section" id="CloudStorageORM_Providers_Aws_StorageProviders_AwsS3StorageProvider_ReadAsync__1_System_String__examples">Examples</h4>
+  <pre><code class="lang-csharp">var user = await storageProvider.ReadAsync&lt;User&gt;("users/42.json");</code></pre>
+
+
+
+
+
+
+  <a id="CloudStorageORM_Providers_Aws_StorageProviders_AwsS3StorageProvider_ReadWithMetadataAsync_" data-uid="CloudStorageORM.Providers.Aws.StorageProviders.AwsS3StorageProvider.ReadWithMetadataAsync*"></a>
+
+  <h3 id="CloudStorageORM_Providers_Aws_StorageProviders_AwsS3StorageProvider_ReadWithMetadataAsync__1_System_String_" data-uid="CloudStorageORM.Providers.Aws.StorageProviders.AwsS3StorageProvider.ReadWithMetadataAsync``1(System.String)">
+  ReadWithMetadataAsync&lt;T&gt;(string)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/feature/docs/src/CloudStorageORM/Providers/Aws/StorageProviders/AwsS3StorageProvider.cs/#L167"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reads an entity payload and its metadata from object storage.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task&lt;StorageObject&lt;T&gt;&gt; ReadWithMetadataAsync&lt;T&gt;(string path)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>path</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd><p>Object path inside the container.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task-1">Task</a>&lt;<a class="xref" href="CloudStorageORM.Abstractions.StorageObject-1.html">StorageObject</a>&lt;T&gt;&gt;</dt>
+    <dd><p>A wrapper containing the entity value, ETag, and existence status.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>T</code></dt>
+    <dd><p>Entity payload type to deserialize.</p>
+</dd>
+  </dl>
+
+
+
+
+
+  <h4 class="section" id="CloudStorageORM_Providers_Aws_StorageProviders_AwsS3StorageProvider_ReadWithMetadataAsync__1_System_String__examples">Examples</h4>
+  <pre><code class="lang-csharp">var result = await storageProvider.ReadWithMetadataAsync&lt;User&gt;("users/42.json");
+if (result.Exists) { Console.WriteLine(result.ETag); }</code></pre>
+
+
+
+
+
+
+  <a id="CloudStorageORM_Providers_Aws_StorageProviders_AwsS3StorageProvider_SanitizeBlobName_" data-uid="CloudStorageORM.Providers.Aws.StorageProviders.AwsS3StorageProvider.SanitizeBlobName*"></a>
+
+  <h3 id="CloudStorageORM_Providers_Aws_StorageProviders_AwsS3StorageProvider_SanitizeBlobName_System_String_" data-uid="CloudStorageORM.Providers.Aws.StorageProviders.AwsS3StorageProvider.SanitizeBlobName(System.String)">
+  SanitizeBlobName(string)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/feature/docs/src/CloudStorageORM/Providers/Aws/StorageProviders/AwsS3StorageProvider.cs/#L252"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Sanitizes a raw blob name so it can be safely used by the provider.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public string SanitizeBlobName(string rawName)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>rawName</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd><p>Original blob or folder name.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd><p>Provider-safe normalized name.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+  <h4 class="section" id="CloudStorageORM_Providers_Aws_StorageProviders_AwsS3StorageProvider_SanitizeBlobName_System_String__examples">Examples</h4>
+  <pre><code class="lang-csharp">var safeName = storageProvider.SanitizeBlobName("My Entity");</code></pre>
+
+
+
+
+
+
+  <a id="CloudStorageORM_Providers_Aws_StorageProviders_AwsS3StorageProvider_SaveAsync_" data-uid="CloudStorageORM.Providers.Aws.StorageProviders.AwsS3StorageProvider.SaveAsync*"></a>
+
+  <h3 id="CloudStorageORM_Providers_Aws_StorageProviders_AwsS3StorageProvider_SaveAsync__1_System_String___0_" data-uid="CloudStorageORM.Providers.Aws.StorageProviders.AwsS3StorageProvider.SaveAsync``1(System.String,``0)">
+  SaveAsync&lt;T&gt;(string, T)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/feature/docs/src/CloudStorageORM/Providers/Aws/StorageProviders/AwsS3StorageProvider.cs/#L114"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Persists an entity payload at the specified path without an ETag precondition.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task SaveAsync&lt;T&gt;(string path, T entity)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>path</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd><p>Object path inside the container.</p>
+</dd>
+    <dt><code>entity</code> <span class="xref">T</span></dt>
+    <dd><p>Entity payload to store.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task">Task</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>T</code></dt>
+    <dd><p>Entity payload type to serialize.</p>
+</dd>
+  </dl>
+
+
+
+
+
+  <h4 class="section" id="CloudStorageORM_Providers_Aws_StorageProviders_AwsS3StorageProvider_SaveAsync__1_System_String___0__examples">Examples</h4>
+  <pre><code class="lang-csharp">await storageProvider.SaveAsync("users/42.json", user);</code></pre>
+
+
+
+
+
+
+  <a id="CloudStorageORM_Providers_Aws_StorageProviders_AwsS3StorageProvider_SaveAsync_" data-uid="CloudStorageORM.Providers.Aws.StorageProviders.AwsS3StorageProvider.SaveAsync*"></a>
+
+  <h3 id="CloudStorageORM_Providers_Aws_StorageProviders_AwsS3StorageProvider_SaveAsync__1_System_String___0_System_String_" data-uid="CloudStorageORM.Providers.Aws.StorageProviders.AwsS3StorageProvider.SaveAsync``1(System.String,``0,System.String)">
+  SaveAsync&lt;T&gt;(string, T, string?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/feature/docs/src/CloudStorageORM/Providers/Aws/StorageProviders/AwsS3StorageProvider.cs/#L120"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Persists an entity payload using an optional ETag precondition and returns the resulting ETag.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task&lt;string?&gt; SaveAsync&lt;T&gt;(string path, T entity, string? ifMatchETag)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>path</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd><p>Object path inside the container.</p>
+</dd>
+    <dt><code>entity</code> <span class="xref">T</span></dt>
+    <dd><p>Entity payload to store.</p>
+</dd>
+    <dt><code>ifMatchETag</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd><p>Expected ETag value used for optimistic concurrency.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task-1">Task</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a>&gt;</dt>
+    <dd><p>The new ETag when available; otherwise <a href="https://learn.microsoft.com/dotnet/csharp/language-reference/keywords/null">null</a>.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>T</code></dt>
+    <dd><p>Entity payload type to serialize.</p>
+</dd>
+  </dl>
+
+
+
+
+
+  <h4 class="section" id="CloudStorageORM_Providers_Aws_StorageProviders_AwsS3StorageProvider_SaveAsync__1_System_String___0_System_String__examples">Examples</h4>
+  <pre><code class="lang-csharp">var newEtag = await storageProvider.SaveAsync("users/42.json", user, currentEtag);</code></pre>
+
+
+
+
+
+
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/rzavalik/CloudStorageORM/blob/feature/docs/src/CloudStorageORM/Providers/Aws/StorageProviders/AwsS3StorageProvider.cs/#L20" class="edit-link">Edit this page</a>
+        </div>
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
