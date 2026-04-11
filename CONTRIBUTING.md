@@ -215,6 +215,7 @@ All changes should go through a PR and pass CI.
 Current CI (`.github/workflows/ci.yml`) runs on:
 
 - pushes to `main`
+- pushes to `feature/docs` (DocFX preview validation branch)
 - pull requests targeting `main`, `feature/**`, `bug/**`, or `hotfix/**`
 
 Release publishing (`.github/workflows/publish.yml`) runs on `v*.*.*` tags (or manual dispatch) and publishes `CloudStorageORM` to NuGet.org and GitHub Packages.

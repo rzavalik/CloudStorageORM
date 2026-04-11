@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - feature/docs
     paths-ignore:
       - _site/**
   pull_request:
@@ -246,10 +247,19 @@ jobs:
         name: docs-site
         path: _site
 
+    - name: Deploy preview docs to gh-pages-preview
+      if: github.event_name == 'push' && github.ref == 'refs/heads/feature/docs'
+      uses: peaceiris/actions-gh-pages@v4
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./_site
+        publish_branch: gh-pages-preview
+
     - name: Deploy docs to gh-pages
       if: github.event_name == 'push' && github.ref == 'refs/heads/main'
       uses: peaceiris/actions-gh-pages@v4
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: ./_site
+        publish_branch: gh-pages
 

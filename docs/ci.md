@@ -2,7 +2,8 @@
 
 This repository validates build, tests, and coverage through the `Build and Test` workflow.
 Package publishing is handled by `.github/workflows/publish.yml`, which validates that the packed NuGet includes `README.md` and correct repository/readme metadata before push, then publishes to both NuGet.org and GitHub Packages.
-The same CI workflow also runs a parallel DocFX documentation job that builds the static site and, on `main` pushes, deploys it to `gh-pages`.
+The same CI workflow also runs a parallel DocFX documentation job that builds the static site and deploys it by branch:
+`main` pushes publish to `gh-pages`, while `feature/docs` pushes publish to `gh-pages-preview` for pre-merge validation.
 Publishing runs on `v*.*.*` tags (for example, `v1.0.12`) or manual dispatch.
 
 ---
@@ -12,6 +13,7 @@ Publishing runs on `v*.*.*` tags (for example, `v1.0.12`) or manual dispatch.
 The workflow runs on:
 
 - push to `main`
+- push to `feature/docs`
 - pull request targeting `main`, `feature/**`, `bug/**`, or `hotfix/**`
 - changes under `_site/**` are ignored at trigger time
 
@@ -48,7 +50,8 @@ In parallel, CI also executes a `Build Docs (DocFX)` job:
 4. `dotnet restore CloudStorageORM.sln`
 5. `docfx docfx.json` (site output in `_site`)
 6. upload `_site` as `docs-site` artifact
-7. deploy `_site` to `gh-pages` only on pushes to `main`
+7. deploy `_site` to `gh-pages-preview` on pushes to `feature/docs`
+8. deploy `_site` to `gh-pages` on pushes to `main`
 
 For pull requests, CI treats a change as docs-only only when every changed file stays within the docs allowlist:
 `docs/**`, `docfx.json`, `README.md`, `CONTRIBUTING.md`, `ROADMAP.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md`,
