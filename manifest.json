@@ -12,6 +12,26 @@
     },
     {
       "type": "Conceptual",
+      "source_relative_path": "CONTRIBUTING.md",
+      "output": {
+        ".html": {
+          "relative_path": "CONTRIBUTING.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "LICENSE",
+      "output": {
+        "resource": {
+          "relative_path": "LICENSE"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
       "source_relative_path": "README.md",
       "output": {
         ".html": {
@@ -26,6 +46,16 @@
       "output": {
         ".html": {
           "relative_path": "ROADMAP.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "SECURITY.md",
+      "output": {
+        ".html": {
+          "relative_path": "SECURITY.html"
         }
       },
       "version": ""
@@ -973,6 +1003,16 @@
       "output": {
         ".html": {
           "relative_path": "CloudStorageORM.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "docs/api-reference.md",
+      "output": {
+        ".html": {
+          "relative_path": "api-reference.html"
         }
       },
       "version": ""

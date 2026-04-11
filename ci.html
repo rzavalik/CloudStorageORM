@@ -115,6 +115,7 @@ Publishing runs on <code>v*.*.*</code> tags (for example, <code>v1.0.12</code>) 
 <li>checkout</li>
 <li>.NET SDK setup (<code>10.0.x</code>)</li>
 <li>install DocFX global tool</li>
+<li>run <code>./scripts/setup-docfx-material.sh</code> to install <code>docfx-material</code> into <code>templates/material</code></li>
 <li><code>dotnet restore CloudStorageORM.sln</code></li>
 <li><code>docfx docfx.json</code> (site output in <code>_site</code>)</li>
 <li>upload <code>_site</code> as <code>docs-site</code> artifact</li>
@@ -191,7 +192,7 @@ dotnet tool run reportgenerator \
 <li>If AWS tests fail early, verify LocalStack health and <code>CLOUDSTORAGEORM_AWS_*</code> values.</li>
 <li>If report generation fails, verify <code>dotnet-tools.json</code> is restored (<code>dotnet tool restore</code>).</li>
 <li>If test reporting fails, inspect generated <code>TestResults/*.trx</code> files first.</li>
-<li>If DocFX build fails, run <code>docfx docfx.json</code> locally and verify generated files under <code>_site</code>.</li>
+<li>If DocFX build fails, run <code>./scripts/setup-docfx-material.sh</code> and then <code>docfx docfx.json</code> locally.</li>
 </ul>
 
 </article>
