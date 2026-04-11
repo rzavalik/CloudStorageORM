@@ -1,0 +1,15 @@
+- name: Home
+  href: index.md
+- name: Library guide
+  href: CloudStorageORM.md
+- name: Sample app
+  href: sampleapp.md
+- name: Testing with Azurite
+  href: testing-with-azurite.md
+- name: Testing with LocalStack
+  href: testing-with-localstack.md
+- name: CI workflow
+  href: ci.md
+- name: API reference
+  href: ../api/toc.yml
+

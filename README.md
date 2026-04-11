@@ -245,6 +245,7 @@ See [docs/sampleapp.md](./docs/sampleapp.md) for details.
 ## 📚 Documentation
 
 - [Library documentation](./docs/CloudStorageORM.md)
+- [API reference (DocFX)](https://rzavalik.github.io/CloudStorageORM/api/)
 - [Sample app guide](./docs/sampleapp.md)
 - [Testing with Azurite](./docs/testing-with-azurite.md)
 - [Testing with LocalStack](./docs/testing-with-localstack.md)

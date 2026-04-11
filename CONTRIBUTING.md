@@ -12,6 +12,7 @@ Before opening a PR, make sure you have:
 - [ ] built with the **.NET 10 SDK**
 - [ ] formatted the solution with `dotnet format`
 - [ ] run the relevant tests
+- [ ] run `docfx docfx.json` when changing docs/public API references
 - [ ] updated documentation when changing public behavior, supported platforms, or contributor workflows
 
 ---
@@ -185,6 +186,9 @@ The most likely files to update are:
 - `docs/testing-with-azurite.md`
 - `docs/testing-with-localstack.md`
 - `docs/ci.md`
+- `docfx.json`
+- `docs/toc.yml`
+- `docs/index.md`
 - `.github/copilot-instructions.md`
 - `ROADMAP.md`
 

@@ -2,6 +2,7 @@
 
 This repository validates build, tests, and coverage through the `Build and Test` workflow.
 Package publishing is handled by `.github/workflows/publish.yml`, which validates that the packed NuGet includes `README.md` and correct repository/readme metadata before push, then publishes to both NuGet.org and GitHub Packages.
+The same CI workflow also runs a parallel DocFX documentation job that builds the static site and, on `main` pushes, deploys it to `gh-pages`.
 Publishing runs on `v*.*.*` tags (for example, `v1.0.12`) or manual dispatch.
 
 ---
@@ -12,6 +13,7 @@ The workflow runs on:
 
 - push to `main`
 - pull request targeting `main`, `feature/**`, `bug/**`, or `hotfix/**`
+- changes under `_site/**` are ignored at trigger time
 
 ---
 
@@ -38,6 +40,21 @@ In order, CI executes:
 16. publish PR test comment and unit test UI results
 17. cleanup containers
 
+In parallel, CI also executes a `Build Docs (DocFX)` job:
+
+1. checkout
+2. .NET SDK setup (`10.0.x`)
+3. install DocFX global tool
+4. `dotnet restore CloudStorageORM.sln`
+5. `docfx docfx.json` (site output in `_site`)
+6. upload `_site` as `docs-site` artifact
+7. deploy `_site` to `gh-pages` only on pushes to `main`
+
+For pull requests, CI treats a change as docs-only only when every changed file stays within the docs allowlist:
+`docs/**`, `docfx.json`, `README.md`, `CONTRIBUTING.md`, `ROADMAP.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md`,
+`.github/PULL_REQUEST_TEMPLATE.md`, `.github/ISSUE_TEMPLATE/**`, and `.github/copilot-instructions.md`.
+If any file outside this scope changes, full `Build, Test, and Coverage` still runs.
+
 The Node.js 24 opt-in keeps workflows aligned with GitHub Actions runtime deprecation timelines while first- and third-party actions continue their Node 24 transitions. This opt-in is enabled in both `.github/workflows/ci.yml` and `.github/workflows/publish.yml`.
 
 ---
@@ -61,12 +78,13 @@ AWS test environment variables are injected in CI:
 
 ## Test and coverage artifacts
 
-CI publishes four artifacts:
+CI publishes five artifacts:
 
 - `test-results` -> `TestResults/*.trx`
 - `coverage-xml` -> `TestResults/Coverage/*.xml`
 - `sbom-cyclonedx` -> `TestResults/SBOM/*.json`
 - `coverage-html` -> `TestResults/CoverageReport`
+- `docs-site` -> `_site`
 
 The workflow also publishes test results to the GitHub Actions UI on every run.
 
@@ -122,4 +140,5 @@ dotnet tool run reportgenerator \
 - If AWS tests fail early, verify LocalStack health and `CLOUDSTORAGEORM_AWS_*` values.
 - If report generation fails, verify `dotnet-tools.json` is restored (`dotnet tool restore`).
 - If test reporting fails, inspect generated `TestResults/*.trx` files first.
+- If DocFX build fails, run `docfx docfx.json` locally and verify generated files under `_site`.
 
