@@ -1,5 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Linq.Expressions;
+using CloudStorageORM.Abstractions;
+using CloudStorageORM.Extensions;
 using CloudStorageORM.Infrastructure;
 using CloudStorageORM.Interfaces.Infrastructure;
 using CloudStorageORM.Interfaces.StorageProviders;
@@ -88,6 +90,51 @@ public class CloudStorageDatabaseTests
     }
 
     [Fact]
+    public async Task SaveChangesAsync_ModifiedEntry_WithEtagConcurrency_UsesConditionalSaveAndRefreshesTrackedValues()
+    {
+        var fixture = CreateEtagFixture();
+        var entity = new EtagDbUser { Id = "7", Name = "Before" };
+        fixture.Context.Attach(entity);
+        fixture.Context.Entry(entity).Property("ETag").OriginalValue = "etag-1";
+        fixture.Context.Entry(entity).Property("ETag").CurrentValue = "etag-1";
+        entity.Name = "After";
+        fixture.Context.Entry(entity).State = EntityState.Modified;
+
+        var entries = GetUpdateEntries(fixture.Context);
+        fixture.PathResolverMock.Setup(x => x.GetPath(It.IsAny<IUpdateEntry>())).Returns("users/7.json");
+        fixture.StorageProviderMock
+            .Setup(x => x.SaveAsync("users/7.json", It.IsAny<object>(), "etag-1"))
+            .ReturnsAsync("etag-2");
+
+        var changes = await fixture.Database.SaveChangesAsync(entries);
+
+        changes.ShouldBe(1);
+        fixture.StorageProviderMock.Verify(x => x.SaveAsync("users/7.json", It.IsAny<object>(), "etag-1"), Times.Once);
+        fixture.Context.Entry(entity).Property("ETag").OriginalValue.ShouldBe("etag-2");
+        entity.ETag.ShouldBe("etag-2");
+    }
+
+    [Fact]
+    public async Task SaveChangesAsync_ModifiedEntry_WithEtagConcurrencyConflict_ThrowsDbUpdateConcurrencyException()
+    {
+        var fixture = CreateEtagFixture();
+        var entity = new EtagDbUser { Id = "8", Name = "Before" };
+        fixture.Context.Attach(entity);
+        fixture.Context.Entry(entity).Property("ETag").OriginalValue = "etag-1";
+        fixture.Context.Entry(entity).Property("ETag").CurrentValue = "etag-1";
+        entity.Name = "After";
+        fixture.Context.Entry(entity).State = EntityState.Modified;
+
+        var entries = GetUpdateEntries(fixture.Context);
+        fixture.PathResolverMock.Setup(x => x.GetPath(It.IsAny<IUpdateEntry>())).Returns("users/8.json");
+        fixture.StorageProviderMock
+            .Setup(x => x.SaveAsync("users/8.json", It.IsAny<object>(), "etag-1"))
+            .ThrowsAsync(new StoragePreconditionFailedException("users/8.json"));
+
+        await Should.ThrowAsync<DbUpdateConcurrencyException>(() => fixture.Database.SaveChangesAsync(entries));
+    }
+
+    [Fact]
     public async Task SaveChangesAsync_InsideTransactionThenRollback_DoesNotPersist()
     {
         var fixture = CreateFixture();
@@ -147,11 +194,11 @@ public class CloudStorageDatabaseTests
             .Setup(x => x.ListAsync("users"))
             .ReturnsAsync(["users/1.json", "users/2.json"]);
         fixture.StorageProviderMock
-            .Setup(x => x.ReadAsync<DbUser>("users/1.json"))
-            .ReturnsAsync(new DbUser { Id = "1", Name = "One" });
+            .Setup(x => x.ReadWithMetadataAsync<DbUser>("users/1.json"))
+            .ReturnsAsync(new StorageObject<DbUser>(new DbUser { Id = "1", Name = "One" }, "etag-1", true));
         fixture.StorageProviderMock
-            .Setup(x => x.ReadAsync<DbUser>("users/2.json"))
-            .ReturnsAsync((DbUser)null!);
+            .Setup(x => x.ReadWithMetadataAsync<DbUser>("users/2.json"))
+            .ReturnsAsync(new StorageObject<DbUser>(null, null, false));
 
         var list = await fixture.Database.ToListAsync<DbUser>("users");
 
@@ -167,8 +214,8 @@ public class CloudStorageDatabaseTests
             .Setup(x => x.GetPath(typeof(DbUser), "42"))
             .Returns("users/42.json");
         fixture.StorageProviderMock
-            .Setup(x => x.ReadAsync<DbUser>("users/42.json"))
-            .ReturnsAsync(new DbUser { Id = "42", Name = "Found" });
+            .Setup(x => x.ReadWithMetadataAsync<DbUser>("users/42.json"))
+            .ReturnsAsync(new StorageObject<DbUser>(new DbUser { Id = "42", Name = "Found" }, "etag-42", true));
 
         var entity = await fixture.Database.TryLoadByPrimaryKeyAsync<DbUser>("42");
 
@@ -184,12 +231,30 @@ public class CloudStorageDatabaseTests
             .Setup(x => x.GetPath(typeof(DbUser), "404"))
             .Returns("users/404.json");
         fixture.StorageProviderMock
-            .Setup(x => x.ReadAsync<DbUser>("users/404.json"))
-            .ReturnsAsync((DbUser)null!);
+            .Setup(x => x.ReadWithMetadataAsync<DbUser>("users/404.json"))
+            .ReturnsAsync(new StorageObject<DbUser>(null, null, false));
 
         var entity = await fixture.Database.TryLoadByPrimaryKeyAsync<DbUser>("404");
 
         entity.ShouldBeNull();
+    }
+
+    [Fact]
+    public async Task TryLoadByPrimaryKeyAsync_WithEtagConcurrency_PopulatesTrackedEtagAndIETag()
+    {
+        var fixture = CreateEtagFixture();
+        fixture.PathResolverMock
+            .Setup(x => x.GetPath(typeof(EtagDbUser), "9"))
+            .Returns("users/9.json");
+        fixture.StorageProviderMock
+            .Setup(x => x.ReadWithMetadataAsync<EtagDbUser>("users/9.json"))
+            .ReturnsAsync(new StorageObject<EtagDbUser>(new EtagDbUser { Id = "9", Name = "Tracked" }, "etag-9", true));
+
+        var entity = await fixture.Database.TryLoadByPrimaryKeyAsync<EtagDbUser>("9", fixture.Context);
+
+        entity.ShouldNotBeNull();
+        entity.ETag.ShouldBe("etag-9");
+        fixture.Context.Entry(entity).Property("ETag").OriginalValue.ShouldBe("etag-9");
     }
 
     [Fact]
@@ -236,8 +301,8 @@ public class CloudStorageDatabaseTests
             .Setup(x => x.GetPath(typeof(DbUser), "42"))
             .Returns("users/42.json");
         fixture.StorageProviderMock
-            .Setup(x => x.ReadAsync<DbUser>("users/42.json"))
-            .ReturnsAsync(new DbUser { Id = "42", Name = "Found" });
+            .Setup(x => x.ReadWithMetadataAsync<DbUser>("users/42.json"))
+            .ReturnsAsync(new StorageObject<DbUser>(new DbUser { Id = "42", Name = "Found" }, "etag-42", true));
 
         var externalProvider = new CloudStorageQueryProvider(fixture.Database, fixture.PathResolverMock.Object);
         var queryable = new CloudStorageQueryable<DbUser>(externalProvider);
@@ -262,11 +327,11 @@ public class CloudStorageDatabaseTests
             .Setup(x => x.ListAsync("users"))
             .ReturnsAsync(["users/1.json", "users/2.json"]);
         fixture.StorageProviderMock
-            .Setup(x => x.ReadAsync<DbUser?>("users/1.json"))
-            .ReturnsAsync(new DbUser { Id = "1", Name = "One" });
+            .Setup(x => x.ReadWithMetadataAsync<DbUser?>("users/1.json"))
+            .ReturnsAsync(new StorageObject<DbUser?>(new DbUser { Id = "1", Name = "One" }, "etag-1", true));
         fixture.StorageProviderMock
-            .Setup(x => x.ReadAsync<DbUser?>("users/2.json"))
-            .ReturnsAsync(new DbUser { Id = "2", Name = "Two" });
+            .Setup(x => x.ReadWithMetadataAsync<DbUser?>("users/2.json"))
+            .ReturnsAsync(new StorageObject<DbUser?>(new DbUser { Id = "2", Name = "Two" }, "etag-2", true));
 
         var expression = fixture.Context.Users.Where(u => u.Name == "One").Expression;
         var compiled = database.CompileQuery<IEnumerable<DbUser>>(expression, async: false);
@@ -337,6 +402,37 @@ public class CloudStorageDatabaseTests
             transactionManager);
     }
 
+    private static EtagDatabaseFixture CreateEtagFixture()
+    {
+        var dbOptions = new DbContextOptionsBuilder<EtagDatabaseTestDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .Options;
+        var context = new EtagDatabaseTestDbContext(dbOptions);
+
+        var storageProviderMock = new Mock<IStorageProvider>();
+        var pathResolverMock = new Mock<IBlobPathResolver>();
+        var creatorMock = new Mock<IDatabaseCreator>();
+        var strategyFactoryMock = new Mock<IExecutionStrategyFactory>();
+        var currentDbContextMock = new Mock<ICurrentDbContext>();
+        var transactionManager = new CloudStorageTransactionManager();
+        currentDbContextMock.SetupGet(x => x.Context).Returns(context);
+
+        var database = new CloudStorageDatabase(
+            context.Model,
+            creatorMock.Object,
+            strategyFactoryMock.Object,
+            storageProviderMock.Object,
+            currentDbContextMock.Object,
+            pathResolverMock.Object,
+            transactionManager);
+
+        return new EtagDatabaseFixture(
+            database,
+            context,
+            storageProviderMock,
+            pathResolverMock);
+    }
+
     private sealed record DatabaseFixture(
         CloudStorageDatabase Database,
         DatabaseTestDbContext Context,
@@ -344,6 +440,12 @@ public class CloudStorageDatabaseTests
         Mock<IBlobPathResolver> PathResolverMock,
         Mock<IDatabaseCreator> CreatorMock,
         CloudStorageTransactionManager TransactionManager);
+
+    private sealed record EtagDatabaseFixture(
+        CloudStorageDatabase Database,
+        EtagDatabaseTestDbContext Context,
+        Mock<IStorageProvider> StorageProviderMock,
+        Mock<IBlobPathResolver> PathResolverMock);
 }
 
 public class DatabaseTestDbContext(DbContextOptions<DatabaseTestDbContext> options) : DbContext(options)
@@ -358,8 +460,27 @@ public class DatabaseTestDbContext(DbContextOptions<DatabaseTestDbContext> optio
 
 public class DbUser
 {
-    [MaxLength(100)]
-    public string Id { get; init; } = string.Empty;
-    [MaxLength(100)]
-    public string Name { get; set; } = string.Empty;
+    [MaxLength(100)] public string Id { get; init; } = string.Empty;
+    [MaxLength(100)] public string Name { get; set; } = string.Empty;
+}
+
+public sealed class EtagDatabaseTestDbContext(DbContextOptions<EtagDatabaseTestDbContext> options) : DbContext(options)
+{
+    public DbSet<EtagDbUser> Users => Set<EtagDbUser>();
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<EtagDbUser>().HasKey(x => x.Id);
+        modelBuilder.Entity<EtagDbUser>().UseObjectETagConcurrency();
+    }
+}
+
+public sealed class EtagDbUser : IETag
+{
+    [MaxLength(100)] public string Id { get; init; } = string.Empty;
+
+    [MaxLength(100)] public string Name { get; set; } = string.Empty;
+
+    // ReSharper disable once EntityFramework.ModelValidation.UnlimitedStringLength
+    public string? ETag { get; set; }
 }

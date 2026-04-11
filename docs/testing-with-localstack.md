@@ -24,6 +24,12 @@ docker run -d \
   localstack/localstack:3
 ```
 
+For CI-like local behavior across Azure + AWS tests, use:
+
+```bash
+./scripts/run-local-ci-tests.sh
+```
+
 ---
 
 ## Environment variables used by CloudStorageORM
@@ -33,7 +39,7 @@ These defaults are used by tests/sample if variables are not set:
 - `CLOUDSTORAGEORM_AWS_ACCESS_KEY_ID` (`test`)
 - `CLOUDSTORAGEORM_AWS_SECRET_ACCESS_KEY` (`test`)
 - `CLOUDSTORAGEORM_AWS_REGION` (`us-east-1`)
-- `CLOUDSTORAGEORM_AWS_SERVICE_URL` (`http://localhost:4566`)
+- `CLOUDSTORAGEORM_AWS_SERVICE_URL` (`http://127.0.0.1:4566`)
 - `CLOUDSTORAGEORM_AWS_BUCKET` (`cloudstorageorm-integration-tests`)
 - `CLOUDSTORAGEORM_AWS_FORCE_PATH_STYLE` (`true`)
 
@@ -87,7 +93,7 @@ Set explicit variables before running tests/sample:
 export CLOUDSTORAGEORM_AWS_ACCESS_KEY_ID=test
 export CLOUDSTORAGEORM_AWS_SECRET_ACCESS_KEY=test
 export CLOUDSTORAGEORM_AWS_REGION=us-east-1
-export CLOUDSTORAGEORM_AWS_SERVICE_URL=http://localhost:4566
+export CLOUDSTORAGEORM_AWS_SERVICE_URL=http://127.0.0.1:4566
 export CLOUDSTORAGEORM_AWS_BUCKET=cloudstorageorm-integration-tests
 export CLOUDSTORAGEORM_AWS_FORCE_PATH_STYLE=true
 ```

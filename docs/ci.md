@@ -76,6 +76,19 @@ The workflow also publishes test results to the GitHub Actions UI on every run.
 If you want local behavior close to CI:
 
 ```bash
+./scripts/run-local-ci-tests.sh
+```
+
+That script starts:
+
+- Azurite with `--skipApiVersionCheck`
+- LocalStack `localstack/localstack:3`
+
+and then runs restore, build, and test projects with CI-aligned AWS environment variables.
+
+If you prefer the individual commands, use:
+
+```bash
 dotnet restore CloudStorageORM.sln
 dotnet build CloudStorageORM.sln --no-restore --configuration Release --verbosity normal
 

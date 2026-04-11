@@ -8,6 +8,8 @@ namespace CloudStorageORM.Tests.Extensions;
 public class ModelBuilderExtensionsTests
 {
     private const string AnnotationsConstantBlobName = "CloudStorageORM:BlobName";
+    private const string ETagConcurrencyEnabledAnnotation = "CloudStorageORM:ETagConcurrencyEnabled";
+    private const string ETagConcurrencyPropertyNameAnnotation = "CloudStorageORM:ETagConcurrencyPropertyName";
 
     [BlobSettings("__ModelA")]
     private class ModelA
@@ -25,6 +27,13 @@ public class ModelBuilderExtensionsTests
 
     private class ModelC : ModelA
     {
+    }
+
+    private class ModelWithEtag
+    {
+        public string Id { get; init; } = string.Empty;
+        // ReSharper disable once PropertyCanBeMadeInitOnly.Local
+        public string? ETag { get; set; }
     }
 
     private static ModelBuilder MakeModelBuilderWith(params Type[] types)
@@ -129,7 +138,7 @@ public class ModelBuilderExtensionsTests
         // Empty names are rejected after trimming because the resulting blob name is invalid.
         var modelBuilder = MakeModelBuilderWith(typeof(ModelWithEmptyBlobName));
 
-        var ex = Should.Throw<InvalidOperationException>(() => modelBuilder.ApplyBlobSettingsConventions());
+        var ex = Should.Throw<InvalidOperationException>(modelBuilder.ApplyBlobSettingsConventions);
 
         ex.Message.ShouldContain("has no Blob name");
     }
@@ -155,5 +164,35 @@ public class ModelBuilderExtensionsTests
         var result = modelBuilder.ApplyBlobSettingsConventions();
 
         result.ShouldBeSameAs(modelBuilder);
+    }
+
+    [Fact]
+    public void UseObjectETagConcurrency_WithoutExpression_UsesEtagShadowPropertyAndConcurrencyToken()
+    {
+        var modelBuilder = MakeModelBuilderWith(typeof(ModelB));
+
+        modelBuilder.Entity<ModelB>().UseObjectETagConcurrency();
+        var entityType = modelBuilder.Model.FindEntityType(typeof(ModelB))!;
+        var etagProperty = entityType.FindProperty("ETag");
+
+        etagProperty.ShouldNotBeNull();
+        etagProperty.IsConcurrencyToken.ShouldBeTrue();
+        entityType.FindAnnotation(ETagConcurrencyEnabledAnnotation)!.Value.ShouldBe(true);
+        entityType.FindAnnotation(ETagConcurrencyPropertyNameAnnotation)!.Value.ShouldBe("ETag");
+    }
+
+    [Fact]
+    public void UseObjectETagConcurrency_WithExpression_UsesMappedPropertyAsConcurrencyToken()
+    {
+        var modelBuilder = MakeModelBuilderWith(typeof(ModelWithEtag));
+
+        modelBuilder.Entity<ModelWithEtag>().UseObjectETagConcurrency(e => e.ETag);
+        var entityType = modelBuilder.Model.FindEntityType(typeof(ModelWithEtag))!;
+        var etagProperty = entityType.FindProperty(nameof(ModelWithEtag.ETag));
+
+        etagProperty.ShouldNotBeNull();
+        etagProperty.IsConcurrencyToken.ShouldBeTrue();
+        entityType.FindAnnotation(ETagConcurrencyEnabledAnnotation)!.Value.ShouldBe(true);
+        entityType.FindAnnotation(ETagConcurrencyPropertyNameAnnotation)!.Value.ShouldBe(nameof(ModelWithEtag.ETag));
     }
 }

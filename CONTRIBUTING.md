@@ -113,8 +113,10 @@ dotnet format CloudStorageORM.sln --verbosity minimal
 ### Unit + integration tests
 
 ```bash
-dotnet test CloudStorageORM.sln --nologo -v minimal
+./scripts/run-local-ci-tests.sh
 ```
+
+This script mirrors CI startup/test behavior and runs Azurite with `--skipApiVersionCheck` for local compatibility.
 
 ### Integration tests with Azurite
 
@@ -126,7 +128,8 @@ docker run -d \
   -p 10001:10001 \
   -p 10002:10002 \
   --name azurite \
-  mcr.microsoft.com/azure-storage/azurite
+  mcr.microsoft.com/azure-storage/azurite:latest \
+  azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0 --skipApiVersionCheck
 ```
 
 ### Integration tests with LocalStack (AWS)
@@ -139,7 +142,7 @@ docker run -d \
   --name localstack \
   -e SERVICES=s3 \
   -e AWS_DEFAULT_REGION=us-east-1 \
-  localstack/localstack
+  localstack/localstack:3
 ```
 
 ### Coverage workflow

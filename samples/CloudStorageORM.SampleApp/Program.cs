@@ -1,8 +1,11 @@
 using System.Text;
 using CloudStorageORM.Enums;
 using CloudStorageORM.Extensions;
+using CloudStorageORM.Infrastructure;
+using CloudStorageORM.Interfaces.StorageProviders;
 using CloudStorageORM.Options;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using SampleApp.DbContext;
 using SampleApp.Models;
@@ -146,6 +149,11 @@ public static class Program
         context.Add(newUser);
         await context.SaveChangesAsync();
         Console.WriteLine($"| ✅ User {newUser.Name} created (Id {newUser.Id}).");
+        var createdUser = context is MyAppDbContextCloudStorage
+            ? await ReadStoredUserAsync(context, userId)
+            : newUser;
+        Console.WriteLine(
+            $"| 🏷️ Created user payload: {createdUser?.Id} - {createdUser?.Name} ({createdUser?.Email}) | ETag: {createdUser?.ETag ?? "<null>"}");
         Console.WriteLine("|");
 
         Console.WriteLine("| 📃 Listing users...");
@@ -157,7 +165,7 @@ public static class Program
 
         Console.WriteLine("|");
         Console.WriteLine("| ✏️ Updating the user...");
-        var userToUpdate = repository.FirstOrDefault(u => u.Id == userId);
+        var userToUpdate = await FindUserByIdAsync(context, repository, userId);
         if (userToUpdate != null)
         {
             userToUpdate.Name = "John Doe Updated";
@@ -169,7 +177,7 @@ public static class Program
 
         Console.WriteLine("|");
         Console.WriteLine("| 🔎 Finding the updated user...");
-        var foundUser = repository.FirstOrDefault(u => u.Id == userId);
+        var foundUser = await FindUserByIdAsync(context, repository, userId);
         Console.WriteLine(foundUser != null
             ? $"| 🎯 Found: {foundUser.Id} - {foundUser.Name} ({foundUser.Email})"
             : "| ❌ User not found.");
@@ -210,7 +218,8 @@ public static class Program
         Console.WriteLine($"🏁 SampleApp Finished for {context.GetType().Name}.");
     }
 
-    private static async Task RunTransactionScenario(Microsoft.EntityFrameworkCore.DbContext context, DbSet<User> repository)
+    private static async Task RunTransactionScenario(Microsoft.EntityFrameworkCore.DbContext context,
+        DbSet<User> repository)
     {
         const string rollbackUserId = $"{DeterministicUserId}-tx-rollback";
         const string commitUserId = $"{DeterministicUserId}-tx-commit";
@@ -231,7 +240,7 @@ public static class Program
         }
 
         context.ChangeTracker.Clear();
-        var rollbackFound = repository.FirstOrDefault(u => u.Id == rollbackUserId);
+        var rollbackFound = await FindUserByIdAsync(context, repository, rollbackUserId);
         Console.WriteLine(rollbackFound is null
             ? "| ✅ Rollback verification passed: user was not persisted."
             : "| ❌ Rollback verification failed: user is still present.");
@@ -252,7 +261,7 @@ public static class Program
         }
 
         context.ChangeTracker.Clear();
-        var commitFound = repository.FirstOrDefault(u => u.Id == commitUserId);
+        var commitFound = await FindUserByIdAsync(context, repository, commitUserId);
         Console.WriteLine(commitFound is not null
             ? "| ✅ Commit verification passed: user was persisted."
             : "| ❌ Commit verification failed: user was not found.");
@@ -307,6 +316,37 @@ public static class Program
         {
             return false;
         }
+    }
+
+    private static async Task<User?> FindUserByIdAsync(
+        Microsoft.EntityFrameworkCore.DbContext context,
+        DbSet<User> repository,
+        string userId)
+    {
+        if (context is MyAppDbContextCloudStorage)
+        {
+            var database = context.GetService<Microsoft.EntityFrameworkCore.Storage.IDatabase>();
+            if (database is CloudStorageDatabase cloudStorageDatabase)
+            {
+                return await cloudStorageDatabase.TryLoadByPrimaryKeyAsync<User>(userId, context);
+            }
+
+            var users = await repository.ToListAsync();
+            return users.FirstOrDefault(u => u.Id == userId);
+        }
+
+        return repository.FirstOrDefault(u => u.Id == userId);
+    }
+
+    private static async Task<User?> ReadStoredUserAsync(Microsoft.EntityFrameworkCore.DbContext context, string userId)
+    {
+        var storageProvider = context.GetService<IStorageProvider>();
+        var pathResolver = new BlobPathResolver(storageProvider);
+        var path = pathResolver.GetPath(typeof(User), userId);
+        var stored = await storageProvider.ReadWithMetadataAsync<User>(path);
+        stored.Value?.ETag = stored.ETag;
+
+        return stored.Value;
     }
 
     private static CloudStorageOptions BuildCloudStorageOptionsFromEnvironment(CloudProvider provider)

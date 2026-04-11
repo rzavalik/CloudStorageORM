@@ -1,5 +1,6 @@
 using System.Collections;
 using System.ComponentModel.DataAnnotations;
+using CloudStorageORM.Abstractions;
 using CloudStorageORM.Enums;
 using CloudStorageORM.Infrastructure;
 using CloudStorageORM.Interfaces.StorageProviders;
@@ -44,8 +45,11 @@ public class CloudStorageQueryProviderTests
         {
             var path = $"{blobName}/{user.Id}.json";
             storageProviderMock
-                .Setup(x => x.ReadAsync<QueryTestUser>(path))
-                .ReturnsAsync(user);
+                .Setup(x => x.ReadWithMetadataAsync<QueryTestUser>(path))
+                .ReturnsAsync(new StorageObject<QueryTestUser>(user, "etag", true));
+            storageProviderMock
+                .Setup(x => x.ReadWithMetadataAsync<QueryTestUser?>(path))
+                .ReturnsAsync(new StorageObject<QueryTestUser?>(user, "etag", true));
         }
 
         var database = BuildDatabase(storageProviderMock.Object);
@@ -73,11 +77,11 @@ public class CloudStorageQueryProviderTests
         {
             var path = $"{blobName}/{user.Id}.json";
             storageProviderMock
-                .Setup(x => x.ReadAsync<RangeQueryTestUser>(path))
-                .ReturnsAsync(user);
+                .Setup(x => x.ReadWithMetadataAsync<RangeQueryTestUser>(path))
+                .ReturnsAsync(new StorageObject<RangeQueryTestUser>(user, "etag", true));
             storageProviderMock
-                .Setup(x => x.ReadAsync<RangeQueryTestUser?>(path))
-                .ReturnsAsync(user);
+                .Setup(x => x.ReadWithMetadataAsync<RangeQueryTestUser?>(path))
+                .ReturnsAsync(new StorageObject<RangeQueryTestUser?>(user, "etag", true));
         }
 
         var database = BuildRangeDatabase(storageProviderMock.Object);
@@ -200,7 +204,7 @@ public class CloudStorageQueryProviderTests
 
         // ListAsync should NOT have been called – we resolved directly via key path.
         storageMock.Verify(x => x.ListAsync(It.IsAny<string>()), Times.Never);
-        storageMock.Verify(x => x.ReadAsync<QueryTestUser>($"{blobName}/{UserId1}.json"), Times.Once);
+        storageMock.Verify(x => x.ReadWithMetadataAsync<QueryTestUser>($"{blobName}/{UserId1}.json"), Times.Once);
     }
 
     [Fact]
@@ -318,7 +322,7 @@ public class CloudStorageQueryProviderTests
         result.ShouldNotBeNull();
         result.Id.ShouldBe(UserId2);
         storageMock.Verify(x => x.ListAsync(It.IsAny<string>()), Times.Never);
-        storageMock.Verify(x => x.ReadAsync<QueryTestUser>($"{blobName}/{UserId2}.json"), Times.Once);
+        storageMock.Verify(x => x.ReadWithMetadataAsync<QueryTestUser>($"{blobName}/{UserId2}.json"), Times.Once);
     }
 
     [Fact]
@@ -361,9 +365,9 @@ public class CloudStorageQueryProviderTests
         result.ShouldNotBeNull();
         result.Id.ShouldBe(2);
         storageMock.Verify(x => x.ListAsync(blobName), Times.Once);
-        storageMock.Verify(x => x.ReadAsync<RangeQueryTestUser?>($"{blobName}/1.json"), Times.Never);
-        storageMock.Verify(x => x.ReadAsync<RangeQueryTestUser?>($"{blobName}/2.json"), Times.Once);
-        storageMock.Verify(x => x.ReadAsync<RangeQueryTestUser?>($"{blobName}/3.json"), Times.Once);
+        storageMock.Verify(x => x.ReadWithMetadataAsync<RangeQueryTestUser?>($"{blobName}/1.json"), Times.Never);
+        storageMock.Verify(x => x.ReadWithMetadataAsync<RangeQueryTestUser?>($"{blobName}/2.json"), Times.Once);
+        storageMock.Verify(x => x.ReadWithMetadataAsync<RangeQueryTestUser?>($"{blobName}/3.json"), Times.Once);
     }
 
     [Fact]
@@ -386,9 +390,9 @@ public class CloudStorageQueryProviderTests
         results.Count.ShouldBe(2);
         results.Select(x => x.Id).Order().ShouldBe([1, 2]);
         storageMock.Verify(x => x.ListAsync(blobName), Times.Once);
-        storageMock.Verify(x => x.ReadAsync<RangeQueryTestUser?>($"{blobName}/1.json"), Times.Once);
-        storageMock.Verify(x => x.ReadAsync<RangeQueryTestUser?>($"{blobName}/2.json"), Times.Once);
-        storageMock.Verify(x => x.ReadAsync<RangeQueryTestUser?>($"{blobName}/3.json"), Times.Never);
+        storageMock.Verify(x => x.ReadWithMetadataAsync<RangeQueryTestUser?>($"{blobName}/1.json"), Times.Once);
+        storageMock.Verify(x => x.ReadWithMetadataAsync<RangeQueryTestUser?>($"{blobName}/2.json"), Times.Once);
+        storageMock.Verify(x => x.ReadWithMetadataAsync<RangeQueryTestUser?>($"{blobName}/3.json"), Times.Never);
     }
 
     [Fact]
@@ -410,9 +414,9 @@ public class CloudStorageQueryProviderTests
 
         result.ShouldNotBeNull();
         result.Id.ShouldBe(2);
-        storageMock.Verify(x => x.ReadAsync<RangeQueryTestUser?>($"{blobName}/1.json"), Times.Never);
-        storageMock.Verify(x => x.ReadAsync<RangeQueryTestUser?>($"{blobName}/2.json"), Times.Once);
-        storageMock.Verify(x => x.ReadAsync<RangeQueryTestUser?>($"{blobName}/3.json"), Times.Never);
+        storageMock.Verify(x => x.ReadWithMetadataAsync<RangeQueryTestUser?>($"{blobName}/1.json"), Times.Never);
+        storageMock.Verify(x => x.ReadWithMetadataAsync<RangeQueryTestUser?>($"{blobName}/2.json"), Times.Once);
+        storageMock.Verify(x => x.ReadWithMetadataAsync<RangeQueryTestUser?>($"{blobName}/3.json"), Times.Never);
     }
 
     [Fact]
@@ -434,9 +438,9 @@ public class CloudStorageQueryProviderTests
 
         result.ShouldNotBeNull();
         result.Id.ShouldBe(3);
-        storageMock.Verify(x => x.ReadAsync<RangeQueryTestUser?>($"{blobName}/1.json"), Times.Never);
-        storageMock.Verify(x => x.ReadAsync<RangeQueryTestUser?>($"{blobName}/2.json"), Times.Never);
-        storageMock.Verify(x => x.ReadAsync<RangeQueryTestUser?>($"{blobName}/3.json"), Times.Once);
+        storageMock.Verify(x => x.ReadWithMetadataAsync<RangeQueryTestUser?>($"{blobName}/1.json"), Times.Never);
+        storageMock.Verify(x => x.ReadWithMetadataAsync<RangeQueryTestUser?>($"{blobName}/2.json"), Times.Never);
+        storageMock.Verify(x => x.ReadWithMetadataAsync<RangeQueryTestUser?>($"{blobName}/3.json"), Times.Once);
     }
 
     [Fact]
@@ -519,8 +523,10 @@ public class CloudStorageQueryProviderTests
     private static void storageProviderMock_SetupMissingRead(
         Mock<IStorageProvider> mock, string path)
     {
-        mock.Setup(x => x.ReadAsync<QueryTestUser?>(It.Is<string>(p => p == path)))
-            .ReturnsAsync((QueryTestUser?)null);
+        mock.Setup(x => x.ReadWithMetadataAsync<QueryTestUser>(It.Is<string>(p => p == path)))
+            .ReturnsAsync(new StorageObject<QueryTestUser>(null, null, false));
+        mock.Setup(x => x.ReadWithMetadataAsync<QueryTestUser?>(It.Is<string>(p => p == path)))
+            .ReturnsAsync(new StorageObject<QueryTestUser?>(null, null, false));
     }
 }
 
@@ -536,6 +542,8 @@ public class QueryTestUser
 public class RangeQueryTestUser
 {
     public int Id { get; init; }
+
+    // ReSharper disable once EntityFramework.ModelValidation.UnlimitedStringLength
     public string Name { get; init; } = string.Empty;
 }
 

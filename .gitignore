@@ -39,6 +39,7 @@ ScaffoldingReadMe.txt
 # Others
 ~$*
 *~
+.DS_Store
 CodeCoverage/
 coverage/
 

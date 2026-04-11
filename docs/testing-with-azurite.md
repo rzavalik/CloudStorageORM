@@ -26,8 +26,11 @@ docker run -d \
   -p 10001:10001 \
   -p 10002:10002 \
   --name azurite \
-  mcr.microsoft.com/azure-storage/azurite
+  mcr.microsoft.com/azure-storage/azurite:latest \
+  azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0 --skipApiVersionCheck
 ```
+
+`--skipApiVersionCheck` keeps local emulator runs compatible when SDK defaults move to newer service API versions.
 
 The repository uses the standard development connection string:
 
@@ -50,6 +53,12 @@ You should see a container named `azurite` exposing ports `10000-10002`.
 ## Run the full test suite
 
 From the repository root:
+
+```bash
+./scripts/run-local-ci-tests.sh
+```
+
+Or run tests directly:
 
 ```bash
 dotnet test CloudStorageORM.sln --nologo -v minimal
@@ -133,7 +142,8 @@ docker run -d \
   -p 10001:10001 \
   -p 10002:10002 \
   --name azurite \
-  mcr.microsoft.com/azure-storage/azurite
+  mcr.microsoft.com/azure-storage/azurite:latest \
+  azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0 --skipApiVersionCheck
 ```
 
 ### Port conflicts

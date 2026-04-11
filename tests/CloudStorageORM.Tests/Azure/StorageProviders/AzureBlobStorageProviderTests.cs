@@ -1,9 +1,8 @@
-using System.Reflection;
 using Azure;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using CloudStorageORM.Enums;
-using CloudStorageORM.Options;
+using CloudStorageORM.Infrastructure;
 using CloudStorageORM.Providers.Azure.StorageProviders;
 using Moq;
 using Shouldly;
@@ -12,26 +11,17 @@ namespace CloudStorageORM.Tests.Azure.StorageProviders;
 
 public class AzureBlobStorageProviderTests
 {
-    private AzureBlobStorageProvider MakeSut(Mock<BlobContainerClient> containerClientMock)
+    private static AzureBlobStorageProvider MakeSut(Mock<BlobContainerClient> containerClientMock)
     {
-        var options = new CloudStorageOptions
-        {
-            Provider = CloudProvider.Azure,
-            ContainerName = "test-container",
-            Azure = new CloudStorageAzureOptions
-            {
-                ConnectionString = "UseDevelopmentStorage=true"
-            }
-        };
+        containerClientMock
+            .Setup(x => x.CreateIfNotExists(
+                PublicAccessType.None,
+                null,
+                null,
+                It.IsAny<CancellationToken>()))
+            .Returns(Mock.Of<Response<BlobContainerInfo>>());
 
-        var sut = new AzureBlobStorageProvider(options);
-
-        typeof(AzureBlobStorageProvider)
-            .GetField("_containerClient",
-                BindingFlags.NonPublic | BindingFlags.Instance)!
-            .SetValue(sut, containerClientMock.Object);
-
-        return sut;
+        return new AzureBlobStorageProvider(containerClientMock.Object);
     }
 
     [Fact]
@@ -70,6 +60,53 @@ public class AzureBlobStorageProviderTests
     }
 
     [Fact]
+    public async Task SaveAsync_WithIfMatch_ShouldUseConditionalRequest()
+    {
+        var containerClientMock = new Mock<BlobContainerClient>();
+        var blobClientMock = new Mock<BlobClient>();
+
+        containerClientMock
+            .Setup(x => x.GetBlobClient(It.IsAny<string>()))
+            .Returns(blobClientMock.Object);
+
+        blobClientMock
+            .Setup(x => x.UploadAsync(
+                It.IsAny<Stream>(),
+                It.Is<BlobUploadOptions>(o => o.Conditions != null && o.Conditions.IfMatch.ToString() == "etag-1"),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Mock.Of<Response<BlobContentInfo>>());
+
+        var sut = MakeSut(containerClientMock);
+
+        await sut.SaveAsync("test-folder/entity1.json", new TestEntity { Id = "entity1", Name = "Test" }, "etag-1");
+
+        blobClientMock.Verify(x => x.UploadAsync(
+            It.IsAny<Stream>(),
+            It.IsAny<BlobUploadOptions>(),
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task SaveAsync_WithIfMatchAndPreconditionFailure_ShouldThrowStoragePreconditionFailedException()
+    {
+        var containerClientMock = new Mock<BlobContainerClient>();
+        var blobClientMock = new Mock<BlobClient>();
+
+        containerClientMock
+            .Setup(x => x.GetBlobClient(It.IsAny<string>()))
+            .Returns(blobClientMock.Object);
+
+        blobClientMock
+            .Setup(x => x.UploadAsync(It.IsAny<Stream>(), It.IsAny<BlobUploadOptions>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new RequestFailedException(412, "Precondition failed"));
+
+        var sut = MakeSut(containerClientMock);
+
+        await Should.ThrowAsync<StoragePreconditionFailedException>(() =>
+            sut.SaveAsync("test-folder/entity1.json", new TestEntity { Id = "entity1", Name = "Test" }, "etag-1"));
+    }
+
+    [Fact]
     public async Task DeleteAsync_ShouldDeleteEntity()
     {
         var containerClientMock = new Mock<BlobContainerClient>();
@@ -93,6 +130,33 @@ public class AzureBlobStorageProviderTests
         blobClientMock.Verify(x => x.DeleteIfExistsAsync(
             DeleteSnapshotsOption.None,
             null,
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task DeleteAsync_WithIfMatch_ShouldUseConditionalRequest()
+    {
+        var containerClientMock = new Mock<BlobContainerClient>();
+        var blobClientMock = new Mock<BlobClient>();
+
+        containerClientMock
+            .Setup(x => x.GetBlobClient(It.IsAny<string>()))
+            .Returns(blobClientMock.Object);
+
+        blobClientMock
+            .Setup(x => x.DeleteIfExistsAsync(
+                DeleteSnapshotsOption.None,
+                It.Is<BlobRequestConditions>(c => c.IfMatch.ToString() == "etag-2"),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Response.FromValue(true, Mock.Of<Response>()));
+
+        var sut = MakeSut(containerClientMock);
+
+        await sut.DeleteAsync("test-folder/entity2.json", "etag-2");
+
+        blobClientMock.Verify(x => x.DeleteIfExistsAsync(
+            DeleteSnapshotsOption.None,
+            It.IsAny<BlobRequestConditions>(),
             It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -190,7 +254,7 @@ public class AzureBlobStorageProviderTests
                 PublicAccessType.None,
                 null,
                 null,
-                default))
+                CancellationToken.None))
             .Returns(Mock.Of<Response<BlobContainerInfo>>());
 
         var previousFactory = AzureBlobStorageProvider.ConnectionContainerClientFactory;
@@ -207,7 +271,11 @@ public class AzureBlobStorageProviderTests
 
             sut.CloudProvider.ShouldBe(CloudProvider.Azure);
             containerClientMock.Verify(
-                x => x.CreateIfNotExists(PublicAccessType.None, null, null, default),
+                x => x.CreateIfNotExists(
+                    PublicAccessType.None,
+                    null,
+                    null,
+                    CancellationToken.None),
                 Times.Once);
         }
         finally

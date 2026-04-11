@@ -75,6 +75,18 @@ Adds related services to DI through:
 
 - `AddEntityFrameworkCloudStorageOrm(this IServiceCollection services, CloudStorageOptions storageOptions)`
 
+### `CloudStorageORM.Extensions.ModelBuilderExtensions`
+
+Adds opt-in object-store ETag optimistic concurrency:
+
+- `UseObjectETagConcurrency()` configures a shadow `ETag` property as a concurrency token.
+- `UseObjectETagConcurrency(e => e.ETag)` configures a mapped property as the concurrency token.
+
+Optional entity convenience contract:
+
+- `CloudStorageORM.Abstractions.IETag` with `string? ETag { get; set; }`.
+- The interface is optional; shadow-property tracking is the default behavior.
+
 ### `CloudStorageORM.Providers.ProviderFactory`
 
 Current behavior:
@@ -98,10 +110,19 @@ Transaction behavior on the current branch:
 
 - `BeginTransaction()` opens a context-scoped transaction manager.
 - Every transaction gets a unique `TransactionId` (`Guid`).
-- `SaveChanges()` inside an active transaction appends staged operations to `__cloudstorageorm/tx/<transactionId>/manifest.json` with state `Preparing`.
+- `SaveChanges()` inside an active transaction appends staged operations to
+  `__cloudstorageorm/tx/<transactionId>/manifest.json` with state `Preparing`.
 - `Commit()` marks the manifest as `Committed`, replays operations in sequence, and then marks it as `Completed`.
 - `Rollback()` (or disposing an uncommitted transaction) marks the manifest as `Aborted`.
-- Recovery scans `__cloudstorageorm/tx/` when a new transaction manager starts: committed manifests are replayed/finalized; preparing manifests are aborted.
+- Recovery scans `__cloudstorageorm/tx/` when a new transaction manager starts: committed manifests are
+  replayed/finalized; preparing manifests are aborted.
+
+ETag concurrency behavior on the current branch (when explicitly enabled per entity):
+
+- entity materialization reads provider metadata ETags and stores them as original values for concurrency checks
+- updates/deletes use provider-native conditional requests (`If-Match`) against the original ETag
+- mismatches are translated to `DbUpdateConcurrencyException`
+- ETags are sourced from object storage metadata and are not persisted inside entity JSON payloads
 
 The recent query work on `main` focuses on:
 
@@ -127,7 +148,8 @@ The recent query work on `main` focuses on:
 ### Planned, not implemented yet
 
 - Google Cloud Storage provider
-- provider-native temporary locking and richer concurrency strategies (for example, Azure blob lease coordination and AWS conditional/object-lock patterns)
+- provider-native temporary locking and richer concurrency strategies (for example, Azure blob lease coordination and
+  AWS conditional/object-lock patterns)
 - broader snapshot/versioning support
 
 ---
@@ -144,8 +166,10 @@ These items are important for anyone consuming the current `main` branch:
    In particular, `CloudStorageDatabaseCreator` is still intentionally minimal and some methods remain placeholders or
    throw `NotImplementedException`.
 
-   Transactions are implemented through a provider-level journal and replay mechanism; this is still not a full relational ACID engine or a distributed lock/consensus coordinator.
-   Provider-native temporary locking is planned for future versions but is not part of the current transaction guarantee.
+   Transactions are implemented through a provider-level journal and replay mechanism; this is still not a full
+   relational ACID engine or a distributed lock/consensus coordinator.
+   Provider-native temporary locking is planned for future versions but is not part of the current transaction
+   guarantee.
 
 3. **Current branch targets .NET 10**  
    Consumers building from source should use the .NET 10 SDK.

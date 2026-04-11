@@ -1,5 +1,7 @@
 using System.Globalization;
 using System.Linq.Expressions;
+using CloudStorageORM.Abstractions;
+using CloudStorageORM.Constants;
 using CloudStorageORM.Interfaces.Infrastructure;
 using CloudStorageORM.Interfaces.StorageProviders;
 using Microsoft.EntityFrameworkCore;
@@ -110,22 +112,54 @@ public class CloudStorageDatabase(
             switch (entry.EntityState)
             {
                 case EntityState.Added:
-                case EntityState.Modified:
-                    await ExecuteOrStageSaveAsync(path, entity, cancellationToken);
+                {
+                    var concurrencyEnabled = TryGetConcurrencyProperty(entry.EntityType, out _);
+                    var newETag = await ExecuteOrStageSaveAsync(path, entity, null, concurrencyEnabled, cancellationToken);
+                    ApplySavedETag(entry, newETag);
                     changes++;
                     break;
+                }
+
+                case EntityState.Modified:
+                {
+                    var concurrencyEnabled = TryGetConcurrencyProperty(entry.EntityType, out _);
+                    var originalETag = GetOriginalETag(entry);
+                    if (concurrencyEnabled && string.IsNullOrWhiteSpace(originalETag))
+                    {
+                        throw new DbUpdateConcurrencyException(
+                            "ETag concurrency is enabled, but no original ETag value is available for update.");
+                    }
+
+                    var newETag = await ExecuteOrStageSaveAsync(path, entity, originalETag, concurrencyEnabled,
+                        cancellationToken);
+                    ApplySavedETag(entry, newETag);
+                    changes++;
+                    break;
+                }
 
                 case EntityState.Deleted:
-                    await ExecuteOrStageDeleteAsync(path, cancellationToken);
+                {
+                    var concurrencyEnabled = TryGetConcurrencyProperty(entry.EntityType, out _);
+                    var originalETag = GetOriginalETag(entry);
+                    if (concurrencyEnabled && string.IsNullOrWhiteSpace(originalETag))
+                    {
+                        throw new DbUpdateConcurrencyException(
+                            "ETag concurrency is enabled, but no original ETag value is available for delete.");
+                    }
+
+                    await ExecuteOrStageDeleteAsync(path, originalETag, concurrencyEnabled, cancellationToken);
                     changes++;
                     break;
+                }
             }
         }
 
         return changes;
     }
 
-    private async Task ExecuteOrStageSaveAsync(string path, object entity, CancellationToken cancellationToken)
+    private async Task<string?> ExecuteOrStageSaveAsync(string path, object entity, string? ifMatchETag,
+        bool useConditionalRequest,
+        CancellationToken cancellationToken)
     {
         if (_transactionManager is CloudStorageTransactionManager { HasActiveTransaction: true } manager)
         {
@@ -138,13 +172,27 @@ public class CloudStorageDatabase(
                 manager.EnqueueOperation(_ => _storageProvider.SaveAsync(path, entity));
             }
 
-            return;
+            return null;
         }
 
-        await _storageProvider.SaveAsync(path, entity);
+        try
+        {
+            if (!useConditionalRequest)
+            {
+                await _storageProvider.SaveAsync(path, entity);
+                return null;
+            }
+
+            return await _storageProvider.SaveAsync(path, entity, ifMatchETag);
+        }
+        catch (StoragePreconditionFailedException ex)
+        {
+            throw CreateConcurrencyException(path, ex);
+        }
     }
 
-    private async Task ExecuteOrStageDeleteAsync(string path, CancellationToken cancellationToken)
+    private async Task ExecuteOrStageDeleteAsync(string path, string? ifMatchETag, bool useConditionalRequest,
+        CancellationToken cancellationToken)
     {
         if (_transactionManager is CloudStorageTransactionManager { HasActiveTransaction: true } manager)
         {
@@ -160,7 +208,20 @@ public class CloudStorageDatabase(
             return;
         }
 
-        await _storageProvider.DeleteAsync(path);
+        try
+        {
+            if (!useConditionalRequest)
+            {
+                await _storageProvider.DeleteAsync(path);
+                return;
+            }
+
+            await _storageProvider.DeleteAsync(path, ifMatchETag);
+        }
+        catch (StoragePreconditionFailedException ex)
+        {
+            throw CreateConcurrencyException(path, ex);
+        }
     }
 
     private static bool KeysMatch(EntityEntry trackedEntry, IUpdateEntry newEntry)
@@ -205,8 +266,14 @@ public class CloudStorageDatabase(
 
     private static Expression ReplaceQueryParameters(Expression query, QueryContext? queryContext)
     {
-        var parameterValues = queryContext?.ParameterValues ?? new Dictionary<string, object?>();
+        var parameterValues = TryGetQueryParameterValues(queryContext) ?? new Dictionary<string, object?>();
         return new QueryParameterReplacingVisitor(parameterValues).Visit(query);
+    }
+
+    private static IReadOnlyDictionary<string, object?>? TryGetQueryParameterValues(QueryContext? queryContext)
+    {
+        var property = queryContext?.GetType().GetProperty("ParameterValues");
+        return property?.GetValue(queryContext) as IReadOnlyDictionary<string, object?>;
     }
 
     private static bool IsSequenceResult(Type resultType)
@@ -253,11 +320,15 @@ public class CloudStorageDatabase(
 
         foreach (var file in files)
         {
-            var entity = await _storageProvider.ReadAsync<TEntity>(file);
+            var storageObject = await _storageProvider.ReadWithMetadataAsync<TEntity>(file);
+            if (!storageObject.Exists || storageObject.Value is null)
+            {
+                continue;
+            }
 
-            AttachOrReplaceTrackedEntity(context, entity);
+            AttachOrReplaceTrackedEntity(context, storageObject.Value, storageObject.ETag);
 
-            results.Add(entity);
+            results.Add(storageObject.Value);
         }
 
         return results;
@@ -275,9 +346,10 @@ public class CloudStorageDatabase(
         where TEntity : class
     {
         var path = _blobPathResolver.GetPath(typeof(TEntity), keyValue);
-        var entity = await _storageProvider.ReadAsync<TEntity>(path);
+        var storageObject = await _storageProvider.ReadWithMetadataAsync<TEntity>(path);
+        var entity = storageObject.Value;
 
-        AttachOrReplaceTrackedEntity(context ?? _context, entity);
+        AttachOrReplaceTrackedEntity(context ?? _context, entity, storageObject.ETag);
         return entity;
     }
 
@@ -317,14 +389,14 @@ public class CloudStorageDatabase(
                 continue;
             }
 
-            var entity = await _storageProvider.ReadAsync<TEntity?>(file);
-            if (entity is null)
+            var storageObject = await _storageProvider.ReadWithMetadataAsync<TEntity?>(file);
+            if (!storageObject.Exists || storageObject.Value is null)
             {
                 continue;
             }
 
-            AttachOrReplaceTrackedEntity(targetContext, entity, keyProperties);
-            results.Add(entity);
+            AttachOrReplaceTrackedEntity(targetContext, storageObject.Value, storageObject.ETag, keyProperties);
+            results.Add(storageObject.Value);
         }
 
         return results;
@@ -341,16 +413,16 @@ public class CloudStorageDatabase(
 
         foreach (var file in files)
         {
-            var entity = await _storageProvider.ReadAsync<TEntity?>(file);
+            var storageObject = await _storageProvider.ReadWithMetadataAsync<TEntity?>(file);
 
-            if (entity is null)
+            if (!storageObject.Exists || storageObject.Value is null)
             {
                 continue;
             }
 
-            AttachOrReplaceTrackedEntity(_context, entity, keyProperties);
+            AttachOrReplaceTrackedEntity(_context, storageObject.Value, storageObject.ETag, keyProperties);
 
-            results.Add(entity);
+            results.Add(storageObject.Value);
         }
 
         return results;
@@ -362,7 +434,12 @@ public class CloudStorageDatabase(
         throw new NotImplementedException();
     }
 
-    private void AttachOrReplaceTrackedEntity<TEntity>(DbContext? context, TEntity? entity,
+    public Expression<Func<QueryContext, TResult>> CompileQueryExpression<TResult>(Expression query, bool async)
+    {
+        throw new NotImplementedException();
+    }
+
+    private void AttachOrReplaceTrackedEntity<TEntity>(DbContext? context, TEntity? entity, string? eTag,
         IReadOnlyList<IProperty>? keyProperties = null)
         where TEntity : class
     {
@@ -386,6 +463,90 @@ public class CloudStorageDatabase(
         }
 
         context.Attach(entity);
+        ApplyTrackedETag(context, entity, eTag);
+    }
+
+    private static string? GetOriginalETag(IUpdateEntry entry)
+    {
+        if (!TryGetConcurrencyProperty(entry.EntityType, out var property))
+        {
+            return null;
+        }
+
+        var internalEntry = (InternalEntityEntry)entry;
+        var originalValue = internalEntry.GetOriginalValue(property!);
+        return originalValue?.ToString();
+    }
+
+    private static void ApplySavedETag(IUpdateEntry entry, string? eTag)
+    {
+        if (string.IsNullOrWhiteSpace(eTag) || !TryGetConcurrencyProperty(entry.EntityType, out var property))
+        {
+            return;
+        }
+
+        var entity = ((InternalEntityEntry)entry).Entity;
+        var dbEntry = entry.Context.Entry(entity);
+        var propertyEntry = dbEntry.Property(property!.Name);
+        propertyEntry.CurrentValue = eTag;
+        propertyEntry.OriginalValue = eTag;
+        propertyEntry.IsModified = false;
+
+        if (entity is IETag eTagEntity)
+        {
+            eTagEntity.ETag = eTag;
+        }
+    }
+
+    private static void ApplyTrackedETag<TEntity>(DbContext context, TEntity entity, string? eTag)
+        where TEntity : class
+    {
+        if (!TryGetConcurrencyProperty(context.Model.FindEntityType(typeof(TEntity)), out var property))
+        {
+            return;
+        }
+
+        var propertyEntry = context.Entry(entity).Property(property!.Name);
+        propertyEntry.CurrentValue = eTag;
+        propertyEntry.OriginalValue = eTag;
+        propertyEntry.IsModified = false;
+
+        if (entity is IETag eTagEntity)
+        {
+            eTagEntity.ETag = eTag;
+        }
+    }
+
+    private static bool TryGetConcurrencyProperty(IReadOnlyTypeBase? entityType, out IProperty? property)
+    {
+        property = null!;
+        if (entityType is not IReadOnlyEntityType readOnlyEntityType)
+        {
+            return false;
+        }
+
+        var enabled = readOnlyEntityType.FindAnnotation(AnnotationsConstants.ETagConcurrencyEnabledAnnotation)?.Value as bool?;
+        if (enabled != true)
+        {
+            return false;
+        }
+
+        var propertyName = readOnlyEntityType.FindAnnotation(AnnotationsConstants.ETagConcurrencyPropertyNameAnnotation)
+            ?.Value as string;
+        if (string.IsNullOrWhiteSpace(propertyName))
+        {
+            return false;
+        }
+
+        property = (IProperty?)readOnlyEntityType.FindProperty(propertyName);
+        return property is not null;
+    }
+
+    private static DbUpdateConcurrencyException CreateConcurrencyException(string path, Exception innerException)
+    {
+        return new DbUpdateConcurrencyException(
+            $"The operation expected the object ETag to match for '{path}', but it was updated by another process.",
+            innerException);
     }
 
     private static object ConvertToKeyType(object value, Type keyType)
@@ -423,7 +584,7 @@ public class CloudStorageDatabase(
         }
         catch
         {
-            parsed = default!;
+            parsed = null!;
             return false;
         }
     }
@@ -440,7 +601,11 @@ public class CloudStorageDatabase(
             }
         }
 
-        if (upperBound is not null)
+        if (upperBound is null)
+        {
+            return true;
+        }
+
         {
             var cmp = CompareKeyValues(keyValue, upperBound);
             if (upperInclusive ? cmp > 0 : cmp >= 0)
@@ -454,11 +619,8 @@ public class CloudStorageDatabase(
 
     private static int CompareKeyValues(object left, object right)
     {
-        if (left is not IComparable comparable)
-        {
-            throw new InvalidOperationException("Primary key type must implement IComparable for range filtering.");
-        }
-
-        return comparable.CompareTo(right);
+        return left is not IComparable comparable 
+            ? throw new InvalidOperationException("Primary key type must implement IComparable for range filtering.") 
+            : comparable.CompareTo(right);
     }
 }

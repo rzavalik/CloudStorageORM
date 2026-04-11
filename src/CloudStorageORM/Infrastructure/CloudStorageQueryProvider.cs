@@ -76,23 +76,23 @@ public class CloudStorageQueryProvider(
             switch (keyConstraint)
             {
                 case { IsEquality: true, EqualityValue: not null }:
-                    {
-                        var entity = await _database.TryLoadByPrimaryKeyAsync<TEntity>(keyConstraint.EqualityValue)
-                            .ConfigureAwait(false);
-                        return ConvertSingleLookupResult<TResult, TEntity>(entity);
-                    }
+                {
+                    var entity = await _database.TryLoadByPrimaryKeyAsync<TEntity>(keyConstraint.EqualityValue)
+                        .ConfigureAwait(false);
+                    return ConvertSingleLookupResult<TResult, TEntity>(entity);
+                }
                 case { IsEquality: false, HasRangeBound: true }:
-                    {
-                        var rangedList = await _database
-                            .LoadByPrimaryKeyRangeAsync<TEntity>(
-                                keyConstraint.LowerBound,
-                                keyConstraint.LowerInclusive,
-                                keyConstraint.UpperBound,
-                                keyConstraint.UpperInclusive)
-                            .ConfigureAwait(false);
+                {
+                    var rangedList = await _database
+                        .LoadByPrimaryKeyRangeAsync<TEntity>(
+                            keyConstraint.LowerBound,
+                            keyConstraint.LowerInclusive,
+                            keyConstraint.UpperBound,
+                            keyConstraint.UpperInclusive)
+                        .ConfigureAwait(false);
 
-                        return ExecuteAgainstInMemory<TResult, TEntity>(expression, rangedList);
-                    }
+                    return ExecuteAgainstInMemory<TResult, TEntity>(expression, rangedList);
+                }
             }
         }
 
@@ -105,14 +105,20 @@ public class CloudStorageQueryProvider(
     {
         var inMemoryQueryable = list.AsQueryable();
         var rewrittenExpression = new QueryRootReplacementVisitor(this, inMemoryQueryable).Visit(expression);
+        rewrittenExpression = new ExtensionReducingVisitor().Visit(rewrittenExpression);
 
         // For sequence-returning expressions (Where, OrderBy, etc.) use CreateQuery so
         // the EnumerableQuery provider doesn't try to box an IQueryable<T> into a TResult.
         var resultType = typeof(TResult);
-        if (IsEnumerableResult(resultType))
+        if (IsEnumerableResult(resultType) || resultType == typeof(object) && typeof(IEnumerable<TEntity>).IsAssignableFrom(rewrittenExpression.Type))
         {
             var resultQueryable = inMemoryQueryable.Provider.CreateQuery<TEntity>(rewrittenExpression);
             return (TResult)resultQueryable;
+        }
+
+        if (TryExecuteScalarFallback<TResult, TEntity>(expression, list, out var scalarFallback))
+        {
+            return scalarFallback;
         }
 
         // For scalar/singleton results (First, Any, Count, …) invoke the generic Execute.
@@ -121,7 +127,137 @@ public class CloudStorageQueryProvider(
             .First(m => m is { Name: nameof(IQueryProvider.Execute), IsGenericMethod: true })
             .MakeGenericMethod(resultType);
 
-        return (TResult)executeGeneric.Invoke(inMemoryQueryable.Provider, [rewrittenExpression])!;
+        try
+        {
+            return (TResult)executeGeneric.Invoke(inMemoryQueryable.Provider, [rewrittenExpression])!;
+        }
+        catch (TargetInvocationException ex)
+            when (ex.InnerException is ArgumentException { Message: var message }
+                  && message.Contains("must be reducible node", StringComparison.OrdinalIgnoreCase)
+                  && TryExecuteScalarFallback<TResult, TEntity>(expression, list, out var fallback))
+        {
+            return fallback;
+        }
+    }
+
+    private static bool TryExecuteScalarFallback<TResult, TEntity>(Expression expression, IList<TEntity> list,
+        out TResult result)
+        where TEntity : class
+    {
+        result = default!;
+
+        if (expression is not MethodCallExpression methodCall
+            || methodCall.Method.DeclaringType != typeof(Queryable)
+            || !TryEvaluateSourceSequence(methodCall.Arguments[0], list, out var source))
+        {
+            return false;
+        }
+
+        Func<TEntity, bool>? predicate = null;
+        if (methodCall.Arguments.Count > 1)
+        {
+            var predicateLambda = ResolveLambda(methodCall.Arguments[1]);
+            if (predicateLambda is null)
+            {
+                return false;
+            }
+
+            predicate = (Func<TEntity, bool>)predicateLambda.Compile();
+        }
+
+        object? scalar = methodCall.Method.Name switch
+        {
+            nameof(Queryable.FirstOrDefault) => predicate is null
+                ? source.FirstOrDefault()
+                : source.FirstOrDefault(predicate),
+            nameof(Queryable.First) => predicate is null
+                ? source.First()
+                : source.First(predicate),
+            nameof(Queryable.SingleOrDefault) => predicate is null
+                ? source.SingleOrDefault()
+                : source.SingleOrDefault(predicate),
+            nameof(Queryable.Single) => predicate is null
+                ? source.Single()
+                : source.Single(predicate),
+            nameof(Queryable.Any) => predicate is null
+                ? source.Any()
+                : source.Any(predicate),
+            nameof(Queryable.Count) => predicate is null
+                ? source.Count()
+                : source.Count(predicate),
+            nameof(Queryable.LongCount) => predicate is null
+                ? source.LongCount()
+                : source.LongCount(predicate),
+            _ => null
+        };
+
+        if (scalar is null && typeof(TResult).IsValueType && Nullable.GetUnderlyingType(typeof(TResult)) is null)
+        {
+            return false;
+        }
+
+        result = (TResult)scalar!;
+        return true;
+    }
+
+    private static bool TryEvaluateSourceSequence<TEntity>(Expression expression, IList<TEntity> root,
+        out IEnumerable<TEntity> sequence)
+        where TEntity : class
+    {
+        sequence = root;
+
+        if (expression is not MethodCallExpression methodCall
+            || methodCall.Method.DeclaringType != typeof(Queryable)
+            || methodCall.Method.Name != nameof(Queryable.Where)
+            || methodCall.Arguments.Count != 2)
+        {
+            return true;
+        }
+
+        if (!TryEvaluateSourceSequence(methodCall.Arguments[0], root, out var source))
+        {
+            return false;
+        }
+
+        var predicateLambda = ResolveLambda(methodCall.Arguments[1]);
+        if (predicateLambda is null)
+        {
+            return false;
+        }
+
+        var predicate = (Func<TEntity, bool>)predicateLambda.Compile();
+        sequence = source.Where(predicate);
+        return true;
+    }
+
+    private static LambdaExpression? ResolveLambda(Expression expression)
+    {
+        var direct = UnwrapLambda(expression);
+        if (direct is not null)
+        {
+            return direct;
+        }
+
+        if (expression is ConstantExpression { Value: LambdaExpression constantLambda })
+        {
+            return constantLambda;
+        }
+
+        if (expression.CanReduce)
+        {
+            return ResolveLambda(expression.Reduce());
+        }
+
+        try
+        {
+            var boxed = Expression.Convert(expression, typeof(object));
+            var value = Expression.Lambda<Func<object?>>(boxed).Compile().Invoke();
+            return value as LambdaExpression;
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     private static Type ResolveEntityType(Expression expression, Type resultType)
@@ -528,6 +664,16 @@ public class CloudStorageQueryProvider(
             }
 
             return base.VisitConstant(node);
+        }
+    }
+
+    private sealed class ExtensionReducingVisitor : ExpressionVisitor
+    {
+        protected override Expression VisitExtension(Expression node)
+        {
+            return node.CanReduce
+                ? Visit(node.Reduce())
+                : base.VisitExtension(node);
         }
     }
 
