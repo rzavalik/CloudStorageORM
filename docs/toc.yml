@@ -1,14 +1,32 @@
 - name: Home
   href: index.md
-- name: Library guide
+- name: 📖 Getting started
+  href: getting-started.md
+- name: ⚙️ Configuration
+  href: configuration.md
+- name: 🔍 Query patterns
+  href: query-patterns.md
+- name: 💾 Transactions
+  href: transactions.md
+- name: 🔄 Concurrency
+  href: concurrency.md
+- name: 📦 Providers
+  href: providers.md
+- name: 🚚 Migration guide
+  href: migration.md
+- name: 📚 Library guide
   href: CloudStorageORM.md
-- name: Sample app
+- name: 🎯 Sample app
   href: sampleapp.md
-- name: Testing with Azurite
-  href: testing-with-azurite.md
-- name: Testing with LocalStack
-  href: testing-with-localstack.md
-- name: CI workflow
+- name: 🧪 Testing
+  items:
+    - name: Azure (Azurite)
+      href: testing-with-azurite.md
+    - name: AWS (LocalStack)
+      href: testing-with-localstack.md
+- name: 🔧 CI/CD
   href: ci.md
-- name: API reference
+- name: ⚠️ Troubleshooting
+  href: troubleshooting.md
+- name: 📖 API reference
   href: api-reference.md
