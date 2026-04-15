@@ -1,7 +1,10 @@
+using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Reflection;
 using CloudStorageORM.Interfaces.Infrastructure;
+using CloudStorageORM.Observability;
 using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.Extensions.Logging;
 
 namespace CloudStorageORM.Infrastructure;
 
@@ -10,13 +13,20 @@ namespace CloudStorageORM.Infrastructure;
 /// </summary>
 public class CloudStorageQueryProvider(
     CloudStorageDatabase database,
-    IBlobPathResolver blobPathResolver)
+    IBlobPathResolver blobPathResolver,
+    ILogger<CloudStorageQueryProvider>? logger = null,
+    bool enableLogging = true,
+    bool enableTracing = true)
     : IAsyncQueryProvider
 {
     private readonly CloudStorageDatabase _database = database ?? throw new ArgumentNullException(nameof(database));
 
     private readonly IBlobPathResolver _blobPathResolver =
         blobPathResolver ?? throw new ArgumentNullException(nameof(blobPathResolver));
+
+    private readonly ILogger<CloudStorageQueryProvider>? _logger = logger;
+    private readonly bool _enableLogging = enableLogging;
+    private readonly bool _enableTracing = enableTracing;
 
     private Task<IList<T>> LoadEntitiesAsync<T>() where T : class
     {
@@ -90,33 +100,73 @@ public class CloudStorageQueryProvider(
     private async Task<TResult> ExecuteTypedAsync<TEntity, TResult>(Expression expression)
         where TEntity : class
     {
-        if (TryExtractPrimaryKeyConstraint<TEntity>(expression, out var keyConstraint))
-        {
-            switch (keyConstraint)
-            {
-                case { IsEquality: true, EqualityValue: not null }:
-                {
-                    var entity = await _database.TryLoadByPrimaryKeyAsync<TEntity>(keyConstraint.EqualityValue)
-                        .ConfigureAwait(false);
-                    return ConvertSingleLookupResult<TResult, TEntity>(entity);
-                }
-                case { IsEquality: false, HasRangeBound: true }:
-                {
-                    var rangedList = await _database
-                        .LoadByPrimaryKeyRangeAsync<TEntity>(
-                            keyConstraint.LowerBound,
-                            keyConstraint.LowerInclusive,
-                            keyConstraint.UpperBound,
-                            keyConstraint.UpperInclusive)
-                        .ConfigureAwait(false);
+        using var activity = _enableTracing ? CloudStorageOrmActivitySource.StartActivity("Query") : null;
+        var stopwatch = Stopwatch.StartNew();
 
-                    return ExecuteAgainstInMemory<TResult, TEntity>(expression, rangedList);
+        try
+        {
+            if (_enableLogging)
+            {
+                _logger?.LogQueryExecutionStarting(typeof(TEntity).Name);
+            }
+
+            if (TryExtractPrimaryKeyConstraint<TEntity>(expression, out var keyConstraint))
+            {
+                // ...existing code...
+                switch (keyConstraint)
+                {
+                    case { IsEquality: true, EqualityValue: not null }:
+                    {
+                        var entity = await _database.TryLoadByPrimaryKeyAsync<TEntity>(keyConstraint.EqualityValue)
+                            .ConfigureAwait(false);
+                        return ConvertSingleLookupResult<TResult, TEntity>(entity);
+                    }
+                    case { IsEquality: false, HasRangeBound: true }:
+                    {
+                        var rangedList = await _database
+                            .LoadByPrimaryKeyRangeAsync<TEntity>(
+                                keyConstraint.LowerBound,
+                                keyConstraint.LowerInclusive,
+                                keyConstraint.UpperBound,
+                                keyConstraint.UpperInclusive)
+                            .ConfigureAwait(false);
+
+                        return ExecuteAgainstInMemory<TResult, TEntity>(expression, rangedList);
+                    }
                 }
             }
-        }
 
-        var list = await LoadEntitiesAsync<TEntity>().ConfigureAwait(false);
-        return ExecuteAgainstInMemory<TResult, TEntity>(expression, list);
+            var list = await LoadEntitiesAsync<TEntity>().ConfigureAwait(false);
+            var result = ExecuteAgainstInMemory<TResult, TEntity>(expression, list);
+
+            stopwatch.Stop();
+
+            var resultCount = 0;
+            if (result is System.Collections.IEnumerable enumerable && result is not string)
+            {
+                resultCount = enumerable.Cast<object>().Count();
+            }
+
+            if (_enableLogging)
+            {
+                _logger?.LogQueryExecutionCompleted(typeof(TEntity).Name, resultCount, stopwatch.ElapsedMilliseconds);
+            }
+
+            activity?.SetTag("query.result_count", resultCount);
+
+            return result;
+        }
+        catch (Exception ex)
+        {
+            stopwatch.Stop();
+            if (_enableLogging)
+            {
+                _logger?.LogQueryExecutionFailed(typeof(TEntity).Name, ex, stopwatch.ElapsedMilliseconds);
+            }
+
+            activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
+            throw;
+        }
     }
 
     private TResult ExecuteAgainstInMemory<TResult, TEntity>(Expression expression, IList<TEntity> list)
@@ -560,17 +610,12 @@ public class CloudStorageQueryProvider(
         }
 
         var compare = CompareComparable(left.UpperBound, right.UpperBound);
-        if (compare < 0)
+        return compare switch
         {
-            return (left.UpperBound, left.UpperInclusive);
-        }
-
-        if (compare > 0)
-        {
-            return (right.UpperBound, right.UpperInclusive);
-        }
-
-        return (left.UpperBound, left.UpperInclusive && right.UpperInclusive);
+            < 0 => (left.UpperBound, left.UpperInclusive),
+            > 0 => (right.UpperBound, right.UpperInclusive),
+            _ => (left.UpperBound, left.UpperInclusive && right.UpperInclusive)
+        };
     }
 
     private static bool IsEqualityWithinRange(PrimaryKeyConstraint rangeConstraint, object equality)
@@ -588,20 +633,17 @@ public class CloudStorageQueryProvider(
             }
         }
 
-        if (rangeConstraint.UpperBound is not null)
+        if (rangeConstraint.UpperBound is null)
         {
-            var upperMatch = rangeConstraint.UpperInclusive
-                ? EqualityComparer<object>.Default.Equals(equality, rangeConstraint.UpperBound)
-                  || CompareComparable(equality, rangeConstraint.UpperBound) < 0
-                : CompareComparable(equality, rangeConstraint.UpperBound) < 0;
-
-            if (!upperMatch)
-            {
-                return false;
-            }
+            return true;
         }
 
-        return true;
+        var upperMatch = rangeConstraint.UpperInclusive
+            ? EqualityComparer<object>.Default.Equals(equality, rangeConstraint.UpperBound)
+              || CompareComparable(equality, rangeConstraint.UpperBound) < 0
+            : CompareComparable(equality, rangeConstraint.UpperBound) < 0;
+
+        return upperMatch;
     }
 
     private static int CompareComparable(object left, object right)

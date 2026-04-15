@@ -56,9 +56,10 @@ Use this when configuring a context with `AddDbContext(...)`.
 
 Configuration model on the current branch:
 
-- common fields: `CloudStorageOptions.Provider`, `CloudStorageOptions.ContainerName`
+- Common fields: `CloudStorageOptions.Provider`, `CloudStorageOptions.ContainerName`
 - Azure fields: `CloudStorageOptions.Azure.ConnectionString`
 - AWS fields: `CloudStorageOptions.Aws.AccessKeyId`, `SecretAccessKey`, `Region`, `ServiceUrl`, `ForcePathStyle`
+- Observability fields: `CloudStorageOptions.Observability.EnableLogging`, `EnableTracing`, `EnableDiagnostics`
 - `CloudStorageOptions.ConnectionString` at the root level is no longer used
 
 ### `CloudStorageORM.Contexts.CloudStorageDbContext`
@@ -95,6 +96,23 @@ Current behavior:
 - `CloudProvider.Azure` → `AzureBlobStorageProvider`
 - `CloudProvider.Aws` → `AwsS3StorageProvider`
 - any other provider → `NotSupportedException`
+
+### Observability internals
+
+CloudStorageORM observability is configured through `CloudStorageOptions.Observability`:
+
+- `EnableLogging` gates logging inside persistence and query paths.
+- `EnableTracing` gates `ActivitySource` spans emitted by internal operations.
+- `EnableDiagnostics` is currently surfaced as configuration/debug metadata and reserved for future custom diagnostics
+  events.
+
+Related types:
+
+- `CloudStorageORM.Observability.CloudStorageOrmActivitySource`
+- `CloudStorageORM.Observability.CloudStorageOrmEventIds`
+- `CloudStorageORM.Observability.CloudStorageOrmLoggingExtensions`
+
+For end-user setup examples, see [Observability guide](observability.md).
 
 ---
 

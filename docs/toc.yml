@@ -18,6 +18,8 @@
       href: concurrency.md
 - name: 🔧 Advanced
   items:
+    - name: Observability
+      href: observability.md
     - name: Providers
       href: providers.md
     - name: Migration guide

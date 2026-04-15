@@ -1,9 +1,12 @@
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq.Expressions;
 using CloudStorageORM.Abstractions;
 using CloudStorageORM.Constants;
 using CloudStorageORM.Interfaces.Infrastructure;
 using CloudStorageORM.Interfaces.StorageProviders;
+using CloudStorageORM.Observability;
+using CloudStorageORM.Options;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
@@ -12,6 +15,7 @@ using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Update;
+using Microsoft.Extensions.Logging;
 
 namespace CloudStorageORM.Infrastructure;
 
@@ -25,7 +29,10 @@ public class CloudStorageDatabase(
     IStorageProvider storageProvider,
     ICurrentDbContext currentDbContext,
     IBlobPathResolver blobPathResolver,
-    IDbContextTransactionManager transactionManager)
+    IDbContextTransactionManager transactionManager,
+    CloudStorageOptions? cloudStorageOptions = null,
+    ILoggerFactory? loggerFactory = null,
+    ILogger<CloudStorageDatabase>? logger = null)
     : IDatabase
 {
     private readonly DbContext _context =
@@ -39,6 +46,11 @@ public class CloudStorageDatabase(
 
     private readonly IDbContextTransactionManager _transactionManager =
         transactionManager ?? throw new ArgumentNullException(nameof(transactionManager));
+
+    private readonly ILogger<CloudStorageDatabase>? _logger = logger;
+    private readonly ILogger<CloudStorageQueryProvider>? _queryLogger = loggerFactory?.CreateLogger<CloudStorageQueryProvider>();
+    private readonly bool _enableLogging = cloudStorageOptions?.Observability.EnableLogging ?? true;
+    private readonly bool _enableTracing = cloudStorageOptions?.Observability.EnableTracing ?? true;
 
     public IModel Model { get; } = model ?? throw new ArgumentNullException(nameof(model));
 
@@ -89,99 +101,137 @@ public class CloudStorageDatabase(
         return await ProcessChangesAsync(entries, cancellationToken);
     }
 
-    private async Task<int> ProcessChangesAsync(IList<IUpdateEntry> entries, CancellationToken cancellationToken)
+    public Func<QueryContext, TResult> CompileQuery<TResult>(Expression query, bool async)
     {
-        var changes = 0;
-
-        foreach (var entry in entries)
-        {
-            var entity = ((InternalEntityEntry)entry).Entity;
-            var path = _blobPathResolver.GetPath(entry);
-
-            // Check whether another entity with the same key is already tracked.
-            var entityType = entry.EntityType.ClrType;
-            var key = entry.EntityType.FindPrimaryKey();
-            var keyProps = key?.Properties;
-
-            if (keyProps != null)
-            {
-                var existingTracked = entry.Context.ChangeTracker.Entries()
-                    .FirstOrDefault(e =>
-                        e.Entity.GetType() == entityType &&
-                        !ReferenceEquals(e.Entity, entity) &&
-                        keyProps.All(p =>
-                            Equals(
-                                p.PropertyInfo?.GetValue(e.Entity),
-                                p.PropertyInfo?.GetValue(entity))));
-
-                if (existingTracked != null)
-                {
-                    // Detach the previous instance so the new one can be used.
-                    entry.Context.Entry(existingTracked.Entity).State = EntityState.Detached;
-                }
-            }
-
-            // Ensure the entity is still tracked after resolving key conflicts.
-            var tracked = entry.Context.ChangeTracker
-                .Entries()
-                .Any(e =>
-                    e.Entity.GetType() == entity.GetType() &&
-                    KeysMatch(e, entry));
-
-            if (!tracked)
-            {
-                continue;
-            }
-
-            switch (entry.EntityState)
-            {
-                case EntityState.Added:
-                {
-                    var concurrencyEnabled = TryGetConcurrencyProperty(entry.EntityType, out _);
-                    var newETag = await ExecuteOrStageSaveAsync(path, entity, null, concurrencyEnabled, cancellationToken);
-                    ApplySavedETag(entry, newETag);
-                    changes++;
-                    break;
-                }
-
-                case EntityState.Modified:
-                {
-                    var concurrencyEnabled = TryGetConcurrencyProperty(entry.EntityType, out _);
-                    var originalETag = GetOriginalETag(entry);
-                    if (concurrencyEnabled && string.IsNullOrWhiteSpace(originalETag))
-                    {
-                        throw new DbUpdateConcurrencyException(
-                            "ETag concurrency is enabled, but no original ETag value is available for update.");
-                    }
-
-                    var newETag = await ExecuteOrStageSaveAsync(path, entity, originalETag, concurrencyEnabled,
-                        cancellationToken);
-                    ApplySavedETag(entry, newETag);
-                    changes++;
-                    break;
-                }
-
-                case EntityState.Deleted:
-                {
-                    var concurrencyEnabled = TryGetConcurrencyProperty(entry.EntityType, out _);
-                    var originalETag = GetOriginalETag(entry);
-                    if (concurrencyEnabled && string.IsNullOrWhiteSpace(originalETag))
-                    {
-                        throw new DbUpdateConcurrencyException(
-                            "ETag concurrency is enabled, but no original ETag value is available for delete.");
-                    }
-
-                    await ExecuteOrStageDeleteAsync(path, originalETag, concurrencyEnabled, cancellationToken);
-                    changes++;
-                    break;
-                }
-            }
-        }
-
-        return changes;
+        throw new NotImplementedException();
     }
 
-    private async Task<string?> ExecuteOrStageSaveAsync(string path, object entity, string? ifMatchETag,
+    private async Task<int> ProcessChangesAsync(IList<IUpdateEntry> entries, CancellationToken cancellationToken)
+    {
+        using var activity = _enableTracing ? CloudStorageOrmActivitySource.StartActivity("SaveChanges") : null;
+        var stopwatch = Stopwatch.StartNew();
+
+        try
+        {
+            if (_enableLogging)
+            {
+                _logger?.LogSaveChangesStarting(entries.Count);
+            }
+
+            var changes = 0;
+
+            foreach (var entry in entries)
+            {
+                var path = _blobPathResolver.GetPath(entry);
+                var entity = ((InternalEntityEntry)entry).Entity;
+
+                // Check whether another entity with the same key is already tracked.
+                var entityType = entry.EntityType.ClrType;
+                var key = entry.EntityType.FindPrimaryKey();
+                var keyProps = key?.Properties;
+
+                if (keyProps != null)
+                {
+                    var existingTracked = entry.Context.ChangeTracker.Entries()
+                        .FirstOrDefault(e =>
+                            e.Entity.GetType() == entityType &&
+                            !ReferenceEquals(e.Entity, entity) &&
+                            keyProps.All(p =>
+                                Equals(
+                                    p.PropertyInfo?.GetValue(e.Entity),
+                                    p.PropertyInfo?.GetValue(entity))));
+
+                    if (existingTracked != null)
+                    {
+                        // Detach the previous instance so the new one can be used.
+                        entry.Context.Entry(existingTracked.Entity).State = EntityState.Detached;
+                    }
+                }
+
+                // Ensure the entity is still tracked after resolving key conflicts.
+                var tracked = entry.Context.ChangeTracker
+                    .Entries()
+                    .Any(e =>
+                        e.Entity.GetType() == entity.GetType() &&
+                        KeysMatch(e, entry));
+
+                if (!tracked)
+                {
+                    continue;
+                }
+
+                switch (entry.EntityState)
+                {
+                    case EntityState.Added:
+                    {
+                        var concurrencyEnabled = TryGetConcurrencyProperty(entry.EntityType, out _);
+                        var newETag = await ExecuteOrStageSaveAsync(path, entity, null, concurrencyEnabled,
+                            cancellationToken);
+                        ApplySavedETag(entry, newETag);
+                        changes++;
+                        break;
+                    }
+
+                    case EntityState.Modified:
+                    {
+                        var concurrencyEnabled = TryGetConcurrencyProperty(entry.EntityType, out _);
+                        var originalETag = GetOriginalETag(entry);
+                        if (concurrencyEnabled && string.IsNullOrWhiteSpace(originalETag))
+                        {
+                            throw new DbUpdateConcurrencyException(
+                                "ETag concurrency is enabled, but no original ETag value is available for update.");
+                        }
+
+                        var newETag = await ExecuteOrStageSaveAsync(path, entity, originalETag, concurrencyEnabled,
+                            cancellationToken);
+                        ApplySavedETag(entry, newETag);
+                        changes++;
+                        break;
+                    }
+
+                    case EntityState.Deleted:
+                    {
+                        var concurrencyEnabled = TryGetConcurrencyProperty(entry.EntityType, out _);
+                        var originalETag = GetOriginalETag(entry);
+                        if (concurrencyEnabled && string.IsNullOrWhiteSpace(originalETag))
+                        {
+                            throw new DbUpdateConcurrencyException(
+                                "ETag concurrency is enabled, but no original ETag value is available for delete.");
+                        }
+
+                        await ExecuteOrStageDeleteAsync(path, originalETag, concurrencyEnabled, cancellationToken);
+                        changes++;
+                        break;
+                    }
+                }
+            }
+
+            stopwatch.Stop();
+            if (_enableLogging)
+            {
+                _logger?.LogSaveChangesCompleted(changes, stopwatch.ElapsedMilliseconds);
+            }
+
+            activity?.SetTag("changes.count", changes);
+            return changes;
+        }
+        catch (Exception ex)
+        {
+            stopwatch.Stop();
+            if (_enableLogging)
+            {
+                _logger?.LogSaveChangesFailed(ex, stopwatch.ElapsedMilliseconds);
+            }
+
+            activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
+            throw;
+        }
+    }
+
+    private async Task<string?> ExecuteOrStageSaveAsync(
+        string path,
+        object entity,
+        string? ifMatchETag,
         bool useConditionalRequest,
         CancellationToken cancellationToken)
     {
@@ -201,13 +251,13 @@ public class CloudStorageDatabase(
 
         try
         {
-            if (!useConditionalRequest)
+            if (useConditionalRequest)
             {
-                await _storageProvider.SaveAsync(path, entity);
-                return null;
+                return await _storageProvider.SaveAsync(path, entity, ifMatchETag);
             }
 
-            return await _storageProvider.SaveAsync(path, entity, ifMatchETag);
+            await _storageProvider.SaveAsync(path, entity);
+            return null;
         }
         catch (StoragePreconditionFailedException ex)
         {
@@ -215,7 +265,10 @@ public class CloudStorageDatabase(
         }
     }
 
-    private async Task ExecuteOrStageDeleteAsync(string path, string? ifMatchETag, bool useConditionalRequest,
+    private async Task ExecuteOrStageDeleteAsync(
+        string path,
+        string? ifMatchETag,
+        bool useConditionalRequest,
         CancellationToken cancellationToken)
     {
         if (_transactionManager is CloudStorageTransactionManager { HasActiveTransaction: true } manager)
@@ -269,7 +322,12 @@ public class CloudStorageDatabase(
 
     Func<QueryContext, TResult> IDatabase.CompileQuery<TResult>(Expression query, bool async)
     {
-        var provider = new CloudStorageQueryProvider(this, _blobPathResolver);
+        var provider = new CloudStorageQueryProvider(
+            this,
+            _blobPathResolver,
+            _queryLogger,
+            _enableLogging,
+            _enableTracing);
 
         return queryContext =>
         {
@@ -615,7 +673,8 @@ public class CloudStorageDatabase(
             return false;
         }
 
-        var enabled = readOnlyEntityType.FindAnnotation(AnnotationsConstants.ETagConcurrencyEnabledAnnotation)?.Value as bool?;
+        var enabled =
+            readOnlyEntityType.FindAnnotation(AnnotationsConstants.ETagConcurrencyEnabledAnnotation)?.Value as bool?;
         if (enabled != true)
         {
             return false;
@@ -709,8 +768,8 @@ public class CloudStorageDatabase(
 
     private static int CompareKeyValues(object left, object right)
     {
-        return left is not IComparable comparable 
-            ? throw new InvalidOperationException("Primary key type must implement IComparable for range filtering.") 
+        return left is not IComparable comparable
+            ? throw new InvalidOperationException("Primary key type must implement IComparable for range filtering.")
             : comparable.CompareTo(right);
     }
 }

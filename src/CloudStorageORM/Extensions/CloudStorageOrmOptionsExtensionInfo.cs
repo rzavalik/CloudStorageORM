@@ -39,11 +39,11 @@ public class CloudStorageOrmOptionsExtensionInfo(CloudStorageOrmOptionsExtension
         var raw = options.Provider switch
         {
             Enums.CloudProvider.Azure =>
-                $"azure|{options.ContainerName}|{options.Azure.ConnectionString}",
+                $"azure|{options.ContainerName}|{options.Azure.ConnectionString}|obs:{options.Observability.EnableLogging}|{options.Observability.EnableTracing}|{options.Observability.EnableDiagnostics}",
             Enums.CloudProvider.Aws =>
-                $"aws|{options.ContainerName}|{options.Aws.Region}|{options.Aws.ServiceUrl}|{options.Aws.AccessKeyId}|{options.Aws.SecretAccessKey}|{options.Aws.ForcePathStyle}",
+                $"aws|{options.ContainerName}|{options.Aws.Region}|{options.Aws.ServiceUrl}|{options.Aws.AccessKeyId}|{options.Aws.SecretAccessKey}|{options.Aws.ForcePathStyle}|obs:{options.Observability.EnableLogging}|{options.Observability.EnableTracing}|{options.Observability.EnableDiagnostics}",
             _ =>
-                $"{options.Provider}|{options.ContainerName}"
+                $"{options.Provider}|{options.ContainerName}|obs:{options.Observability.EnableLogging}|{options.Observability.EnableTracing}|{options.Observability.EnableDiagnostics}"
         };
 
         return StringComparer.Ordinal.GetHashCode(raw);
@@ -64,6 +64,9 @@ public class CloudStorageOrmOptionsExtensionInfo(CloudStorageOrmOptionsExtension
         var options = Extension.Options;
         debugInfo["CloudStorageORM:Provider"] = options.Provider.ToString();
         debugInfo["CloudStorageORM:ContainerName"] = options.ContainerName;
+        debugInfo["CloudStorageORM:Observability:EnableLogging"] = options.Observability.EnableLogging.ToString();
+        debugInfo["CloudStorageORM:Observability:EnableTracing"] = options.Observability.EnableTracing.ToString();
+        debugInfo["CloudStorageORM:Observability:EnableDiagnostics"] = options.Observability.EnableDiagnostics.ToString();
 
         switch (options.Provider)
         {

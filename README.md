@@ -123,6 +123,7 @@ await db.SaveChangesAsync();
 - The base context namespace is now `CloudStorageORM.Contexts`.
 - Configuration uses composition on `CloudStorageOptions`: common fields stay on the root, while provider-specific
   fields are under `storage.Azure` and `storage.Aws`.
+- Observability is optional and configured under `storage.Observability` (logging, tracing, and diagnostics toggles).
 - `CloudStorageOptions.ConnectionString` was removed; use `storage.Azure.ConnectionString` for Azure configuration.
 - Primary-key query predicates now support direct range-aware loading for `>`, `>=`, `<`, and `<=` in addition to
   equality-based lookups.
@@ -149,6 +150,42 @@ await db.SaveChangesAsync();
 - `IDatabaseCreator` behavior is still minimal right now: schema-style database lifecycle methods are not fully
   implemented because object storage does not map 1:1 to relational database creation semantics.
 
+### Optional observability configuration
+
+```csharp
+services.AddDbContext<AppDbContext>(options =>
+{
+    options.UseCloudStorageOrm(storage =>
+    {
+        storage.Provider = CloudProvider.Azure;
+        storage.ContainerName = "sampleapp-container";
+        storage.Azure.ConnectionString = "UseDevelopmentStorage=true";
+
+        // Keep defaults (all true) or disable selectively.
+        storage.Observability.EnableLogging = true;
+        storage.Observability.EnableTracing = true;
+        storage.Observability.EnableDiagnostics = true;
+    });
+});
+```
+
+What each toggle does on the current branch:
+
+- `EnableLogging`: enables CloudStorageORM log events through `ILogger`.
+- `EnableTracing`: enables CloudStorageORM `ActivitySource` spans (`CloudStorageORM`).
+- `EnableDiagnostics`: currently represented in options/debug info; custom `DiagnosticListener` events are not yet
+  emitted.
+
+If you only need tracing:
+
+```csharp
+storage.Observability.EnableLogging = false;
+storage.Observability.EnableTracing = true;
+storage.Observability.EnableDiagnostics = false;
+```
+
+For full details and consumption examples, see [docs/observability.md](./docs/observability.md).
+
 ---
 
 ## 🧪 Running tests locally
@@ -159,7 +196,8 @@ await db.SaveChangesAsync();
 ./scripts/run-local-ci-tests.sh
 ```
 
-This script mirrors CI by starting Azurite and LocalStack, then running restore, build, and tests with TRX and coverage collection.
+This script mirrors CI by starting Azurite and LocalStack, then running restore, build, and tests with TRX and coverage
+collection.
 
 ### Start Azurite (Azure integration)
 
@@ -245,6 +283,7 @@ See [docs/sampleapp.md](./docs/sampleapp.md) for details.
 ## 📚 Documentation
 
 - [Library documentation](./docs/CloudStorageORM.md)
+- [Observability guide](./docs/observability.md)
 - [API reference (DocFX)](https://rzavalik.github.io/CloudStorageORM/api/)
 - [API reference landing page](./docs/api-reference.md)
 - [Sample app guide](./docs/sampleapp.md)

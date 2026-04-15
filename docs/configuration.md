@@ -79,6 +79,31 @@ CloudStorageORM validates the configuration at context initialization. Common er
 | `ContainerName` required     | No container specified | Set `storage.ContainerName`                      |
 | Connection failed            | Invalid credentials    | Verify connection string or AWS keys             |
 
+## Observability configuration (optional)
+
+CloudStorageORM can emit structured logs, tracing spans, and diagnostics hooks. All are enabled by default and can be
+controlled under `CloudStorageOptions.Observability`.
+
+Current behavior on `main`:
+
+- `EnableLogging` controls CloudStorageORM `ILogger` events.
+- `EnableTracing` controls CloudStorageORM `ActivitySource` span creation.
+- `EnableDiagnostics` is part of options/debug info; custom runtime `DiagnosticListener` events are not emitted yet.
+
+```csharp
+storage.Observability.EnableLogging = true;
+storage.Observability.EnableTracing = true;
+storage.Observability.EnableDiagnostics = true;
+
+// Optional custom names (reserved for future custom-source wiring)
+storage.Observability.ActivitySourceName = "CloudStorageORM";
+storage.Observability.DiagnosticListenerName = "CloudStorageORM";
+```
+
+If your application does not consume these signals, you can disable them individually.
+
+See [Observability guide](observability.md) for practical usage profiles and consumer examples.
+
 ## Model configuration
 
 ### Primary keys
