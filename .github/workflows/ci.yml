@@ -137,20 +137,20 @@ jobs:
           done
 
       - name: Upload Unit TRX Test Results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: test-results-unit
           path: TestResults/*.trx
 
       - name: Upload Unit Coverage XML Files
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: coverage-xml-unit
           path: TestResults/Coverage/*.xml
 
       - name: Upload SBOM Artifact
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: sbom-cyclonedx
           path: TestResults/SBOM/*.json
@@ -193,13 +193,13 @@ jobs:
           find . -name "coverage.cobertura.xml" -exec cp {} TestResults/Coverage/CloudStorageORM.IntegrationTests.Azure.xml \;
 
       - name: Upload Azure TRX Test Results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: test-results-azure
           path: TestResults/*.trx
 
       - name: Upload Azure Coverage XML Files
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: coverage-xml-azure
           path: TestResults/Coverage/*.xml
@@ -255,13 +255,13 @@ jobs:
           find . -name "coverage.cobertura.xml" -exec cp {} TestResults/Coverage/CloudStorageORM.IntegrationTests.AWS.xml \;
 
       - name: Upload AWS TRX Test Results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: test-results-aws
           path: TestResults/*.trx
 
       - name: Upload AWS Coverage XML Files
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: coverage-xml-aws
           path: TestResults/Coverage/*.xml
@@ -371,13 +371,13 @@ jobs:
           docker logs localstack || true
 
       - name: Upload SampleApp TRX Test Results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: test-results-sampleapp
           path: TestResults/*.trx
 
       - name: Upload SampleApp Coverage XML Files
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: coverage-xml-sampleapp
           path: TestResults/Coverage/*.xml
@@ -431,7 +431,7 @@ jobs:
           reporttypes: HtmlInline_AzurePipelines;Cobertura
 
       - name: Upload HTML Coverage Report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: coverage-html
           path: TestResults/CoverageReport
@@ -488,7 +488,7 @@ jobs:
         run: docfx docfx.json
 
       - name: Upload generated docs artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: docs-site
           path: _site
