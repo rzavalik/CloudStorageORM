@@ -11,6 +11,7 @@ Common issues and solutions when using CloudStorageORM.
 **Cause**: Azurite is not running.
 
 **Solution**:
+
 ```bash
 docker run -d -p 10000:10000 -p 10001:10001 -p 10002:10002 \
   mcr.microsoft.com/azure-storage/azurite:latest \
@@ -24,13 +25,14 @@ docker run -d -p 10000:10000 -p 10001:10001 -p 10002:10002 \
 **Cause**: LocalStack is not running or service URL is incorrect.
 
 **Solution**:
+
 ```bash
 docker run -d -p 4566:4566 \
   -e SERVICES=s3 \
   localstack/localstack:3
 
 # Verify connection
-aws s3 ls --endpoint-url=http://localhost:4566
+aws s3 ls --endpoint-url=http://127.0.0.1:4566
 ```
 
 ### Invalid credentials
@@ -38,6 +40,7 @@ aws s3 ls --endpoint-url=http://localhost:4566
 **Error**: `UnauthorizedAccessException` or `AccessDeniedException`
 
 **Solution**:
+
 1. Verify credentials are correct
 2. For Azure: check connection string format
 3. For AWS: ensure IAM permissions include s3:*, and try with test/test credentials in local environments
@@ -50,6 +53,7 @@ aws s3 ls --endpoint-url=http://localhost:4566
 **Cause**: CloudStorageORM cannot evaluate a complex LINQ expression directly.
 
 **Solution**:
+
 1. Move complex logic to post-materialization filtering:
    ```csharp
    // ❌ Won't work
@@ -69,6 +73,7 @@ aws s3 ls --endpoint-url=http://localhost:4566
 **Cause**: String comparison for IDs may not behave as expected.
 
 **Solution**: Ensure IDs are comparable. If using guids/strings, consider:
+
 ```csharp
 // Use precise ID filtering
 var user = await context.Users
@@ -95,6 +100,7 @@ var users = await context.Users
 **Cause**: Transaction state corruption or incomplete recovery.
 
 **Solution**: This is rare. If it occurs:
+
 1. Check storage access logs
 2. Verify the transaction manifest files exist under `__cloudstorageorm/tx/`
 3. Consider clearing failed manifests if they are orphaned
@@ -106,6 +112,7 @@ var users = await context.Users
 **Cause**: ETag concurrency is enabled but entities are never retrieved with ETags properly set.
 
 **Solution**:
+
 1. Verify you're querying before updating:
    ```csharp
    var user = await context.Users.FirstOrDefaultAsync(u => u.Id == "123");
@@ -120,6 +127,7 @@ var users = await context.Users
 **Cause**: High contention on frequently updated entities.
 
 **Solution**:
+
 1. Implement conflict resolution (see [Concurrency guide](concurrency.md))
 2. Consider reducing update frequency
 3. Consider cache-aside patterns for read-heavy workloads
@@ -131,6 +139,7 @@ var users = await context.Users
 **Cause**: All results are materialized in memory.
 
 **Solution**:
+
 1. Filter at query time:
    ```csharp
    // ❌ Slow: fetch all
@@ -153,6 +162,7 @@ var users = await context.Users
 **Cause**: Entity serializes to JSON larger than cloud storage limits.
 
 **Solution**:
+
 1. Reduce entity size: split into multiple entities
 2. Compress data before storage (if supported by domain logic)
 3. Store large fields separately

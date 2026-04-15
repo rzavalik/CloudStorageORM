@@ -43,7 +43,7 @@ storage.Azure.ConnectionString =
 ### Limitations
 
 - Not implemented: blob leases for distributed locking (planned v1.1.0)
-- Container must exist before use
+- Container is created automatically on first use when missing
 
 ## AWS S3
 
@@ -59,7 +59,7 @@ storage.ContainerName = "local-bucket";
 storage.Aws.AccessKeyId = "test";
 storage.Aws.SecretAccessKey = "test";
 storage.Aws.Region = "us-east-1";
-storage.Aws.ServiceUrl = "http://localhost:4566";
+storage.Aws.ServiceUrl = "http://127.0.0.1:4566";
 storage.Aws.ForcePathStyle = true;
 ```
 
@@ -93,7 +93,7 @@ storage.Aws.Region = "us-west-2";
 ### Limitations
 
 - Not implemented: S3 object locks for distributed locking (planned v1.1.0)
-- Bucket must exist before use
+- Bucket is created automatically on first use when missing
 
 ## Google Cloud Storage
 

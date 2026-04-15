@@ -53,6 +53,11 @@ The complete auto-generated API documentation for CloudStorageORM, extracted fro
 - See <xref:CloudStorageORM.Repositories.CloudStorageRepository%601>
 - See <xref:CloudStorageORM.Infrastructure.CloudStorageQueryable%601>
 
+**...clear a set efficiently**
+
+- See <xref:CloudStorageORM.Extensions.CloudStorageDbSetExtensions>
+- Use `ClearAsync(this DbSet<TEntity> dbSet, DbContext context, CancellationToken cancellationToken = default)`
+
 **...build a custom provider**
 
 - See <xref:CloudStorageORM.Interfaces.StorageProviders.IStorageProvider>

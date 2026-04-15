@@ -267,75 +267,75 @@ jobs:
         if: always()
         run: docker rm -f localstack || true
 
-      integration-sampleapp:
-        name: Integration Tests (SampleApp)
-        needs: changes
-        if: github.event_name != 'pull_request' || needs.changes.outputs.docs_only != 'true'
-        runs-on: ubuntu-latest
-        env:
-          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-          CLOUDSTORAGEORM_AWS_SERVICE_URL: http://127.0.0.1:4566
-          CLOUDSTORAGEORM_AWS_ACCESS_KEY_ID: test
-          CLOUDSTORAGEORM_AWS_SECRET_ACCESS_KEY: test
-          CLOUDSTORAGEORM_AWS_REGION: us-east-1
-          CLOUDSTORAGEORM_AWS_BUCKET: cloudstorageorm-integration-tests
+  integration-sampleapp:
+    name: Integration Tests (SampleApp)
+    needs: changes
+    if: github.event_name != 'pull_request' || needs.changes.outputs.docs_only != 'true'
+    runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+      CLOUDSTORAGEORM_AWS_SERVICE_URL: http://127.0.0.1:4566
+      CLOUDSTORAGEORM_AWS_ACCESS_KEY_ID: test
+      CLOUDSTORAGEORM_AWS_SECRET_ACCESS_KEY: test
+      CLOUDSTORAGEORM_AWS_REGION: us-east-1
+      CLOUDSTORAGEORM_AWS_BUCKET: cloudstorageorm-integration-tests
 
-        steps:
-        - name: Checkout repository
-          uses: actions/checkout@v5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
 
-        - name: Setup .NET
-          uses: actions/setup-dotnet@v5
-          with:
-            dotnet-version: 10.0.x
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
 
-        - name: Restore SampleApp integration project
-          run: dotnet restore tests/CloudStorageORM.IntegrationTests.SampleApp/CloudStorageORM.IntegrationTests.SampleApp.csproj
+      - name: Restore SampleApp integration project
+        run: dotnet restore tests/CloudStorageORM.IntegrationTests.SampleApp/CloudStorageORM.IntegrationTests.SampleApp.csproj
 
-        - name: Run Azurite Emulator
-          run: |
-            docker run -d -p 10000:10000 -p 10001:10001 -p 10002:10002 --name azurite mcr.microsoft.com/azure-storage/azurite
+      - name: Run Azurite Emulator
+        run: |
+          docker run -d -p 10000:10000 -p 10001:10001 -p 10002:10002 --name azurite mcr.microsoft.com/azure-storage/azurite
 
-        - name: Run LocalStack Emulator (S3)
-          run: |
-            docker run -d -p 4566:4566 \
-              -e SERVICES=s3 \
-              -e AWS_DEFAULT_REGION=us-east-1 \
-              --name localstack \
-              localstack/localstack:3
+      - name: Run LocalStack Emulator (S3)
+        run: |
+          docker run -d -p 4566:4566 \
+            -e SERVICES=s3 \
+            -e AWS_DEFAULT_REGION=us-east-1 \
+            --name localstack \
+            localstack/localstack:3
 
-        - name: Wait for emulators
-          run: sleep 8
+      - name: Wait for emulators
+        run: sleep 8
 
-        - name: Run SampleApp integration tests
-          run: |
-            mkdir -p TestResults/Coverage
-            dotnet test tests/CloudStorageORM.IntegrationTests.SampleApp/CloudStorageORM.IntegrationTests.SampleApp.csproj \
-              --configuration Release \
-              --logger "trx;LogFileName=CloudStorageORM.IntegrationTests.SampleApp.trx" \
-              --collect:"XPlat Code Coverage"
-            find . -name "CloudStorageORM.IntegrationTests.SampleApp.trx" -exec cp {} TestResults/ \;
-            find . -name "coverage.cobertura.xml" -exec cp {} TestResults/Coverage/CloudStorageORM.IntegrationTests.SampleApp.xml \;
+      - name: Run SampleApp integration tests
+        run: |
+          mkdir -p TestResults/Coverage
+          dotnet test tests/CloudStorageORM.IntegrationTests.SampleApp/CloudStorageORM.IntegrationTests.SampleApp.csproj \
+            --configuration Release \
+            --logger "trx;LogFileName=CloudStorageORM.IntegrationTests.SampleApp.trx" \
+            --collect:"XPlat Code Coverage"
+          find . -name "CloudStorageORM.IntegrationTests.SampleApp.trx" -exec cp {} TestResults/ \;
+          find . -name "coverage.cobertura.xml" -exec cp {} TestResults/Coverage/CloudStorageORM.IntegrationTests.SampleApp.xml \;
 
-        - name: Upload SampleApp TRX Test Results
-          uses: actions/upload-artifact@v4
-          with:
-            name: test-results-sampleapp
-            path: TestResults/*.trx
+      - name: Upload SampleApp TRX Test Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-sampleapp
+          path: TestResults/*.trx
 
-        - name: Upload SampleApp Coverage XML Files
-          uses: actions/upload-artifact@v4
-          with:
-            name: coverage-xml-sampleapp
-            path: TestResults/Coverage/*.xml
+      - name: Upload SampleApp Coverage XML Files
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-xml-sampleapp
+          path: TestResults/Coverage/*.xml
 
-        - name: Cleanup Azurite Container
-          if: always()
-          run: docker rm -f azurite || true
+      - name: Cleanup Azurite Container
+        if: always()
+        run: docker rm -f azurite || true
 
-        - name: Cleanup LocalStack Container
-          if: always()
-          run: docker rm -f localstack || true
+      - name: Cleanup LocalStack Container
+        if: always()
+        run: docker rm -f localstack || true
 
   test-report:
     name: Aggregate Test Reports and Coverage

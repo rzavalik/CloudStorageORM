@@ -6,13 +6,13 @@ This guide helps you migrate existing Entity Framework or in-memory applications
 
 ### From EF Core (relational)
 
-| Aspect        | EF Core (SQL)              | CloudStorageORM                     |
-|---------------|----------------------------|-------------------------------------|
-| Storage       | Relational tables          | Cloud object storage (blobs)        |
-| Relationships | Foreign keys, joins        | Not supported; embed or denormalize |
-| Transactions  | Full ACID                  | Durable journal + replay            |
-| Queries       | Server-side SQL evaluation | In-memory LINQ evaluation           |
-| Concurrency   | Row versioning             | ETag-based optimistic               |
+| Aspect        | EF Core (SQL)              | CloudStorageORM                         |
+|---------------|----------------------------|-----------------------------------------|
+| Storage       | Relational tables          | Cloud object storage (blobs)            |
+| Relationships | Foreign keys, joins        | Not supported; embed or denormalize     |
+| Transactions  | Full ACID                  | Durable journal + replay                |
+| Queries       | Server-side SQL evaluation | Key-aware pushdown + in-memory fallback |
+| Concurrency   | Row versioning             | ETag-based optimistic                   |
 
 ### From EF InMemory
 

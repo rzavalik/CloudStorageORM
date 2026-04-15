@@ -109,21 +109,39 @@ This pattern can require loading all objects for the entity type before applying
 
 ## Pagination
 
-CloudStorageORM currently does not push down `Skip`/`Take` to storage, so pagination is materialized and then sliced in
-memory:
+CloudStorageORM now supports `Skip`/`Take` pushdown for supported query shapes. When pushdown applies, object paths are
+paged provider-side and only the requested slice is materialized.
+
+Pushdown applies when:
+
+- pagination appears as a `Skip(...).Take(...)`/`Take(...).Skip(...)` chain at the query edge
+- the pre-pagination query shape avoids unsupported operators (`OrderBy*`, `ThenBy*`, `Select*`, `Reverse`, `GroupBy`,
+  `Distinct`)
+- any predicate is either absent or recognized as a primary-key constraint (`==`, `>`, `>=`, `<`, `<=`)
+
+Example (eligible for pushdown):
 
 ```csharp
 var pageSize = 10;
 var pageNumber = 2;
 
-var users = await context.Users
-    .ToListAsync();
-
-var pagedUsers = users
+var pagedUsers = await context.Users
     .Skip((pageNumber - 1) * pageSize)
     .Take(pageSize)
-    .ToList();
+    .ToListAsync();
 ```
+
+Example with primary-key range + pagination (eligible for pushdown):
+
+```csharp
+var users = await context.Users
+    .Where(u => u.Id >= "100" && u.Id < "200")
+    .Skip(20)
+    .Take(20)
+    .ToListAsync();
+```
+
+When the shape is not eligible, CloudStorageORM falls back to materialize-then-slice behavior.
 
 ## Performance considerations
 
@@ -135,7 +153,7 @@ var pagedUsers = users
 ## Limitations
 
 - No server-side relational query execution; non-key filtering is in-memory
-- No server-side `Skip()` or `Take()` pushdown
+- `Skip()`/`Take()` pushdown is shape-dependent; unsupported query shapes fall back to in-memory slicing
 - No `Include()` for related entities (object storage is not relational)
 - Composite-key optimization behavior is limited; optimize primarily for single primary-key constraints
 - Complex nested queries may require manual materialization and reshaping

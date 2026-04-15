@@ -54,7 +54,7 @@ storage.ContainerName = "my-s3-bucket";
 storage.Aws.AccessKeyId = "AKIA...";
 storage.Aws.SecretAccessKey = "...";
 storage.Aws.Region = "us-east-1";
-storage.Aws.ServiceUrl = "http://localhost:4566"; // For LocalStack
+storage.Aws.ServiceUrl = "http://127.0.0.1:4566"; // For LocalStack
 storage.Aws.ForcePathStyle = false; // Set to true for S3-compatible services
 ```
 
