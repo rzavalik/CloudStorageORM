@@ -5,7 +5,7 @@ Package publishing is handled by `.github/workflows/publish.yml`, which validate
 `README.md` and correct repository/readme metadata before push, then publishes to both NuGet.org and GitHub Packages.
 The same CI workflow also runs a parallel DocFX documentation job that builds the static site and deploys it by branch:
 `main` pushes publish to `gh-pages`, while `feature/docs` pushes publish to `gh-pages-preview` for pre-merge validation.
-Publishing runs on `v*.*.*` tags (for example, `v1.0.13`) or manual dispatch.
+ePublishing runs on `v*.*.*` tags (for example, `v1.0.13`) or manual dispatch.
 
 ---
 
@@ -17,6 +17,20 @@ The workflow runs on:
 - push to `feature/docs`
 - pull request targeting `main`, `feature/**`, `bug/**`, or `hotfix/**`
 - changes under `_site/**` are ignored at trigger time
+
+---
+
+## Dependabot updates
+
+Dependency automation is configured in `.github/dependabot.yml`.
+
+- ecosystems: `nuget` and `github-actions`
+- cadence: weekly on Monday (UTC)
+- PR limits: `10` (`nuget`), `5` (`github-actions`)
+- labels: `dependencies` plus ecosystem-specific labels (`nuget`, `github-actions`)
+- commit prefixes: `deps` (`nuget`) and `ci` (`github-actions`)
+
+Dependabot pull requests run the same CI checks as any other pull request targeting supported branches.
 
 ---
 

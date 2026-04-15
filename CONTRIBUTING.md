@@ -89,6 +89,14 @@ Please include:
 - `Closes #issue_number` when applicable
 - any local setup notes reviewers need (for example, Azurite or LocalStack)
 
+### Dependabot PRs
+
+For PRs opened by Dependabot (`.github/dependabot.yml`):
+
+- keep scope focused on dependency or action updates
+- keep required CI checks green before merge
+- include follow-up notes when a version bump needs behavior or docs changes
+
 ---
 
 ## Coding style requirements
@@ -212,6 +220,7 @@ The most likely files to update are:
 - `docs/testing-with-azurite.md`
 - `docs/testing-with-localstack.md`
 - `docs/ci.md`
+- `.github/dependabot.yml`
 - `docfx.json`
 - `docs/toc.yml`
 - `docs/index.md`
