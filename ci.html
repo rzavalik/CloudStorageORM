@@ -136,6 +136,8 @@ third-party actions continue their Node 24 transitions. This opt-in is enabled i
 <li><code>integration-azure</code> starts Azurite (<code>mcr.microsoft.com/azure-storage/azurite</code>) on <code>10000</code>, <code>10001</code>, <code>10002</code></li>
 <li><code>integration-aws</code> starts LocalStack (<code>localstack/localstack:3</code>) on <code>4566</code></li>
 <li><code>integration-sampleapp</code> starts both Azurite and LocalStack</li>
+<li><code>integration-sampleapp</code> waits for Azurite TCP readiness (<code>127.0.0.1:10000</code>) and LocalStack S3 health (<code>/_localstack/health</code>) before tests run</li>
+<li><code>integration-sampleapp</code> dumps Azurite and LocalStack logs automatically when the test step fails</li>
 </ul>
 <p>AWS test environment variables are injected in CI:</p>
 <ul>
@@ -206,6 +208,7 @@ dotnet tool run reportgenerator \
 <ul>
 <li>If Azure tests fail early, verify Azurite readiness and port collisions.</li>
 <li>If AWS tests fail early, verify LocalStack health and <code>CLOUDSTORAGEORM_AWS_*</code> values.</li>
+<li>If SampleApp integration tests fail, inspect the emulator logs emitted by the <code>Dump emulator logs on failure</code> step.</li>
 <li>If report generation fails, verify <code>dotnet-tools.json</code> is restored (<code>dotnet tool restore</code>).</li>
 <li>If test reporting fails, inspect generated <code>TestResults/*.trx</code> files first.</li>
 <li>If DocFX build fails, run <code>./scripts/setup-docfx-material.sh</code> and then <code>docfx docfx.json</code> locally.</li>

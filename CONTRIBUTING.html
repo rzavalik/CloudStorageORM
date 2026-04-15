@@ -299,8 +299,10 @@ All changes should go through a PR and pass CI.</p>
 <code>CloudStorageORM</code> to NuGet.org and GitHub Packages.</p>
 <p>CI and publish workflows currently opt JavaScript-based GitHub Actions into the Node.js 24 runtime using
 <code>FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true</code>.</p>
-<p>CI runs test lanes in parallel: unit tests, Azure integration tests (Azurite), and AWS integration tests (LocalStack),
-then aggregates TRX and coverage artifacts.</p>
+<p>CI runs test lanes in parallel: unit tests, Azure integration tests (Azurite), AWS integration tests (LocalStack),
+and SampleApp integration tests (Azurite + LocalStack), then aggregates TRX and coverage artifacts.</p>
+<p>The SampleApp lane waits for emulator readiness (Azurite TCP + LocalStack S3 health) before running tests and prints
+emulator logs automatically when that lane fails.</p>
 <p>CI also exports a CycloneDX SBOM artifact (<code>sbom-cyclonedx</code>) for each run.</p>
 <p>If you change CI behavior, update contributor and testing docs in the same PR.</p>
 <hr>
