@@ -21,7 +21,7 @@ Support for **Google Cloud Storage** remains on the roadmap.
 
 ## ✨ Current status
 
-- ✅ Current release line: `v1.0.12`
+- ✅ Current release line: `v1.0.13`
 - ✅ Targets `net10.0`
 - ✅ Azure Blob Storage provider is implemented
 - ✅ AWS S3 provider is implemented
@@ -29,6 +29,8 @@ Support for **Google Cloud Storage** remains on the roadmap.
 - ✅ Sample app runs the same CRUD flow against EF InMemory, Azure, and AWS
 - ✅ Unit + integration tests run locally with Azurite and LocalStack
 - ✅ Coverage collection is wired with Coverlet + ReportGenerator
+- ✅ `v1.0.13` adds server-side `Skip`/`Take` pushdown for supported query shapes
+- ✅ `v1.0.13` refreshes observability guidance for logging, tracing, and diagnostics options
 - 🚧 Google Cloud Storage provider is planned
 
 ---

@@ -2,6 +2,11 @@
 
 CloudStorageORM includes optional observability controls under `CloudStorageOptions.Observability`.
 
+## v1.0.13 release note
+
+The `v1.0.13` release keeps the same observability switches, but the documentation now highlights the
+logging, tracing, and diagnostics surface alongside the new server-side `Skip`/`Take` query support.
+
 ## Current capability on `main`
 
 - `EnableLogging` controls provider query/save log emission from CloudStorageORM internals.

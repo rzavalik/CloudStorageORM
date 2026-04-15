@@ -5,7 +5,7 @@ Package publishing is handled by `.github/workflows/publish.yml`, which validate
 `README.md` and correct repository/readme metadata before push, then publishes to both NuGet.org and GitHub Packages.
 The same CI workflow also runs a parallel DocFX documentation job that builds the static site and deploys it by branch:
 `main` pushes publish to `gh-pages`, while `feature/docs` pushes publish to `gh-pages-preview` for pre-merge validation.
-Publishing runs on `v*.*.*` tags (for example, `v1.0.12`) or manual dispatch.
+Publishing runs on `v*.*.*` tags (for example, `v1.0.13`) or manual dispatch.
 
 ---
 

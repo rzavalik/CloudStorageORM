@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - feature/docs
     paths-ignore:
       - _site/**
   pull_request:
@@ -15,6 +14,10 @@ on:
       - hotfix/**
     paths-ignore:
       - _site/**
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 permissions:
   checks: write

@@ -1,7 +1,7 @@
 # 📦 CloudStorageORM - Library Documentation
 
 **Target Framework**: `net10.0`  
-**Current Release**: `v1.0.12`  
+**Current Release**: `v1.0.13`  
 **Language Version**: `C# 14`  
 **EF Core Packages**: `Microsoft.EntityFrameworkCore 9.0.4`, `Microsoft.EntityFrameworkCore.Relational 9.0.4`  
 **Testing**: `xUnit`, `Shouldly`, `Moq`, `Coverlet`, `ReportGenerator`
@@ -21,6 +21,12 @@ The current branch is focused on:
 - LINQ query execution over persisted blobs
 - CRUD flows that behave similarly to the EF InMemory provider for the sample app
 - Unit and integration test coverage around infrastructure, queries, validators, and provider behavior
+
+## Release notes for `v1.0.13`
+
+- Server-side `Skip`/`Take` pushdown is now supported for eligible query shapes.
+- Observability guidance has been refreshed to reflect the logging, tracing, and diagnostics options available in `CloudStorageOptions.Observability`.
+- The release line has been advanced to `v1.0.13` in the package metadata and public docs.
 
 ---
 
