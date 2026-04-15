@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Troubleshooting | CloudStorageORM </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Troubleshooting | CloudStorageORM ">
+      
+      
+      <link rel="icon" href="favicon.ico">
+      <link rel="stylesheet" href="public/docfx.min.css">
+      <link rel="stylesheet" href="public/main.css">
+      <meta name="docfx:navrel" content="toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/rzavalik/CloudStorageORM/blob/main/docs/troubleshooting.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="index.html">
+            <img id="logo" class="svg" src="logo.svg" alt="CloudStorageORM">
+            CloudStorageORM
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+
+      <div class="content">
+        <div class="actionbar">
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="troubleshooting">Troubleshooting</h1>
+
+<p>Common issues and solutions when using CloudStorageORM.</p>
+<h2 id="connection-issues">Connection issues</h2>
+<h3 id="azure-usedevelopmentstoragetrue-not-working">Azure: &quot;UseDevelopmentStorage=true&quot; not working</h3>
+<p><strong>Error</strong>: <code>System.InvalidOperationException: No valid combination of account information found.</code></p>
+<p><strong>Cause</strong>: Azurite is not running.</p>
+<p><strong>Solution</strong>:</p>
+<pre><code class="lang-bash">docker run -d -p 10000:10000 -p 10001:10001 -p 10002:10002 \
+  mcr.microsoft.com/azure-storage/azurite:latest \
+  azurite --blobHost 0.0.0.0 --skipApiVersionCheck
+</code></pre>
+<h3 id="aws-connection-timeout">AWS: Connection timeout</h3>
+<p><strong>Error</strong>: <code>EndpointConnectionException: Unable to connect to the endpoint...</code></p>
+<p><strong>Cause</strong>: LocalStack is not running or service URL is incorrect.</p>
+<p><strong>Solution</strong>:</p>
+<pre><code class="lang-bash">docker run -d -p 4566:4566 \
+  -e SERVICES=s3 \
+  localstack/localstack:3
+
+# Verify connection
+aws s3 ls --endpoint-url=http://127.0.0.1:4566
+</code></pre>
+<h3 id="invalid-credentials">Invalid credentials</h3>
+<p><strong>Error</strong>: <code>UnauthorizedAccessException</code> or <code>AccessDeniedException</code></p>
+<p><strong>Solution</strong>:</p>
+<ol>
+<li>Verify credentials are correct</li>
+<li>For Azure: check connection string format</li>
+<li>For AWS: ensure IAM permissions include s3:*, and try with test/test credentials in local environments</li>
+<li>Check that the container/bucket exists</li>
+</ol>
+<h2 id="query-issues">Query issues</h2>
+<h3 id="linq-query-evaluation-failed">&quot;LINQ query evaluation failed&quot;</h3>
+<p><strong>Cause</strong>: CloudStorageORM cannot evaluate a complex LINQ expression directly.</p>
+<p><strong>Solution</strong>:</p>
+<ol>
+<li>Move complex logic to post-materialization filtering:
+<pre><code class="lang-csharp">// ❌ Won't work
+var users = await context.Users
+    .Where(u =&gt; u.Email.Contains(&quot;@example.com&quot;))
+    .ToListAsync();
+
+// ✅ Use in-memory filtering
+var users = await context.Users.ToListAsync();
+var filtered = users
+    .Where(u =&gt; u.Email.Contains(&quot;@example.com&quot;))
+    .ToList();
+</code></pre>
+</li>
+</ol>
+<h3 id="no-results-from-range-queries">No results from range queries</h3>
+<p><strong>Cause</strong>: String comparison for IDs may not behave as expected.</p>
+<p><strong>Solution</strong>: Ensure IDs are comparable. If using guids/strings, consider:</p>
+<pre><code class="lang-csharp">// Use precise ID filtering
+var user = await context.Users
+    .FirstOrDefaultAsync(u =&gt; u.Id == exactId);
+
+// For range queries, ensure comparable format
+var users = await context.Users
+    .Where(u =&gt; u.Id.CompareTo(&quot;100&quot;) &gt; 0 &amp;&amp; u.Id.CompareTo(&quot;200&quot;) &lt; 0)
+    .ToListAsync();
+</code></pre>
+<h2 id="transaction-issues">Transaction issues</h2>
+<h3 id="transaction-already-active">&quot;Transaction already active&quot;</h3>
+<p><strong>Error</strong>: <code>InvalidOperationException: A transaction is already active...</code></p>
+<p><strong>Cause</strong>: Trying to begin a transaction when one is already in progress.</p>
+<p><strong>Solution</strong>: Ensure you dispose or commit/rollback the previous transaction first.</p>
+<h3 id="manifest-not-found-during-recovery">&quot;Manifest not found&quot; during recovery</h3>
+<p><strong>Cause</strong>: Transaction state corruption or incomplete recovery.</p>
+<p><strong>Solution</strong>: This is rare. If it occurs:</p>
+<ol>
+<li>Check storage access logs</li>
+<li>Verify the transaction manifest files exist under <code>__cloudstorageorm/tx/</code></li>
+<li>Consider clearing failed manifests if they are orphaned</li>
+</ol>
+<h2 id="concurrency-issues">Concurrency issues</h2>
+<h3 id="dbupdateconcurrencyexception-on-every-update">DbUpdateConcurrencyException on every update</h3>
+<p><strong>Cause</strong>: ETag concurrency is enabled but entities are never retrieved with ETags properly set.</p>
+<p><strong>Solution</strong>:</p>
+<ol>
+<li><p>Verify you're querying before updating:</p>
+<pre><code class="lang-csharp">var user = await context.Users.FirstOrDefaultAsync(u =&gt; u.Id == &quot;123&quot;);
+user.Name = &quot;Updated&quot;;
+await context.SaveChangesAsync(); // ETag should be valid
+</code></pre>
+</li>
+<li><p>Do not manually set ETag; let CloudStorageORM manage it</p>
+</li>
+</ol>
+<h3 id="conflict-detected-errors-in-production">&quot;Conflict detected&quot; errors in production</h3>
+<p><strong>Cause</strong>: High contention on frequently updated entities.</p>
+<p><strong>Solution</strong>:</p>
+<ol>
+<li>Implement conflict resolution (see <a href="concurrency.html">Concurrency guide</a>)</li>
+<li>Consider reducing update frequency</li>
+<li>Consider cache-aside patterns for read-heavy workloads</li>
+</ol>
+<h2 id="performance-issues">Performance issues</h2>
+<h3 id="slow-queries-on-large-datasets">Slow queries on large datasets</h3>
+<p><strong>Cause</strong>: All results are materialized in memory.</p>
+<p><strong>Solution</strong>:</p>
+<ol>
+<li><p>Prefer primary-key predicates when possible (non-key filters still materialize then filter):</p>
+<pre><code class="lang-csharp">// ❌ Slow: fetch all
+var users = (await context.Users.ToListAsync())
+    .Where(u =&gt; u.Status == &quot;Active&quot;);
+
+// ⚠️ Same non-key behavior here today (materialize + in-memory filter)
+var users = await context.Users
+    .Where(u =&gt; u.Status == &quot;Active&quot;)
+    .ToListAsync();
+</code></pre>
+</li>
+<li><p>Use range queries on primary keys for pagination</p>
+</li>
+<li><p>Consider batch operations for bulk updates</p>
+</li>
+</ol>
+<h2 id="validation-errors">Validation errors</h2>
+<h3 id="blobobject-is-too-large">&quot;Blob/object is too large&quot;</h3>
+<p><strong>Cause</strong>: Entity serializes to JSON larger than cloud storage limits.</p>
+<p><strong>Solution</strong>:</p>
+<ol>
+<li>Reduce entity size: split into multiple entities</li>
+<li>Compress data before storage (if supported by domain logic)</li>
+<li>Store large fields separately</li>
+</ol>
+<h2 id="getting-help">Getting help</h2>
+<p>If you encounter issues not covered here:</p>
+<ol>
+<li>Check the <a href="https://github.com/rzavalik/CloudStorageORM/issues">GitHub Issues</a></li>
+<li>Review <a href="api-reference.html">API reference</a> for detailed type info</li>
+<li>Open a <a href="https://github.com/rzavalik/CloudStorageORM/discussions">Discussion</a></li>
+<li>Report bugs with reproduction steps</li>
+</ol>
+<h2 id="see-also">See also</h2>
+<ul>
+<li><a href="configuration.html">Configuration</a></li>
+<li><a href="testing-with-azurite.html">Testing with Azurite</a></li>
+<li><a href="testing-with-localstack.html">Testing with LocalStack</a></li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/rzavalik/CloudStorageORM/blob/main/docs/troubleshooting.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

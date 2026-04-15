@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Class CloudStorageDatabaseCreator | CloudStorageORM </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Class CloudStorageDatabaseCreator | CloudStorageORM ">
+      
+      <meta name="description" content="Lightweight database-creator implementation for the object-storage provider.">
+      <link rel="icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/rzavalik/CloudStorageORM/new/main/apiSpec/new?filename=CloudStorageORM_Infrastructure_CloudStorageDatabaseCreator.md&amp;value=---%0Auid%3A%20CloudStorageORM.Infrastructure.CloudStorageDatabaseCreator%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../logo.svg" alt="CloudStorageORM">
+            CloudStorageORM
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="CloudStorageORM.Infrastructure.CloudStorageDatabaseCreator">
+
+
+
+  <h1 id="CloudStorageORM_Infrastructure_CloudStorageDatabaseCreator" data-uid="CloudStorageORM.Infrastructure.CloudStorageDatabaseCreator" class="text-break">
+Class CloudStorageDatabaseCreator  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageDatabaseCreator.cs/#L8"><i class="bi bi-code-slash"></i></a>
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="CloudStorageORM.html">CloudStorageORM</a>.<a class="xref" href="CloudStorageORM.Infrastructure.html">Infrastructure</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>CloudStorageORM.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"><p>Lightweight database-creator implementation for the object-storage provider.</p>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class CloudStorageDatabaseCreator : IDatabaseCreator</code></pre>
+  </div>
+
+
+
+
+  <dl class="typelist inheritance">
+    <dt>Inheritance</dt>
+    <dd>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
+      <div><span class="xref">CloudStorageDatabaseCreator</span></div>
+    </dd>
+  </dl>
+
+  <dl class="typelist implements">
+    <dt>Implements</dt>
+    <dd>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/microsoft.entityframeworkcore.storage.idatabasecreator">IDatabaseCreator</a></div>
+    </dd>
+  </dl>
+
+
+  <dl class="typelist inheritedMembers">
+    <dt>Inherited Members</dt>
+    <dd>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)">object.Equals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gethashcode">object.GetHashCode()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gettype">object.GetType()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone">object.MemberwiseClone()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.tostring">object.ToString()</a>
+    </div>
+  </dd></dl>
+
+
+
+
+
+
+  <h2 class="section" id="methods">Methods
+</h2>
+
+
+  <a id="CloudStorageORM_Infrastructure_CloudStorageDatabaseCreator_CanConnect_" data-uid="CloudStorageORM.Infrastructure.CloudStorageDatabaseCreator.CanConnect*"></a>
+
+  <h3 id="CloudStorageORM_Infrastructure_CloudStorageDatabaseCreator_CanConnect" data-uid="CloudStorageORM.Infrastructure.CloudStorageDatabaseCreator.CanConnect">
+  CanConnect()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageDatabaseCreator.cs/#L14"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Determines whether the provider can connect to its backing store.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool CanConnect()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd><p><a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">true</a> when a connection can be established.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="CloudStorageORM_Infrastructure_CloudStorageDatabaseCreator_CanConnectAsync_" data-uid="CloudStorageORM.Infrastructure.CloudStorageDatabaseCreator.CanConnectAsync*"></a>
+
+  <h3 id="CloudStorageORM_Infrastructure_CloudStorageDatabaseCreator_CanConnectAsync_System_Threading_CancellationToken_" data-uid="CloudStorageORM.Infrastructure.CloudStorageDatabaseCreator.CanConnectAsync(System.Threading.CancellationToken)">
+  CanConnectAsync(CancellationToken)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageDatabaseCreator.cs/#L24"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Determines whether the provider can connect to its backing store.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task&lt;bool&gt; CanConnectAsync(CancellationToken cancellationToken = default)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>cancellationToken</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.cancellationtoken">CancellationToken</a></dt>
+    <dd><p>Cancellation token.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task-1">Task</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a>&gt;</dt>
+    <dd><p><a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">true</a> when a connection can be established.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="CloudStorageORM_Infrastructure_CloudStorageDatabaseCreator_Create_" data-uid="CloudStorageORM.Infrastructure.CloudStorageDatabaseCreator.Create*"></a>
+
+  <h3 id="CloudStorageORM_Infrastructure_CloudStorageDatabaseCreator_Create" data-uid="CloudStorageORM.Infrastructure.CloudStorageDatabaseCreator.Create">
+  Create()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageDatabaseCreator.cs/#L32"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Creates provider backing resources when applicable.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Create()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="CloudStorageORM_Infrastructure_CloudStorageDatabaseCreator_CreateAsync_" data-uid="CloudStorageORM.Infrastructure.CloudStorageDatabaseCreator.CreateAsync*"></a>
+
+  <h3 id="CloudStorageORM_Infrastructure_CloudStorageDatabaseCreator_CreateAsync_System_Threading_CancellationToken_" data-uid="CloudStorageORM.Infrastructure.CloudStorageDatabaseCreator.CreateAsync(System.Threading.CancellationToken)">
+  CreateAsync(CancellationToken)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageDatabaseCreator.cs/#L40"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Creates provider backing resources when applicable.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task CreateAsync(CancellationToken cancellationToken = default)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>cancellationToken</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.cancellationtoken">CancellationToken</a></dt>
+    <dd><p>Cancellation token.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task">Task</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="CloudStorageORM_Infrastructure_CloudStorageDatabaseCreator_Delete_" data-uid="CloudStorageORM.Infrastructure.CloudStorageDatabaseCreator.Delete*"></a>
+
+  <h3 id="CloudStorageORM_Infrastructure_CloudStorageDatabaseCreator_Delete" data-uid="CloudStorageORM.Infrastructure.CloudStorageDatabaseCreator.Delete">
+  Delete()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageDatabaseCreator.cs/#L45"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Deletes provider backing resources when applicable.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Delete()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="CloudStorageORM_Infrastructure_CloudStorageDatabaseCreator_DeleteAsync_" data-uid="CloudStorageORM.Infrastructure.CloudStorageDatabaseCreator.DeleteAsync*"></a>
+
+  <h3 id="CloudStorageORM_Infrastructure_CloudStorageDatabaseCreator_DeleteAsync_System_Threading_CancellationToken_" data-uid="CloudStorageORM.Infrastructure.CloudStorageDatabaseCreator.DeleteAsync(System.Threading.CancellationToken)">
+  DeleteAsync(CancellationToken)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageDatabaseCreator.cs/#L53"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Deletes provider backing resources when applicable.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task DeleteAsync(CancellationToken cancellationToken = default)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>cancellationToken</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.cancellationtoken">CancellationToken</a></dt>
+    <dd><p>Cancellation token.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task">Task</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="CloudStorageORM_Infrastructure_CloudStorageDatabaseCreator_EnsureCreated_" data-uid="CloudStorageORM.Infrastructure.CloudStorageDatabaseCreator.EnsureCreated*"></a>
+
+  <h3 id="CloudStorageORM_Infrastructure_CloudStorageDatabaseCreator_EnsureCreated" data-uid="CloudStorageORM.Infrastructure.CloudStorageDatabaseCreator.EnsureCreated">
+  EnsureCreated()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageDatabaseCreator.cs/#L59"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Ensures backing resources exist.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool EnsureCreated()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd><p><a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">true</a> when resources were created during this call.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="CloudStorageORM_Infrastructure_CloudStorageDatabaseCreator_EnsureCreatedAsync_" data-uid="CloudStorageORM.Infrastructure.CloudStorageDatabaseCreator.EnsureCreatedAsync*"></a>
+
+  <h3 id="CloudStorageORM_Infrastructure_CloudStorageDatabaseCreator_EnsureCreatedAsync_System_Threading_CancellationToken_" data-uid="CloudStorageORM.Infrastructure.CloudStorageDatabaseCreator.EnsureCreatedAsync(System.Threading.CancellationToken)">
+  EnsureCreatedAsync(CancellationToken)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageDatabaseCreator.cs/#L69"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Ensures backing resources exist.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task&lt;bool&gt; EnsureCreatedAsync(CancellationToken cancellationToken = default)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>cancellationToken</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.cancellationtoken">CancellationToken</a></dt>
+    <dd><p>Cancellation token.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task-1">Task</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a>&gt;</dt>
+    <dd><p><a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">true</a> when resources were created during this call.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="CloudStorageORM_Infrastructure_CloudStorageDatabaseCreator_EnsureDeleted_" data-uid="CloudStorageORM.Infrastructure.CloudStorageDatabaseCreator.EnsureDeleted*"></a>
+
+  <h3 id="CloudStorageORM_Infrastructure_CloudStorageDatabaseCreator_EnsureDeleted" data-uid="CloudStorageORM.Infrastructure.CloudStorageDatabaseCreator.EnsureDeleted">
+  EnsureDeleted()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageDatabaseCreator.cs/#L78"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Ensures backing resources are deleted.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool EnsureDeleted()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd><p><a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">true</a> when resources were deleted during this call.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="CloudStorageORM_Infrastructure_CloudStorageDatabaseCreator_EnsureDeletedAsync_" data-uid="CloudStorageORM.Infrastructure.CloudStorageDatabaseCreator.EnsureDeletedAsync*"></a>
+
+  <h3 id="CloudStorageORM_Infrastructure_CloudStorageDatabaseCreator_EnsureDeletedAsync_System_Threading_CancellationToken_" data-uid="CloudStorageORM.Infrastructure.CloudStorageDatabaseCreator.EnsureDeletedAsync(System.Threading.CancellationToken)">
+  EnsureDeletedAsync(CancellationToken)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageDatabaseCreator.cs/#L88"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Ensures backing resources are deleted.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task&lt;bool&gt; EnsureDeletedAsync(CancellationToken cancellationToken = default)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>cancellationToken</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.cancellationtoken">CancellationToken</a></dt>
+    <dd><p>Cancellation token.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task-1">Task</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a>&gt;</dt>
+    <dd><p><a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">true</a> when resources were deleted during this call.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="CloudStorageORM_Infrastructure_CloudStorageDatabaseCreator_Exists_" data-uid="CloudStorageORM.Infrastructure.CloudStorageDatabaseCreator.Exists*"></a>
+
+  <h3 id="CloudStorageORM_Infrastructure_CloudStorageDatabaseCreator_Exists" data-uid="CloudStorageORM.Infrastructure.CloudStorageDatabaseCreator.Exists">
+  Exists()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageDatabaseCreator.cs/#L97"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Checks whether backing resources currently exist.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool Exists()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd><p><a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">true</a> when resources exist.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="CloudStorageORM_Infrastructure_CloudStorageDatabaseCreator_ExistsAsync_" data-uid="CloudStorageORM.Infrastructure.CloudStorageDatabaseCreator.ExistsAsync*"></a>
+
+  <h3 id="CloudStorageORM_Infrastructure_CloudStorageDatabaseCreator_ExistsAsync_System_Threading_CancellationToken_" data-uid="CloudStorageORM.Infrastructure.CloudStorageDatabaseCreator.ExistsAsync(System.Threading.CancellationToken)">
+  ExistsAsync(CancellationToken)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageDatabaseCreator.cs/#L104"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Checks whether backing resources currently exist.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task&lt;bool&gt; ExistsAsync(CancellationToken cancellationToken = default)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>cancellationToken</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.cancellationtoken">CancellationToken</a></dt>
+    <dd><p>Cancellation token.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task-1">Task</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a>&gt;</dt>
+    <dd><p><a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">true</a> when resources exist.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="CloudStorageORM_Infrastructure_CloudStorageDatabaseCreator_HasTables_" data-uid="CloudStorageORM.Infrastructure.CloudStorageDatabaseCreator.HasTables*"></a>
+
+  <h3 id="CloudStorageORM_Infrastructure_CloudStorageDatabaseCreator_HasTables" data-uid="CloudStorageORM.Infrastructure.CloudStorageDatabaseCreator.HasTables">
+  HasTables()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageDatabaseCreator.cs/#L110"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Checks whether backing resources contain logical tables/collections.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool HasTables()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd><p><a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">true</a> when logical tables are available.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="CloudStorageORM_Infrastructure_CloudStorageDatabaseCreator_HasTablesAsync_" data-uid="CloudStorageORM.Infrastructure.CloudStorageDatabaseCreator.HasTablesAsync*"></a>
+
+  <h3 id="CloudStorageORM_Infrastructure_CloudStorageDatabaseCreator_HasTablesAsync_System_Threading_CancellationToken_" data-uid="CloudStorageORM.Infrastructure.CloudStorageDatabaseCreator.HasTablesAsync(System.Threading.CancellationToken)">
+  HasTablesAsync(CancellationToken)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageDatabaseCreator.cs/#L117"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Checks whether backing resources contain logical tables/collections.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task&lt;bool&gt; HasTablesAsync(CancellationToken cancellationToken = default)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>cancellationToken</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.cancellationtoken">CancellationToken</a></dt>
+    <dd><p>Cancellation token.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task-1">Task</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a>&gt;</dt>
+    <dd><p><a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">true</a> when logical tables are available.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageDatabaseCreator.cs/#L8" class="edit-link">Edit this page</a>
+        </div>
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

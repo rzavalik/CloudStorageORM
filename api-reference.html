@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>API reference | CloudStorageORM </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="API reference | CloudStorageORM ">
+      
+      
+      <link rel="icon" href="favicon.ico">
+      <link rel="stylesheet" href="public/docfx.min.css">
+      <link rel="stylesheet" href="public/main.css">
+      <meta name="docfx:navrel" content="toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/rzavalik/CloudStorageORM/blob/main/docs/api-reference.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="index.html">
+            <img id="logo" class="svg" src="logo.svg" alt="CloudStorageORM">
+            CloudStorageORM
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+
+      <div class="content">
+        <div class="actionbar">
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="api-reference">API reference</h1>
+
+<p>The complete auto-generated API documentation for CloudStorageORM, extracted from source code and XML documentation.</p>
+<h2 id="main-namespaces">Main namespaces</h2>
+<h3 id="core-contexts">Core contexts</h3>
+<ul>
+<li><a class="xref" href="api/CloudStorageORM.Contexts.html">CloudStorageORM.Contexts</a> — Base <code>CloudStorageDbContext</code> for consumer applications</li>
+</ul>
+<h3 id="configuration-and-setup">Configuration and setup</h3>
+<ul>
+<li><a class="xref" href="api/CloudStorageORM.Extensions.html">CloudStorageORM.Extensions</a> — Configuration extensions (<code>UseCloudStorageOrm</code>, etc.)</li>
+<li><a class="xref" href="api/CloudStorageORM.Options.html">CloudStorageORM.Options</a> — Configuration model (<code>CloudStorageOptions</code>, Azure/AWS options)</li>
+</ul>
+<h3 id="providers">Providers</h3>
+<ul>
+<li><a class="xref" href="api/CloudStorageORM.Providers.html">CloudStorageORM.Providers</a> — Provider factory and base abstractions</li>
+<li><a class="xref" href="api/CloudStorageORM.Providers.Azure.StorageProviders.html">CloudStorageORM.Providers.Azure.StorageProviders</a> — Azure Blob Storage provider</li>
+<li><a class="xref" href="api/CloudStorageORM.Providers.Aws.StorageProviders.html">CloudStorageORM.Providers.Aws.StorageProviders</a> — AWS S3 provider</li>
+</ul>
+<h3 id="querying-and-repositories">Querying and repositories</h3>
+<ul>
+<li><a class="xref" href="api/CloudStorageORM.Repositories.html">CloudStorageORM.Repositories</a> — Repository helpers and queryable implementations</li>
+<li><a class="xref" href="api/CloudStorageORM.Infrastructure.html">CloudStorageORM.Infrastructure</a> — Query pipeline and EF integration</li>
+</ul>
+<h3 id="model-support">Model support</h3>
+<ul>
+<li><a class="xref" href="api/CloudStorageORM.Abstractions.html">CloudStorageORM.Abstractions</a> — Base interfaces and attributes (including <code>IETag</code>)</li>
+<li><a class="xref" href="api/CloudStorageORM.Enums.html">CloudStorageORM.Enums</a> — Enums like <code>CloudProvider</code></li>
+</ul>
+<h2 id="by-common-task">By common task</h2>
+<h3 id="i-want-to">I want to...</h3>
+<p><strong>...configure CloudStorageORM</strong></p>
+<ul>
+<li>See <a class="xref" href="api/CloudStorageORM.Extensions.CloudStorageOrmExtensions.html">CloudStorageOrmExtensions</a></li>
+<li>See <a class="xref" href="api/CloudStorageORM.Options.CloudStorageOptions.html">CloudStorageOptions</a></li>
+</ul>
+<p><strong>...use transactions</strong></p>
+<ul>
+<li>See <code>CloudStorageDbContext.Database.BeginTransactionAsync()</code></li>
+<li>See transaction classes in <a class="xref" href="api/CloudStorageORM.Infrastructure.html">CloudStorageORM.Infrastructure</a></li>
+</ul>
+<p><strong>...implement optimistic concurrency</strong></p>
+<ul>
+<li>See <a class="xref" href="api/CloudStorageORM.Extensions.ModelBuilderExtensions.html">ModelBuilderExtensions</a></li>
+<li>See <a class="xref" href="api/CloudStorageORM.Abstractions.IETag.html">IETag</a></li>
+</ul>
+<p><strong>...write custom queries</strong></p>
+<ul>
+<li>See <a class="xref" href="api/CloudStorageORM.Repositories.CloudStorageRepository-1.html">CloudStorageRepository&lt;TEntity&gt;</a></li>
+<li>See <a class="xref" href="api/CloudStorageORM.Infrastructure.CloudStorageQueryable-1.html">CloudStorageQueryable&lt;T&gt;</a></li>
+</ul>
+<p><strong>...clear a set efficiently</strong></p>
+<ul>
+<li>See <a class="xref" href="api/CloudStorageORM.Extensions.CloudStorageDbSetExtensions.html">CloudStorageDbSetExtensions</a></li>
+<li>Use <code>ClearAsync(this DbSet&lt;TEntity&gt; dbSet, DbContext context, CancellationToken cancellationToken = default)</code></li>
+</ul>
+<p><strong>...build a custom provider</strong></p>
+<ul>
+<li>See <a class="xref" href="api/CloudStorageORM.Interfaces.StorageProviders.IStorageProvider.html">IStorageProvider</a></li>
+<li>See <a class="xref" href="api/CloudStorageORM.Providers.ProviderFactory.html">ProviderFactory</a></li>
+</ul>
+<h2 id="see-also">See also</h2>
+<ul>
+<li><a href="getting-started.html">Getting started</a></li>
+<li><a href="configuration.html">Configuration guide</a></li>
+<li><a href="query-patterns.html">Query patterns</a></li>
+<li><a href="CloudStorageORM.html">Library guide</a></li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/rzavalik/CloudStorageORM/blob/main/docs/api-reference.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

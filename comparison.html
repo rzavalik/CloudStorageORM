@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Comparison with Other Frameworks | CloudStorageORM </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Comparison with Other Frameworks | CloudStorageORM ">
+      
+      
+      <link rel="icon" href="favicon.ico">
+      <link rel="stylesheet" href="public/docfx.min.css">
+      <link rel="stylesheet" href="public/main.css">
+      <meta name="docfx:navrel" content="toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/rzavalik/CloudStorageORM/blob/main/docs/comparison.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="index.html">
+            <img id="logo" class="svg" src="logo.svg" alt="CloudStorageORM">
+            CloudStorageORM
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+
+      <div class="content">
+        <div class="actionbar">
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="comparison-with-other-frameworks">Comparison with Other Frameworks</h1>
+
+<p>CloudStorageORM provides a unique approach to cloud storage access in the .NET ecosystem. This page compares it with
+similar solutions across different languages and platforms.</p>
+<h2 id="what-makes-cloudstorageorm-unique">What Makes CloudStorageORM Unique?</h2>
+<p>CloudStorageORM bridges the gap between <strong>Object-Oriented Development</strong> and <strong>Cloud Storage</strong> by providing an Entity
+Framework-like experience. Most cloud storage solutions fall into one of two categories:</p>
+<ol>
+<li><strong>Raw Client Libraries</strong> - Direct API access (minimal abstraction)</li>
+<li><strong>Abstraction Layers</strong> - Unified interface across providers (but still file/blob-focused)</li>
+</ol>
+<p>CloudStorageORM goes further by allowing you to map .NET classes directly to blob storage with automatic
+serialization/deserialization, just like Entity Framework does for databases.</p>
+<h2 id="cross-language-comparison">Cross-Language Comparison</h2>
+<h3 id="java-hibernate--cdata-jdbc-driver">Java: Hibernate + CData JDBC Driver</h3>
+<table>
+<thead>
+<tr>
+<th>Aspect</th>
+<th>CloudStorageORM</th>
+<th>Hibernate + CData</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Learning Curve</strong></td>
+<td>Entity Framework developers feel at home</td>
+<td>Steeper - requires JDBC knowledge</td>
+</tr>
+<tr>
+<td><strong>Type Safety</strong></td>
+<td>Native .NET generics</td>
+<td>Java generics via Hibernate entities</td>
+</tr>
+<tr>
+<td><strong>Multi-Provider Support</strong></td>
+<td>Azure Blob Storage, AWS S3 (Google Cloud coming)</td>
+<td>Limited to JDBC-compatible sources</td>
+</tr>
+<tr>
+<td><strong>Serialization</strong></td>
+<td>JSON (built-in)</td>
+<td>CSV, JSON, XML (via CData)</td>
+</tr>
+<tr>
+<td><strong>Query Pattern</strong></td>
+<td>LINQ-style (IQueryable)</td>
+<td>HQL/SQL translated to API calls</td>
+</tr>
+<tr>
+<td><strong>Native Integration</strong></td>
+<td>Designed for .NET 10+</td>
+<td>Bridge layer overhead</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Verdict:</strong> Similar philosophy, but CloudStorageORM is more tightly integrated with .NET conventions.</p>
+<hr>
+<h3 id="python-cloud-pathlib--pydantic">Python: Cloud-Pathlib + Pydantic</h3>
+<table>
+<thead>
+<tr>
+<th>Aspect</th>
+<th>CloudStorageORM</th>
+<th>Cloud-Pathlib + Pydantic</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Unified API</strong></td>
+<td>Azure/AWS with single code path</td>
+<td>Cloud-pathlib provides filesystem interface</td>
+</tr>
+<tr>
+<td><strong>Type Mapping</strong></td>
+<td>Attributes-based configuration</td>
+<td>Pydantic models for serialization</td>
+</tr>
+<tr>
+<td><strong>Ease of Use</strong></td>
+<td>DbContext + DbSet pattern (familiar to .NET devs)</td>
+<td>Combine multiple libraries</td>
+</tr>
+<tr>
+<td><strong>Async Support</strong></td>
+<td>First-class async patterns</td>
+<td>Async through underlying libraries</td>
+</tr>
+<tr>
+<td><strong>Dependency Injection</strong></td>
+<td>Built-in DI integration</td>
+<td>Manual composition required</td>
+</tr>
+<tr>
+<td><strong>DbSet Queries</strong></td>
+<td>Rich LINQ support</td>
+<td>Manual filtering/enumeration</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Verdict:</strong> Python approach is more lightweight; CloudStorageORM is more opinionated and structured.</p>
+<hr>
+<h3 id="nodejstypescript-">Node.js/TypeScript: @itwin/object-storage</h3>
+<table>
+<thead>
+<tr>
+<th>Aspect</th>
+<th>CloudStorageORM</th>
+<th>@itwin/object-storage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Provider Abstraction</strong></td>
+<td>Multi-provider support with consistent API</td>
+<td>Adapters for provider-specific implementations</td>
+</tr>
+<tr>
+<td><strong>Object Mapping</strong></td>
+<td>Auto-serialization with attributes</td>
+<td>Manual mapping required</td>
+</tr>
+<tr>
+<td><strong>Language Features</strong></td>
+<td>Leverages .NET attributes and reflection</td>
+<td>Leverages TypeScript interfaces</td>
+</tr>
+<tr>
+<td><strong>Enterprise Ready</strong></td>
+<td>Full transaction support</td>
+<td>Basic transactional support</td>
+</tr>
+<tr>
+<td><strong>Configuration</strong></td>
+<td>UseCloudStorageOrm() fluent API</td>
+<td>Adapter-based configuration</td>
+</tr>
+<tr>
+<td><strong>Metadata Support</strong></td>
+<td>Integrated ETag and blob settings</td>
+<td>Provider-specific metadata handling</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Verdict:</strong> @itwin/object-storage is more minimalist; CloudStorageORM provides more batteries-included features.</p>
+<hr>
+<h3 id="apache-libcloud-multi-language">Apache Libcloud (Multi-Language)</h3>
+<table>
+<thead>
+<tr>
+<th>Aspect</th>
+<th>CloudStorageORM</th>
+<th>Apache Libcloud</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Goal</strong></td>
+<td>EF-like ORM for cloud storage</td>
+<td>Cloud provider abstraction layer</td>
+</tr>
+<tr>
+<td><strong>Scope</strong></td>
+<td>Focused on object storage mapping</td>
+<td>50+ cloud provider types</td>
+</tr>
+<tr>
+<td><strong>Type Safety</strong></td>
+<td>Strong typing with .NET generics</td>
+<td>Dynamic/loosely typed</td>
+</tr>
+<tr>
+<td><strong>ORM Patterns</strong></td>
+<td>DbSet, LINQ, ETag support</td>
+<td>Key-value object interface</td>
+</tr>
+<tr>
+<td><strong>Serialization</strong></td>
+<td>Automatic JSON mapping</td>
+<td>Manual serialization</td>
+</tr>
+<tr>
+<td><strong>Maturity</strong></td>
+<td>Actively maintained</td>
+<td>Long-term stability</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Verdict:</strong> Libcloud is more about <em>abstraction</em>, CloudStorageORM is about <em>object mapping</em>.</p>
+<hr>
+<h3 id="rust-object_store">Rust: object_store</h3>
+<table>
+<thead>
+<tr>
+<th>Aspect</th>
+<th>CloudStorageORM</th>
+<th>object_store</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Abstraction Level</strong></td>
+<td>High-level ORM patterns</td>
+<td>Low-level, zero-copy API</td>
+</tr>
+<tr>
+<td><strong>Performance</strong></td>
+<td>Optimized for .NET runtime</td>
+<td>Optimized for async Rust</td>
+</tr>
+<tr>
+<td><strong>Usage Pattern</strong></td>
+<td>DbContext/DbSet (application layer)</td>
+<td>Direct API calls (library use)</td>
+</tr>
+<tr>
+<td><strong>Provider Support</strong></td>
+<td>Azure, AWS, Google Cloud (planned)</td>
+<td>AWS, Azure, Google Cloud, local</td>
+</tr>
+<tr>
+<td><strong>Type Safety</strong></td>
+<td>.NET reflection and attributes</td>
+<td>Rust compile-time guarantees</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Verdict:</strong> object_store is more performance-focused; CloudStorageORM is more developer-focused.</p>
+<hr>
+<h2 id="summary-table">Summary Table</h2>
+<table>
+<thead>
+<tr>
+<th>Language</th>
+<th>Framework</th>
+<th>Type</th>
+<th>Closest to CloudStorageORM</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>C#</strong></td>
+<td><strong>CloudStorageORM</strong></td>
+<td><strong>Full ORM</strong></td>
+<td>⭐ This is it!</td>
+</tr>
+<tr>
+<td>Java</td>
+<td>Hibernate + CData GCS</td>
+<td>Relational Proxy</td>
+<td>⚠️ Similar philosophy</td>
+</tr>
+<tr>
+<td>Python</td>
+<td>Cloud-Pathlib + Pydantic</td>
+<td>Composition Pattern</td>
+<td>⚠️ Manual assembly</td>
+</tr>
+<tr>
+<td>Node.js</td>
+<td>@itwin/object-storage</td>
+<td>Adapter Pattern</td>
+<td>⚠️ Less opinionated</td>
+</tr>
+<tr>
+<td>Go</td>
+<td>Apache Libcloud</td>
+<td>Abstraction Layer</td>
+<td>❌ Different goal</td>
+</tr>
+<tr>
+<td>Rust</td>
+<td>object_store</td>
+<td>Low-level API</td>
+<td>❌ Performance-focused</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="when-to-choose-cloudstorageorm">When to Choose CloudStorageORM</h2>
+<p>Choose CloudStorageORM if you need:</p>
+<p>✅ <strong>Entity Framework-like experience</strong> for cloud storage<br>
+✅ <strong>Strong typing</strong> with automatic serialization<br>
+✅ <strong>Multi-provider support</strong> (Azure Blob Storage, AWS S3, Google Cloud planned)<br>
+✅ <strong>LINQ query patterns</strong> for enumerating objects<br>
+✅ <strong>Transaction support</strong> across operations<br>
+✅ <strong>Native .NET integration</strong> with dependency injection<br>
+✅ <strong>DbSet pattern</strong> familiar to EF developers</p>
+<hr>
+<h2 id="alternatives-to-consider">Alternatives to Consider</h2>
+<ul>
+<li><strong>Raw Azure SDK / AWS SDK</strong> - Maximum control, zero abstraction</li>
+<li><strong>Blob Abstraction Libraries</strong> - Provider abstraction without ORM patterns</li>
+<li><strong>Document Databases</strong> - If your data is semi-structured (CosmosDB, DynamoDB)</li>
+<li><strong>File Shares</strong> - If POSIX-like filesystem semantics are acceptable (Azure Files)</li>
+</ul>
+<hr>
+<h2 id="contributing-feedback">Contributing Feedback</h2>
+<p>If you've compared CloudStorageORM with another framework, please share your findings! Open an issue
+on <a href="https://github.com/rzavalik/CloudStorageORM">GitHub</a> with your comparison.</p>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/rzavalik/CloudStorageORM/blob/main/docs/comparison.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

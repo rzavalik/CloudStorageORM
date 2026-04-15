@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>&#128230; CloudStorageORM - Library Documentation | CloudStorageORM </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="&#128230; CloudStorageORM - Library Documentation | CloudStorageORM ">
+      
+      
+      <link rel="icon" href="favicon.ico">
+      <link rel="stylesheet" href="public/docfx.min.css">
+      <link rel="stylesheet" href="public/main.css">
+      <meta name="docfx:navrel" content="toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/rzavalik/CloudStorageORM/blob/main/docs/CloudStorageORM.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="index.html">
+            <img id="logo" class="svg" src="logo.svg" alt="CloudStorageORM">
+            CloudStorageORM
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+
+      <div class="content">
+        <div class="actionbar">
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="-cloudstorageorm---library-documentation">📦 CloudStorageORM - Library Documentation</h1>
+
+<p><strong>Target Framework</strong>: <code>net10.0</code><br>
+<strong>Current Release</strong>: <code>v1.0.13</code><br>
+<strong>Language Version</strong>: <code>C# 14</code><br>
+<strong>EF Core Packages</strong>: <code>Microsoft.EntityFrameworkCore 9.0.4</code>, <code>Microsoft.EntityFrameworkCore.Relational 9.0.4</code><br>
+<strong>Testing</strong>: <code>xUnit</code>, <code>Shouldly</code>, <code>Moq</code>, <code>Coverlet</code>, <code>ReportGenerator</code></p>
+<hr>
+<h2 id="overview">Overview</h2>
+<p><code>CloudStorageORM</code> is an Entity Framework-style provider that lets a .NET application persist entities into cloud object
+storage.
+On the current <code>main</code> branch, implemented storage providers are <strong>Azure Blob Storage</strong> and <strong>AWS S3</strong>.
+The provider surface is designed so that <strong>Google Cloud Storage</strong> can be added later.</p>
+<p>The current branch is focused on:</p>
+<ul>
+<li>EF-style <code>DbContext</code> integration</li>
+<li>LINQ query execution over persisted blobs</li>
+<li>CRUD flows that behave similarly to the EF InMemory provider for the sample app</li>
+<li>Unit and integration test coverage around infrastructure, queries, validators, and provider behavior</li>
+</ul>
+<h2 id="release-notes-for-v1013">Release notes for <code>v1.0.13</code></h2>
+<ul>
+<li>Server-side <code>Skip</code>/<code>Take</code> pushdown is now supported for eligible query shapes.</li>
+<li>Observability guidance has been refreshed to reflect the logging, tracing, and diagnostics options available in <code>CloudStorageOptions.Observability</code>.</li>
+<li>The release line has been advanced to <code>v1.0.13</code> in the package metadata and public docs.</li>
+</ul>
+<hr>
+<h2 id="current-project-structure">Current project structure</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Path</th>
+<th style="text-align: left;">Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>src/CloudStorageORM/Contexts</code></td>
+<td style="text-align: left;">Base <code>CloudStorageDbContext</code> used by consuming applications</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>src/CloudStorageORM/Extensions</code></td>
+<td style="text-align: left;">EF and DI extension methods such as <code>UseCloudStorageOrm(...)</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>src/CloudStorageORM/Infrastructure</code></td>
+<td style="text-align: left;">Query pipeline, database abstractions, type mapping, and EF integration internals</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>src/CloudStorageORM/Interfaces</code></td>
+<td style="text-align: left;">Contracts for storage providers, validators, repositories, and infrastructure helpers</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>src/CloudStorageORM/Options</code></td>
+<td style="text-align: left;"><code>CloudStorageOptions</code> configuration model</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>src/CloudStorageORM/Providers/Azure</code></td>
+<td style="text-align: left;">Azure Blob Storage provider and validator implementation</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>src/CloudStorageORM/Providers/Aws</code></td>
+<td style="text-align: left;">AWS S3 provider and validator implementation</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>src/CloudStorageORM/Repositories</code></td>
+<td style="text-align: left;">Repository and queryable helpers</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>src/CloudStorageORM/Validators</code></td>
+<td style="text-align: left;">Model and blob validation rules</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>samples/CloudStorageORM.SampleApp</code></td>
+<td style="text-align: left;">Console sample that runs the same flow against InMemory and CloudStorageORM</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>tests/CloudStorageORM.Tests</code></td>
+<td style="text-align: left;">Unit tests</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>tests/CloudStorageORM.IntegrationTests</code></td>
+<td style="text-align: left;">Provider integration tests split by Azure and AWS</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>tests/CloudStorageORM.IntegrationTests.SampleApp</code></td>
+<td style="text-align: left;">Sample app process integration tests</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="main-public-entry-points">Main public entry points</h2>
+<h3 id="cloudstorageormextensionscloudstorageormextensions"><code>CloudStorageORM.Extensions.CloudStorageOrmExtensions</code></h3>
+<p>Adds the provider to EF Core through:</p>
+<ul>
+<li><code>UseCloudStorageOrm(this DbContextOptionsBuilder builder, Action&lt;CloudStorageOptions&gt;? configureOptions)</code></li>
+<li><code>UseCloudStorageOrm&lt;TContext&gt;(...)</code></li>
+</ul>
+<p>Use this when configuring a context with <code>AddDbContext(...)</code>.</p>
+<p>Configuration model on the current branch:</p>
+<ul>
+<li>Common fields: <code>CloudStorageOptions.Provider</code>, <code>CloudStorageOptions.ContainerName</code></li>
+<li>Azure fields: <code>CloudStorageOptions.Azure.ConnectionString</code></li>
+<li>AWS fields: <code>CloudStorageOptions.Aws.AccessKeyId</code>, <code>SecretAccessKey</code>, <code>Region</code>, <code>ServiceUrl</code>, <code>ForcePathStyle</code></li>
+<li>Observability fields: <code>CloudStorageOptions.Observability.EnableLogging</code>, <code>EnableTracing</code>, <code>EnableDiagnostics</code></li>
+<li><code>CloudStorageOptions.ConnectionString</code> at the root level is no longer used</li>
+</ul>
+<h3 id="cloudstorageormcontextscloudstoragedbcontext"><code>CloudStorageORM.Contexts.CloudStorageDbContext</code></h3>
+<p>Base context that:</p>
+<ul>
+<li>reads <code>CloudStorageOptions</code> from EF options</li>
+<li>resolves the correct storage provider through <code>ProviderFactory</code></li>
+<li>applies blob settings conventions</li>
+<li>validates the EF model against storage constraints</li>
+</ul>
+<h3 id="cloudstorageormextensionscloudstorageormservicecollectionextensions"><code>CloudStorageORM.Extensions.CloudStorageOrmServiceCollectionExtensions</code></h3>
+<p>Adds related services to DI through:</p>
+<ul>
+<li><code>AddEntityFrameworkCloudStorageOrm(this IServiceCollection services, CloudStorageOptions storageOptions)</code></li>
+</ul>
+<h3 id="cloudstorageormextensionsmodelbuilderextensions"><code>CloudStorageORM.Extensions.ModelBuilderExtensions</code></h3>
+<p>Adds opt-in object-store ETag optimistic concurrency:</p>
+<ul>
+<li><code>UseObjectETagConcurrency()</code> configures a shadow <code>ETag</code> property as a concurrency token.</li>
+<li><code>UseObjectETagConcurrency(e =&gt; e.ETag)</code> configures a mapped property as the concurrency token.</li>
+</ul>
+<p>Optional entity convenience contract:</p>
+<ul>
+<li><code>CloudStorageORM.Abstractions.IETag</code> with <code>string? ETag { get; set; }</code>.</li>
+<li>The interface is optional; shadow-property tracking is the default behavior.</li>
+</ul>
+<h3 id="cloudstorageormextensionscloudstoragedbsetextensions"><code>CloudStorageORM.Extensions.CloudStorageDbSetExtensions</code></h3>
+<p>Includes bulk-like helper operations for EF <code>DbSet&lt;TEntity&gt;</code> usage:</p>
+<ul>
+<li><code>ClearAsync(this DbSet&lt;TEntity&gt; dbSet, DbContext context, CancellationToken cancellationToken = default)</code></li>
+</ul>
+<p>Current behavior:</p>
+<ul>
+<li>For non-CloudStorageORM contexts, it uses <code>ToListAsync</code> + <code>RemoveRange</code> + <code>SaveChangesAsync</code>.</li>
+<li>For CloudStorageORM contexts, it deletes provider objects under the entity blob prefix and detaches tracked entries.</li>
+<li>The return value is the number of deleted entities/objects.</li>
+</ul>
+<h3 id="cloudstorageormprovidersproviderfactory"><code>CloudStorageORM.Providers.ProviderFactory</code></h3>
+<p>Current behavior:</p>
+<ul>
+<li><code>CloudProvider.Azure</code> → <code>AzureBlobStorageProvider</code></li>
+<li><code>CloudProvider.Aws</code> → <code>AwsS3StorageProvider</code></li>
+<li>any other provider → <code>NotSupportedException</code></li>
+</ul>
+<h3 id="observability-internals">Observability internals</h3>
+<p>CloudStorageORM observability is configured through <code>CloudStorageOptions.Observability</code>:</p>
+<ul>
+<li><code>EnableLogging</code> gates logging inside persistence and query paths.</li>
+<li><code>EnableTracing</code> gates <code>ActivitySource</code> spans emitted by internal operations.</li>
+<li><code>EnableDiagnostics</code> is currently surfaced as configuration/debug metadata and reserved for future custom diagnostics
+events.</li>
+</ul>
+<p>Related types:</p>
+<ul>
+<li><code>CloudStorageORM.Observability.CloudStorageOrmActivitySource</code></li>
+<li><code>CloudStorageORM.Observability.CloudStorageOrmEventIds</code></li>
+<li><code>CloudStorageORM.Observability.CloudStorageOrmLoggingExtensions</code></li>
+</ul>
+<p>For end-user setup examples, see <a href="observability.html">Observability guide</a>.</p>
+<hr>
+<h2 id="query-and-persistence-behavior">Query and persistence behavior</h2>
+<p>The current branch supports EF-style usage such as:</p>
+<ul>
+<li><code>context.Add(entity)</code> / <code>context.Update(entity)</code> / <code>context.Remove(entity)</code></li>
+<li><code>await context.SaveChangesAsync()</code></li>
+<li><code>await context.Set&lt;TEntity&gt;().ToListAsync()</code></li>
+<li><code>context.Set&lt;TEntity&gt;().FirstOrDefault(predicate)</code></li>
+</ul>
+<p>Transaction behavior on the current branch:</p>
+<ul>
+<li><code>BeginTransaction()</code> opens a context-scoped transaction manager.</li>
+<li>Every transaction gets a unique <code>TransactionId</code> (<code>Guid</code>).</li>
+<li><code>SaveChanges()</code> inside an active transaction appends staged operations to
+<code>__cloudstorageorm/tx/&lt;transactionId&gt;/manifest.json</code> with state <code>Preparing</code>.</li>
+<li><code>Commit()</code> marks the manifest as <code>Committed</code>, replays operations in sequence, and then marks it as <code>Completed</code>.</li>
+<li><code>Rollback()</code> (or disposing an uncommitted transaction) marks the manifest as <code>Aborted</code>.</li>
+<li>Recovery scans <code>__cloudstorageorm/tx/</code> when a new transaction manager starts: committed manifests are
+replayed/finalized; preparing manifests are aborted.</li>
+</ul>
+<p>ETag concurrency behavior on the current branch (when explicitly enabled per entity):</p>
+<ul>
+<li>entity materialization reads provider metadata ETags and stores them as original values for concurrency checks</li>
+<li>updates/deletes use provider-native conditional requests (<code>If-Match</code>) against the original ETag</li>
+<li>mismatches are translated to <code>DbUpdateConcurrencyException</code></li>
+<li>ETags are sourced from object storage metadata and are not persisted inside entity JSON payloads</li>
+</ul>
+<p>Storage key/path format on the current branch:</p>
+<ul>
+<li>Entity folders are generated by <code>BlobPathResolver.GetBlobName(Type)</code> using a deterministic hash + sanitized type name.</li>
+<li>Object paths are resolved as <code>{entityFolder}/{primaryKey}.json</code>.</li>
+<li>Paths are provider-sanitized through <code>IStorageProvider.SanitizeBlobName(...)</code>.</li>
+</ul>
+<p>The recent query work on <code>main</code> focuses on:</p>
+<ul>
+<li>evaluating LINQ queries directly instead of materializing everything and then searching in memory for single-entity
+lookups</li>
+<li>optimizing primary-key predicates for <code>==</code>, <code>&gt;</code>, <code>&gt;=</code>, <code>&lt;</code>, and <code>&lt;=</code> so only matching key ranges are materialized</li>
+<li>returning queryables and async enumerables compatible with EF-style execution</li>
+<li>keeping the sample app behavior aligned between EF InMemory and CloudStorageORM</li>
+</ul>
+<hr>
+<h2 id="provider-status">Provider status</h2>
+<h3 id="implemented-now">Implemented now</h3>
+<ul>
+<li>Azure Blob Storage provider</li>
+<li>AWS S3 provider</li>
+<li>Azure blob validation</li>
+<li>AWS object validation</li>
+<li>Sample app demonstrating CRUD parity with EF InMemory, Azure, and AWS</li>
+<li>Integration tests verifying storage flows and sample app process exit</li>
+</ul>
+<h3 id="planned-not-implemented-yet">Planned, not implemented yet</h3>
+<ul>
+<li>Google Cloud Storage provider</li>
+<li>provider-native temporary locking and richer concurrency strategies (for example, Azure blob lease coordination and
+AWS conditional/object-lock patterns)</li>
+<li>broader snapshot/versioning support</li>
+</ul>
+<hr>
+<h2 id="important-limitations-to-document-clearly">Important limitations to document clearly</h2>
+<p>These items are important for anyone consuming the current <code>main</code> branch:</p>
+<ol>
+<li><p><strong>Azure and AWS are implemented today</strong><br>
+<code>ProviderFactory</code> currently supports Azure and AWS. GCP remains planned.</p>
+</li>
+<li><p><strong>Object storage is not relational storage</strong><br>
+Database creation / deletion semantics do not map directly to object storage.
+In particular, <code>CloudStorageDatabaseCreator</code> is still intentionally minimal and some methods remain placeholders or
+throw <code>NotImplementedException</code>.</p>
+<p>Transactions are implemented through a provider-level journal and replay mechanism; this is still not a full
+relational ACID engine or a distributed lock/consensus coordinator.
+Provider-native temporary locking is planned for future versions but is not part of the current transaction
+guarantee.</p>
+</li>
+<li><p><strong>Current branch targets .NET 10</strong><br>
+Consumers building from source should use the .NET 10 SDK.</p>
+</li>
+<li><p><strong>Namespace style was standardized</strong><br>
+The codebase now uses file-scoped namespaces (<code>namespace X;</code>) and places <code>using</code> directives outside the namespace.</p>
+</li>
+</ol>
+<hr>
+<h2 id="testing-and-coverage">Testing and coverage</h2>
+<p>The repository currently includes:</p>
+<ul>
+<li>unit tests in <code>tests/CloudStorageORM.Tests</code></li>
+<li>Azurite-backed Azure integration tests in
+<code>tests/CloudStorageORM.IntegrationTests/CloudStorageORM.IntegrationTests.Azure.csproj</code></li>
+<li>LocalStack-backed AWS integration tests in
+<code>tests/CloudStorageORM.IntegrationTests/CloudStorageORM.IntegrationTests.AWS.csproj</code></li>
+<li>Sample app integration tests in
+<code>tests/CloudStorageORM.IntegrationTests.SampleApp/CloudStorageORM.IntegrationTests.SampleApp.csproj</code></li>
+<li>coverage collection through <code>coverlet.collector</code> / <code>coverlet.msbuild</code></li>
+<li>HTML report generation through the local tool manifest in <code>dotnet-tools.json</code></li>
+</ul>
+<p>Typical commands:</p>
+<pre><code class="lang-bash">dotnet test CloudStorageORM.sln --nologo -v minimal
+dotnet test CloudStorageORM.sln --nologo --settings coverlet.runsettings --collect:&quot;XPlat Code Coverage&quot; -v minimal
+dotnet tool restore
+dotnet tool run reportgenerator -reports:&quot;tests/**/TestResults/*/coverage.cobertura.xml&quot; -targetdir:&quot;coverage/report&quot; -reporttypes:&quot;Html&quot;
+</code></pre>
+<hr>
+<h2 id="sample-app-relationship">Sample app relationship</h2>
+<p>The sample app is not just a demo now; it is also part of the regression safety net.
+The integration tests <code>tests/CloudStorageORM.IntegrationTests.SampleApp/ProgramExitAzureSampleAppTests.cs</code> and
+<code>tests/CloudStorageORM.IntegrationTests.SampleApp/ProgramExitAwsSampleAppTests.cs</code> execute:</p>
+<pre><code class="lang-bash">dotnet run --project samples/CloudStorageORM.SampleApp/SampleApp.csproj
+</code></pre>
+<p>and verify the process exits successfully.</p>
+<hr>
+<h2 id="roadmap-summary">Roadmap summary</h2>
+<p>Short term priorities still documented by the repository direction are:</p>
+<ul>
+<li>GCP provider implementation</li>
+<li>better concurrency and locking semantics</li>
+<li>continued query behavior parity with familiar EF usage</li>
+<li>clearer production-readiness guidance per feature area</li>
+</ul>
+<p>See <a href="ROADMAP.html"><code>ROADMAP.md</code></a> for the broader plan.</p>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/rzavalik/CloudStorageORM/blob/main/docs/CloudStorageORM.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

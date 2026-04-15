@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Observability | CloudStorageORM </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Observability | CloudStorageORM ">
+      
+      
+      <link rel="icon" href="favicon.ico">
+      <link rel="stylesheet" href="public/docfx.min.css">
+      <link rel="stylesheet" href="public/main.css">
+      <meta name="docfx:navrel" content="toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/rzavalik/CloudStorageORM/blob/main/docs/observability.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="index.html">
+            <img id="logo" class="svg" src="logo.svg" alt="CloudStorageORM">
+            CloudStorageORM
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+
+      <div class="content">
+        <div class="actionbar">
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="observability">Observability</h1>
+
+<p>CloudStorageORM includes optional observability controls under <code>CloudStorageOptions.Observability</code>.</p>
+<h2 id="v1013-release-note">v1.0.13 release note</h2>
+<p>The <code>v1.0.13</code> release keeps the same observability switches, but the documentation now highlights the
+logging, tracing, and diagnostics surface alongside the new server-side <code>Skip</code>/<code>Take</code> query support.</p>
+<h2 id="current-capability-on-main">Current capability on <code>main</code></h2>
+<ul>
+<li><code>EnableLogging</code> controls provider query/save log emission from CloudStorageORM internals.</li>
+<li><code>EnableTracing</code> controls <code>ActivitySource</code> spans created by CloudStorageORM internals.</li>
+<li><code>EnableDiagnostics</code> is part of the public options model and EF debug info, but there are currently no custom
+<code>DiagnosticListener</code> events emitted yet.</li>
+</ul>
+<h2 id="defaults">Defaults</h2>
+<p>All observability toggles default to <code>true</code>:</p>
+<ul>
+<li><code>EnableLogging = true</code></li>
+<li><code>EnableTracing = true</code></li>
+<li><code>EnableDiagnostics = true</code></li>
+</ul>
+<h2 id="configure-observability">Configure observability</h2>
+<pre><code class="lang-csharp">services.AddDbContext&lt;AppDbContext&gt;(options =&gt;
+{
+    options.UseCloudStorageOrm(storage =&gt;
+    {
+        storage.Provider = CloudProvider.Azure;
+        storage.ContainerName = &quot;sampleapp-container&quot;;
+        storage.Azure.ConnectionString = &quot;UseDevelopmentStorage=true&quot;;
+
+        // Optional observability controls
+        storage.Observability.EnableLogging = true;
+        storage.Observability.EnableTracing = true;
+        storage.Observability.EnableDiagnostics = true;
+
+        // Reserved naming options (currently not used by runtime emission)
+        storage.Observability.ActivitySourceName = &quot;CloudStorageORM&quot;;
+        storage.Observability.DiagnosticListenerName = &quot;CloudStorageORM&quot;;
+    });
+});
+</code></pre>
+<h2 id="common-profiles">Common profiles</h2>
+<h3 id="full-observability-default">Full observability (default)</h3>
+<pre><code class="lang-csharp">storage.Observability.EnableLogging = true;
+storage.Observability.EnableTracing = true;
+storage.Observability.EnableDiagnostics = true;
+</code></pre>
+<h3 id="tracing-only">Tracing only</h3>
+<pre><code class="lang-csharp">storage.Observability.EnableLogging = false;
+storage.Observability.EnableTracing = true;
+storage.Observability.EnableDiagnostics = false;
+</code></pre>
+<h3 id="minimal-overhead">Minimal overhead</h3>
+<pre><code class="lang-csharp">storage.Observability.EnableLogging = false;
+storage.Observability.EnableTracing = false;
+storage.Observability.EnableDiagnostics = false;
+</code></pre>
+<h2 id="consuming-logs">Consuming logs</h2>
+<p>CloudStorageORM logs through standard <code>ILogger</code> infrastructure. Configure filters as usual:</p>
+<pre><code class="lang-csharp">builder.Logging.AddConsole();
+builder.Logging.AddFilter(&quot;CloudStorageORM&quot;, LogLevel.Information);
+</code></pre>
+<h2 id="consuming-traces">Consuming traces</h2>
+<p>CloudStorageORM emits <code>Activity</code> spans from source name <code>CloudStorageORM</code>.</p>
+<p>Simple listener example:</p>
+<pre><code class="lang-csharp">var listener = new ActivityListener
+{
+    ShouldListenTo = source =&gt; source.Name == &quot;CloudStorageORM&quot;,
+    Sample = static (ref ActivityCreationOptions&lt;ActivityContext&gt; _) =&gt; ActivitySamplingResult.AllData,
+    SampleUsingParentId = static (ref ActivityCreationOptions&lt;string&gt; _) =&gt; ActivitySamplingResult.AllData
+};
+
+ActivitySource.AddActivityListener(listener);
+</code></pre>
+<p>OpenTelemetry pipelines can subscribe to the same source name.</p>
+<h2 id="event-categories">Event categories</h2>
+<p>CloudStorageORM event IDs are grouped by category in <code>CloudStorageOrmEventIds</code>:</p>
+<ul>
+<li>Configuration (<code>100x</code>)</li>
+<li>Query (<code>200x</code>)</li>
+<li>Save/persistence (<code>300x</code>)</li>
+<li>Transactions (<code>400x</code>)</li>
+<li>Concurrency (<code>500x</code>)</li>
+<li>Provider I/O (<code>600x</code>)</li>
+<li>Validation (<code>700x</code>)</li>
+</ul>
+<h2 id="related-docs">Related docs</h2>
+<ul>
+<li><a href="configuration.html">Configuration</a></li>
+<li><a href="CloudStorageORM.html">Library documentation</a></li>
+<li><a href="troubleshooting.html">Troubleshooting</a></li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/rzavalik/CloudStorageORM/blob/main/docs/observability.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Class AzureBlobStorageProvider | CloudStorageORM </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Class AzureBlobStorageProvider | CloudStorageORM ">
+      
+      <meta name="description" content="Azure Blob Storage implementation of .">
+      <link rel="icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/rzavalik/CloudStorageORM/new/main/apiSpec/new?filename=CloudStorageORM_Providers_Azure_StorageProviders_AzureBlobStorageProvider.md&amp;value=---%0Auid%3A%20CloudStorageORM.Providers.Azure.StorageProviders.AzureBlobStorageProvider%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../logo.svg" alt="CloudStorageORM">
+            CloudStorageORM
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="CloudStorageORM.Providers.Azure.StorageProviders.AzureBlobStorageProvider">
+
+
+
+  <h1 id="CloudStorageORM_Providers_Azure_StorageProviders_AzureBlobStorageProvider" data-uid="CloudStorageORM.Providers.Azure.StorageProviders.AzureBlobStorageProvider" class="text-break">
+Class AzureBlobStorageProvider  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Providers/Azure/StorageProviders/AzureBlobStorageProvider.cs/#L17"><i class="bi bi-code-slash"></i></a>
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="CloudStorageORM.html">CloudStorageORM</a>.<a class="xref" href="CloudStorageORM.Providers.html">Providers</a>.<a class="xref" href="CloudStorageORM.Providers.Azure.html">Azure</a>.<a class="xref" href="CloudStorageORM.Providers.Azure.StorageProviders.html">StorageProviders</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>CloudStorageORM.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"><p>Azure Blob Storage implementation of <a class="xref" href="CloudStorageORM.Interfaces.StorageProviders.IStorageProvider.html">IStorageProvider</a>.</p>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class AzureBlobStorageProvider : IStorageProvider</code></pre>
+  </div>
+
+
+
+
+  <dl class="typelist inheritance">
+    <dt>Inheritance</dt>
+    <dd>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
+      <div><span class="xref">AzureBlobStorageProvider</span></div>
+    </dd>
+  </dl>
+
+  <dl class="typelist implements">
+    <dt>Implements</dt>
+    <dd>
+      <div><a class="xref" href="CloudStorageORM.Interfaces.StorageProviders.IStorageProvider.html">IStorageProvider</a></div>
+    </dd>
+  </dl>
+
+
+  <dl class="typelist inheritedMembers">
+    <dt>Inherited Members</dt>
+    <dd>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)">object.Equals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gethashcode">object.GetHashCode()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gettype">object.GetType()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone">object.MemberwiseClone()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.tostring">object.ToString()</a>
+    </div>
+  </dd></dl>
+
+
+
+
+
+
+  <h2 class="section" id="constructors">Constructors
+</h2>
+
+
+  <a id="CloudStorageORM_Providers_Azure_StorageProviders_AzureBlobStorageProvider__ctor_" data-uid="CloudStorageORM.Providers.Azure.StorageProviders.AzureBlobStorageProvider.#ctor*"></a>
+
+  <h3 id="CloudStorageORM_Providers_Azure_StorageProviders_AzureBlobStorageProvider__ctor_Azure_Storage_Blobs_BlobContainerClient_" data-uid="CloudStorageORM.Providers.Azure.StorageProviders.AzureBlobStorageProvider.#ctor(Azure.Storage.Blobs.BlobContainerClient)">
+  AzureBlobStorageProvider(BlobContainerClient)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Providers/Azure/StorageProviders/AzureBlobStorageProvider.cs/#L58"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Creates a new Azure Blob Storage provider using an existing container client.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public AzureBlobStorageProvider(BlobContainerClient blobServiceClient)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>blobServiceClient</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/azure.storage.blobs.blobcontainerclient">BlobContainerClient</a></dt>
+    <dd><p>The container client to use for storage operations.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+  <h4 class="section" id="CloudStorageORM_Providers_Azure_StorageProviders_AzureBlobStorageProvider__ctor_Azure_Storage_Blobs_BlobContainerClient__examples">Examples</h4>
+  <pre><code class="lang-csharp">var provider = new AzureBlobStorageProvider(containerClient);</code></pre>
+
+
+
+
+
+
+  <a id="CloudStorageORM_Providers_Azure_StorageProviders_AzureBlobStorageProvider__ctor_" data-uid="CloudStorageORM.Providers.Azure.StorageProviders.AzureBlobStorageProvider.#ctor*"></a>
+
+  <h3 id="CloudStorageORM_Providers_Azure_StorageProviders_AzureBlobStorageProvider__ctor_CloudStorageORM_Options_CloudStorageOptions_" data-uid="CloudStorageORM.Providers.Azure.StorageProviders.AzureBlobStorageProvider.#ctor(CloudStorageORM.Options.CloudStorageOptions)">
+  AzureBlobStorageProvider(CloudStorageOptions)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Providers/Azure/StorageProviders/AzureBlobStorageProvider.cs/#L43"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Creates a new Azure Blob Storage provider from CloudStorageORM options.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public AzureBlobStorageProvider(CloudStorageOptions options)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>options</code> <a class="xref" href="CloudStorageORM.Options.CloudStorageOptions.html">CloudStorageOptions</a></dt>
+    <dd><p>Validated CloudStorageORM options containing the Azure connection string and container name.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+  <h4 class="section" id="CloudStorageORM_Providers_Azure_StorageProviders_AzureBlobStorageProvider__ctor_CloudStorageORM_Options_CloudStorageOptions__examples">Examples</h4>
+  <pre><code class="lang-csharp">var provider = new AzureBlobStorageProvider(options);</code></pre>
+
+
+
+
+
+
+  <a id="CloudStorageORM_Providers_Azure_StorageProviders_AzureBlobStorageProvider__ctor_" data-uid="CloudStorageORM.Providers.Azure.StorageProviders.AzureBlobStorageProvider.#ctor*"></a>
+
+  <h3 id="CloudStorageORM_Providers_Azure_StorageProviders_AzureBlobStorageProvider__ctor_System_String_System_String_" data-uid="CloudStorageORM.Providers.Azure.StorageProviders.AzureBlobStorageProvider.#ctor(System.String,System.String)">
+  AzureBlobStorageProvider(string, string)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Providers/Azure/StorageProviders/AzureBlobStorageProvider.cs/#L74"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Creates a new Azure Blob Storage provider from a connection string and container name.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public AzureBlobStorageProvider(string connectionString, string containerName)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>connectionString</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd><p>Azure Storage connection string.</p>
+</dd>
+    <dt><code>containerName</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd><p>Azure container name.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+  <h4 class="section" id="CloudStorageORM_Providers_Azure_StorageProviders_AzureBlobStorageProvider__ctor_System_String_System_String__examples">Examples</h4>
+  <pre><code class="lang-csharp">var provider = new AzureBlobStorageProvider("UseDevelopmentStorage=true", "app-data");</code></pre>
+
+
+
+
+
+
+  <h2 class="section" id="properties">Properties
+</h2>
+
+
+  <a id="CloudStorageORM_Providers_Azure_StorageProviders_AzureBlobStorageProvider_CloudProvider_" data-uid="CloudStorageORM.Providers.Azure.StorageProviders.AzureBlobStorageProvider.CloudProvider*"></a>
+
+  <h3 id="CloudStorageORM_Providers_Azure_StorageProviders_AzureBlobStorageProvider_CloudProvider" data-uid="CloudStorageORM.Providers.Azure.StorageProviders.AzureBlobStorageProvider.CloudProvider">
+  CloudProvider
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Providers/Azure/StorageProviders/AzureBlobStorageProvider.cs/#L81"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets the cloud provider represented by this storage implementation.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public CloudProvider CloudProvider { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="CloudStorageORM.Enums.CloudProvider.html">CloudProvider</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h2 class="section" id="methods">Methods
+</h2>
+
+
+  <a id="CloudStorageORM_Providers_Azure_StorageProviders_AzureBlobStorageProvider_CreateContainerIfNotExistsAsync_" data-uid="CloudStorageORM.Providers.Azure.StorageProviders.AzureBlobStorageProvider.CreateContainerIfNotExistsAsync*"></a>
+
+  <h3 id="CloudStorageORM_Providers_Azure_StorageProviders_AzureBlobStorageProvider_CreateContainerIfNotExistsAsync" data-uid="CloudStorageORM.Providers.Azure.StorageProviders.AzureBlobStorageProvider.CreateContainerIfNotExistsAsync">
+  CreateContainerIfNotExistsAsync()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Providers/Azure/StorageProviders/AzureBlobStorageProvider.cs/#L235"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Creates the container or bucket if it does not already exist.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task CreateContainerIfNotExistsAsync()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task">Task</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+  <h4 class="section" id="CloudStorageORM_Providers_Azure_StorageProviders_AzureBlobStorageProvider_CreateContainerIfNotExistsAsync_examples">Examples</h4>
+  <pre><code class="lang-csharp">await storageProvider.CreateContainerIfNotExistsAsync();</code></pre>
+
+
+
+
+
+
+  <a id="CloudStorageORM_Providers_Azure_StorageProviders_AzureBlobStorageProvider_DeleteAsync_" data-uid="CloudStorageORM.Providers.Azure.StorageProviders.AzureBlobStorageProvider.DeleteAsync*"></a>
+
+  <h3 id="CloudStorageORM_Providers_Azure_StorageProviders_AzureBlobStorageProvider_DeleteAsync_System_String_" data-uid="CloudStorageORM.Providers.Azure.StorageProviders.AzureBlobStorageProvider.DeleteAsync(System.String)">
+  DeleteAsync(string)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Providers/Azure/StorageProviders/AzureBlobStorageProvider.cs/#L155"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Deletes an object from storage without an ETag precondition.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task DeleteAsync(string path)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>path</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd><p>Object path inside the container.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task">Task</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+  <h4 class="section" id="CloudStorageORM_Providers_Azure_StorageProviders_AzureBlobStorageProvider_DeleteAsync_System_String__examples">Examples</h4>
+  <pre><code class="lang-csharp">await storageProvider.DeleteAsync("users/42.json");</code></pre>
+
+
+
+
+
+
+  <a id="CloudStorageORM_Providers_Azure_StorageProviders_AzureBlobStorageProvider_DeleteAsync_" data-uid="CloudStorageORM.Providers.Azure.StorageProviders.AzureBlobStorageProvider.DeleteAsync*"></a>
+
+  <h3 id="CloudStorageORM_Providers_Azure_StorageProviders_AzureBlobStorageProvider_DeleteAsync_System_String_System_String_" data-uid="CloudStorageORM.Providers.Azure.StorageProviders.AzureBlobStorageProvider.DeleteAsync(System.String,System.String)">
+  DeleteAsync(string, string?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Providers/Azure/StorageProviders/AzureBlobStorageProvider.cs/#L161"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Deletes an object from storage using an optional ETag precondition.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task DeleteAsync(string path, string? ifMatchETag)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>path</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd><p>Object path inside the container.</p>
+</dd>
+    <dt><code>ifMatchETag</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd><p>Expected ETag value used for optimistic concurrency.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task">Task</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+  <h4 class="section" id="CloudStorageORM_Providers_Azure_StorageProviders_AzureBlobStorageProvider_DeleteAsync_System_String_System_String__examples">Examples</h4>
+  <pre><code class="lang-csharp">await storageProvider.DeleteAsync("users/42.json", currentEtag);</code></pre>
+
+
+
+
+
+
+  <a id="CloudStorageORM_Providers_Azure_StorageProviders_AzureBlobStorageProvider_DeleteContainerAsync_" data-uid="CloudStorageORM.Providers.Azure.StorageProviders.AzureBlobStorageProvider.DeleteContainerAsync*"></a>
+
+  <h3 id="CloudStorageORM_Providers_Azure_StorageProviders_AzureBlobStorageProvider_DeleteContainerAsync" data-uid="CloudStorageORM.Providers.Azure.StorageProviders.AzureBlobStorageProvider.DeleteContainerAsync">
+  DeleteContainerAsync()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Providers/Azure/StorageProviders/AzureBlobStorageProvider.cs/#L232"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Deletes the underlying container or bucket when it exists.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task DeleteContainerAsync()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task">Task</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+  <h4 class="section" id="CloudStorageORM_Providers_Azure_StorageProviders_AzureBlobStorageProvider_DeleteContainerAsync_examples">Examples</h4>
+  <pre><code class="lang-csharp">await storageProvider.DeleteContainerAsync();</code></pre>
+
+
+
+
+
+
+  <a id="CloudStorageORM_Providers_Azure_StorageProviders_AzureBlobStorageProvider_ListAsync_" data-uid="CloudStorageORM.Providers.Azure.StorageProviders.AzureBlobStorageProvider.ListAsync*"></a>
+
+  <h3 id="CloudStorageORM_Providers_Azure_StorageProviders_AzureBlobStorageProvider_ListAsync_System_String_" data-uid="CloudStorageORM.Providers.Azure.StorageProviders.AzureBlobStorageProvider.ListAsync(System.String)">
+  ListAsync(string)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Providers/Azure/StorageProviders/AzureBlobStorageProvider.cs/#L187"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Lists object paths under a folder-like prefix.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task&lt;List&lt;string&gt;&gt; ListAsync(string folderPath)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>folderPath</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd><p>Folder or prefix to search.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task-1">Task</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1">List</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a>&gt;&gt;</dt>
+    <dd><p>List of matching object paths.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+  <h4 class="section" id="CloudStorageORM_Providers_Azure_StorageProviders_AzureBlobStorageProvider_ListAsync_System_String__examples">Examples</h4>
+  <pre><code class="lang-csharp">var keys = await storageProvider.ListAsync("users/");</code></pre>
+
+
+
+
+
+
+  <a id="CloudStorageORM_Providers_Azure_StorageProviders_AzureBlobStorageProvider_ListPageAsync_" data-uid="CloudStorageORM.Providers.Azure.StorageProviders.AzureBlobStorageProvider.ListPageAsync*"></a>
+
+  <h3 id="CloudStorageORM_Providers_Azure_StorageProviders_AzureBlobStorageProvider_ListPageAsync_System_String_System_Int32_System_String_System_Threading_CancellationToken_" data-uid="CloudStorageORM.Providers.Azure.StorageProviders.AzureBlobStorageProvider.ListPageAsync(System.String,System.Int32,System.String,System.Threading.CancellationToken)">
+  ListPageAsync(string, int, string?, CancellationToken)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Providers/Azure/StorageProviders/AzureBlobStorageProvider.cs/#L203"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Lists object paths under a folder-like prefix as a single page with continuation support.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task&lt;StorageListPage&gt; ListPageAsync(string folderPath, int pageSize, string? continuationToken, CancellationToken cancellationToken = default)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>folderPath</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd><p>Folder or prefix to search.</p>
+</dd>
+    <dt><code>pageSize</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>Maximum number of keys to return for this page.</p>
+</dd>
+    <dt><code>continuationToken</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd><p>Continuation token returned by a previous call, if any.</p>
+</dd>
+    <dt><code>cancellationToken</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.cancellationtoken">CancellationToken</a></dt>
+    <dd><p>Cancellation token.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task-1">Task</a>&lt;<a class="xref" href="CloudStorageORM.Abstractions.StorageListPage.html">StorageListPage</a>&gt;</dt>
+    <dd><p>A page of keys and continuation information.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+  <h4 class="section" id="CloudStorageORM_Providers_Azure_StorageProviders_AzureBlobStorageProvider_ListPageAsync_System_String_System_Int32_System_String_System_Threading_CancellationToken__examples">Examples</h4>
+  <pre><code class="lang-csharp">var page = await storageProvider.ListPageAsync("users/", 100, null);</code></pre>
+
+
+
+
+
+
+  <a id="CloudStorageORM_Providers_Azure_StorageProviders_AzureBlobStorageProvider_ReadAsync_" data-uid="CloudStorageORM.Providers.Azure.StorageProviders.AzureBlobStorageProvider.ReadAsync*"></a>
+
+  <h3 id="CloudStorageORM_Providers_Azure_StorageProviders_AzureBlobStorageProvider_ReadAsync__1_System_String_" data-uid="CloudStorageORM.Providers.Azure.StorageProviders.AzureBlobStorageProvider.ReadAsync``1(System.String)">
+  ReadAsync&lt;T&gt;(string)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Providers/Azure/StorageProviders/AzureBlobStorageProvider.cs/#L133"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reads and deserializes an entity payload from object storage.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task&lt;T&gt; ReadAsync&lt;T&gt;(string path)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>path</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd><p>Object path inside the container.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task-1">Task</a>&lt;T&gt;</dt>
+    <dd><p>The deserialized entity payload.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>T</code></dt>
+    <dd><p>Entity payload type to deserialize.</p>
+</dd>
+  </dl>
+
+
+
+
+
+  <h4 class="section" id="CloudStorageORM_Providers_Azure_StorageProviders_AzureBlobStorageProvider_ReadAsync__1_System_String__examples">Examples</h4>
+  <pre><code class="lang-csharp">var user = await storageProvider.ReadAsync&lt;User&gt;("users/42.json");</code></pre>
+
+
+
+
+
+
+  <a id="CloudStorageORM_Providers_Azure_StorageProviders_AzureBlobStorageProvider_ReadWithMetadataAsync_" data-uid="CloudStorageORM.Providers.Azure.StorageProviders.AzureBlobStorageProvider.ReadWithMetadataAsync*"></a>
+
+  <h3 id="CloudStorageORM_Providers_Azure_StorageProviders_AzureBlobStorageProvider_ReadWithMetadataAsync__1_System_String_" data-uid="CloudStorageORM.Providers.Azure.StorageProviders.AzureBlobStorageProvider.ReadWithMetadataAsync``1(System.String)">
+  ReadWithMetadataAsync&lt;T&gt;(string)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Providers/Azure/StorageProviders/AzureBlobStorageProvider.cs/#L140"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reads an entity payload and its metadata from object storage.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task&lt;StorageObject&lt;T&gt;&gt; ReadWithMetadataAsync&lt;T&gt;(string path)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>path</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd><p>Object path inside the container.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task-1">Task</a>&lt;<a class="xref" href="CloudStorageORM.Abstractions.StorageObject-1.html">StorageObject</a>&lt;T&gt;&gt;</dt>
+    <dd><p>A wrapper containing the entity value, ETag, and existence status.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>T</code></dt>
+    <dd><p>Entity payload type to deserialize.</p>
+</dd>
+  </dl>
+
+
+
+
+
+  <h4 class="section" id="CloudStorageORM_Providers_Azure_StorageProviders_AzureBlobStorageProvider_ReadWithMetadataAsync__1_System_String__examples">Examples</h4>
+  <pre><code class="lang-csharp">var result = await storageProvider.ReadWithMetadataAsync&lt;User&gt;("users/42.json");
+if (result.Exists) { Console.WriteLine(result.ETag); }</code></pre>
+
+
+
+
+
+
+  <a id="CloudStorageORM_Providers_Azure_StorageProviders_AzureBlobStorageProvider_SanitizeBlobName_" data-uid="CloudStorageORM.Providers.Azure.StorageProviders.AzureBlobStorageProvider.SanitizeBlobName*"></a>
+
+  <h3 id="CloudStorageORM_Providers_Azure_StorageProviders_AzureBlobStorageProvider_SanitizeBlobName_System_String_" data-uid="CloudStorageORM.Providers.Azure.StorageProviders.AzureBlobStorageProvider.SanitizeBlobName(System.String)">
+  SanitizeBlobName(string)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Providers/Azure/StorageProviders/AzureBlobStorageProvider.cs/#L241"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Sanitizes a raw blob name so it can be safely used by the provider.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public string SanitizeBlobName(string rawName)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>rawName</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd><p>Original blob or folder name.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd><p>Provider-safe normalized name.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+  <h4 class="section" id="CloudStorageORM_Providers_Azure_StorageProviders_AzureBlobStorageProvider_SanitizeBlobName_System_String__examples">Examples</h4>
+  <pre><code class="lang-csharp">var safeName = storageProvider.SanitizeBlobName("My Entity");</code></pre>
+
+
+
+
+
+
+  <a id="CloudStorageORM_Providers_Azure_StorageProviders_AzureBlobStorageProvider_SaveAsync_" data-uid="CloudStorageORM.Providers.Azure.StorageProviders.AzureBlobStorageProvider.SaveAsync*"></a>
+
+  <h3 id="CloudStorageORM_Providers_Azure_StorageProviders_AzureBlobStorageProvider_SaveAsync__1_System_String___0_" data-uid="CloudStorageORM.Providers.Azure.StorageProviders.AzureBlobStorageProvider.SaveAsync``1(System.String,``0)">
+  SaveAsync&lt;T&gt;(string, T)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Providers/Azure/StorageProviders/AzureBlobStorageProvider.cs/#L84"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Persists an entity payload at the specified path without an ETag precondition.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task SaveAsync&lt;T&gt;(string path, T entity)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>path</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd><p>Object path inside the container.</p>
+</dd>
+    <dt><code>entity</code> <span class="xref">T</span></dt>
+    <dd><p>Entity payload to store.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task">Task</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>T</code></dt>
+    <dd><p>Entity payload type to serialize.</p>
+</dd>
+  </dl>
+
+
+
+
+
+  <h4 class="section" id="CloudStorageORM_Providers_Azure_StorageProviders_AzureBlobStorageProvider_SaveAsync__1_System_String___0__examples">Examples</h4>
+  <pre><code class="lang-csharp">await storageProvider.SaveAsync("users/42.json", user);</code></pre>
+
+
+
+
+
+
+  <a id="CloudStorageORM_Providers_Azure_StorageProviders_AzureBlobStorageProvider_SaveAsync_" data-uid="CloudStorageORM.Providers.Azure.StorageProviders.AzureBlobStorageProvider.SaveAsync*"></a>
+
+  <h3 id="CloudStorageORM_Providers_Azure_StorageProviders_AzureBlobStorageProvider_SaveAsync__1_System_String___0_System_String_" data-uid="CloudStorageORM.Providers.Azure.StorageProviders.AzureBlobStorageProvider.SaveAsync``1(System.String,``0,System.String)">
+  SaveAsync&lt;T&gt;(string, T, string?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Providers/Azure/StorageProviders/AzureBlobStorageProvider.cs/#L90"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Persists an entity payload using an optional ETag precondition and returns the resulting ETag.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task&lt;string?&gt; SaveAsync&lt;T&gt;(string path, T entity, string? ifMatchETag)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>path</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd><p>Object path inside the container.</p>
+</dd>
+    <dt><code>entity</code> <span class="xref">T</span></dt>
+    <dd><p>Entity payload to store.</p>
+</dd>
+    <dt><code>ifMatchETag</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd><p>Expected ETag value used for optimistic concurrency.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task-1">Task</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a>&gt;</dt>
+    <dd><p>The new ETag when available; otherwise <a href="https://learn.microsoft.com/dotnet/csharp/language-reference/keywords/null">null</a>.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>T</code></dt>
+    <dd><p>Entity payload type to serialize.</p>
+</dd>
+  </dl>
+
+
+
+
+
+  <h4 class="section" id="CloudStorageORM_Providers_Azure_StorageProviders_AzureBlobStorageProvider_SaveAsync__1_System_String___0_System_String__examples">Examples</h4>
+  <pre><code class="lang-csharp">var newEtag = await storageProvider.SaveAsync("users/42.json", user, currentEtag);</code></pre>
+
+
+
+
+
+
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Providers/Azure/StorageProviders/AzureBlobStorageProvider.cs/#L17" class="edit-link">Edit this page</a>
+        </div>
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

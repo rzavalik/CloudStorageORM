@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Class CloudStorageDbContextDependencies | CloudStorageORM </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Class CloudStorageDbContextDependencies | CloudStorageORM ">
+      
+      <meta name="description" content="Provides EF Core DbContext dependency implementations for CloudStorageORM.">
+      <link rel="icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/rzavalik/CloudStorageORM/new/main/apiSpec/new?filename=CloudStorageORM_Infrastructure_CloudStorageDbContextDependencies.md&amp;value=---%0Auid%3A%20CloudStorageORM.Infrastructure.CloudStorageDbContextDependencies%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../logo.svg" alt="CloudStorageORM">
+            CloudStorageORM
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="CloudStorageORM.Infrastructure.CloudStorageDbContextDependencies">
+
+
+
+  <h1 id="CloudStorageORM_Infrastructure_CloudStorageDbContextDependencies" data-uid="CloudStorageORM.Infrastructure.CloudStorageDbContextDependencies" class="text-break">
+Class CloudStorageDbContextDependencies  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageDbContextDependencies.cs/#L15"><i class="bi bi-code-slash"></i></a>
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="CloudStorageORM.html">CloudStorageORM</a>.<a class="xref" href="CloudStorageORM.Infrastructure.html">Infrastructure</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>CloudStorageORM.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"><p>Provides EF Core DbContext dependency implementations for CloudStorageORM.</p>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class CloudStorageDbContextDependencies : IDbContextDependencies</code></pre>
+  </div>
+
+
+
+
+  <dl class="typelist inheritance">
+    <dt>Inheritance</dt>
+    <dd>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
+      <div><span class="xref">CloudStorageDbContextDependencies</span></div>
+    </dd>
+  </dl>
+
+  <dl class="typelist implements">
+    <dt>Implements</dt>
+    <dd>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/microsoft.entityframeworkcore.internal.idbcontextdependencies">IDbContextDependencies</a></div>
+    </dd>
+  </dl>
+
+
+  <dl class="typelist inheritedMembers">
+    <dt>Inherited Members</dt>
+    <dd>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)">object.Equals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gethashcode">object.GetHashCode()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gettype">object.GetType()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone">object.MemberwiseClone()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.tostring">object.ToString()</a>
+    </div>
+  </dd></dl>
+
+
+
+
+
+
+  <h2 class="section" id="constructors">Constructors
+</h2>
+
+
+  <a id="CloudStorageORM_Infrastructure_CloudStorageDbContextDependencies__ctor_" data-uid="CloudStorageORM.Infrastructure.CloudStorageDbContextDependencies.#ctor*"></a>
+
+  <h3 id="CloudStorageORM_Infrastructure_CloudStorageDbContextDependencies__ctor_Microsoft_EntityFrameworkCore_Metadata_IModel_Microsoft_EntityFrameworkCore_Infrastructure_ICurrentDbContext_Microsoft_EntityFrameworkCore_ChangeTracking_Internal_IChangeDetector_Microsoft_EntityFrameworkCore_Internal_IDbSetSource_Microsoft_EntityFrameworkCore_Internal_IEntityFinderSource_Microsoft_EntityFrameworkCore_ChangeTracking_Internal_IEntityGraphAttacher_Microsoft_EntityFrameworkCore_Query_IAsyncQueryProvider_Microsoft_EntityFrameworkCore_ChangeTracking_Internal_IStateManager_Microsoft_EntityFrameworkCore_Storage_IExceptionDetector_Microsoft_EntityFrameworkCore_Diagnostics_IDiagnosticsLogger_Microsoft_EntityFrameworkCore_DbLoggerCategory_Update__Microsoft_EntityFrameworkCore_Diagnostics_IDiagnosticsLogger_Microsoft_EntityFrameworkCore_DbLoggerCategory_Infrastructure__" data-uid="CloudStorageORM.Infrastructure.CloudStorageDbContextDependencies.#ctor(Microsoft.EntityFrameworkCore.Metadata.IModel,Microsoft.EntityFrameworkCore.Infrastructure.ICurrentDbContext,Microsoft.EntityFrameworkCore.ChangeTracking.Internal.IChangeDetector,Microsoft.EntityFrameworkCore.Internal.IDbSetSource,Microsoft.EntityFrameworkCore.Internal.IEntityFinderSource,Microsoft.EntityFrameworkCore.ChangeTracking.Internal.IEntityGraphAttacher,Microsoft.EntityFrameworkCore.Query.IAsyncQueryProvider,Microsoft.EntityFrameworkCore.ChangeTracking.Internal.IStateManager,Microsoft.EntityFrameworkCore.Storage.IExceptionDetector,Microsoft.EntityFrameworkCore.Diagnostics.IDiagnosticsLogger{Microsoft.EntityFrameworkCore.DbLoggerCategory.Update},Microsoft.EntityFrameworkCore.Diagnostics.IDiagnosticsLogger{Microsoft.EntityFrameworkCore.DbLoggerCategory.Infrastructure})">
+  CloudStorageDbContextDependencies(IModel, ICurrentDbContext, IChangeDetector, IDbSetSource, IEntityFinderSource, IEntityGraphAttacher, IAsyncQueryProvider, IStateManager, IExceptionDetector, IDiagnosticsLogger&lt;Update&gt;, IDiagnosticsLogger&lt;Infrastructure&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageDbContextDependencies.cs/#L47"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Initializes a new dependency container used by CloudStorageORM DbContext services.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public CloudStorageDbContextDependencies(IModel model, ICurrentDbContext currentContext, IChangeDetector changeDetector, IDbSetSource setSource, IEntityFinderSource entityFinderSource, IEntityGraphAttacher entityGraphAttacher, IAsyncQueryProvider queryProvider, IStateManager stateManager, IExceptionDetector exceptionDetector, IDiagnosticsLogger&lt;DbLoggerCategory.Update&gt; updateLogger, IDiagnosticsLogger&lt;DbLoggerCategory.Infrastructure&gt; infrastructureLogger)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>model</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/microsoft.entityframeworkcore.metadata.imodel">IModel</a></dt>
+    <dd><p>Resolved EF model.</p>
+</dd>
+    <dt><code>currentContext</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/microsoft.entityframeworkcore.infrastructure.icurrentdbcontext">ICurrentDbContext</a></dt>
+    <dd><p>Current DbContext accessor.</p>
+</dd>
+    <dt><code>changeDetector</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/microsoft.entityframeworkcore.changetracking.internal.ichangedetector">IChangeDetector</a></dt>
+    <dd><p>EF change detector.</p>
+</dd>
+    <dt><code>setSource</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/microsoft.entityframeworkcore.internal.idbsetsource">IDbSetSource</a></dt>
+    <dd><p>EF DbSet source.</p>
+</dd>
+    <dt><code>entityFinderSource</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/microsoft.entityframeworkcore.internal.ientityfindersource">IEntityFinderSource</a></dt>
+    <dd><p>EF entity finder source.</p>
+</dd>
+    <dt><code>entityGraphAttacher</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/microsoft.entityframeworkcore.changetracking.internal.ientitygraphattacher">IEntityGraphAttacher</a></dt>
+    <dd><p>EF entity graph attacher.</p>
+</dd>
+    <dt><code>queryProvider</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/microsoft.entityframeworkcore.query.iasyncqueryprovider">IAsyncQueryProvider</a></dt>
+    <dd><p>Async query provider.</p>
+</dd>
+    <dt><code>stateManager</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/microsoft.entityframeworkcore.changetracking.internal.istatemanager">IStateManager</a></dt>
+    <dd><p>EF state manager.</p>
+</dd>
+    <dt><code>exceptionDetector</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/microsoft.entityframeworkcore.storage.iexceptiondetector">IExceptionDetector</a></dt>
+    <dd><p>EF exception detector.</p>
+</dd>
+    <dt><code>updateLogger</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/microsoft.entityframeworkcore.diagnostics.idiagnosticslogger-1">IDiagnosticsLogger</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/microsoft.entityframeworkcore.dbloggercategory">DbLoggerCategory</a>.<a class="xref" href="https://learn.microsoft.com/dotnet/api/microsoft.entityframeworkcore.dbloggercategory.update">Update</a>&gt;</dt>
+    <dd><p>Update diagnostics logger.</p>
+</dd>
+    <dt><code>infrastructureLogger</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/microsoft.entityframeworkcore.diagnostics.idiagnosticslogger-1">IDiagnosticsLogger</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/microsoft.entityframeworkcore.dbloggercategory">DbLoggerCategory</a>.<a class="xref" href="https://learn.microsoft.com/dotnet/api/microsoft.entityframeworkcore.dbloggercategory.infrastructure">Infrastructure</a>&gt;</dt>
+    <dd><p>Infrastructure diagnostics logger.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+  <h4 class="section" id="CloudStorageORM_Infrastructure_CloudStorageDbContextDependencies__ctor_Microsoft_EntityFrameworkCore_Metadata_IModel_Microsoft_EntityFrameworkCore_Infrastructure_ICurrentDbContext_Microsoft_EntityFrameworkCore_ChangeTracking_Internal_IChangeDetector_Microsoft_EntityFrameworkCore_Internal_IDbSetSource_Microsoft_EntityFrameworkCore_Internal_IEntityFinderSource_Microsoft_EntityFrameworkCore_ChangeTracking_Internal_IEntityGraphAttacher_Microsoft_EntityFrameworkCore_Query_IAsyncQueryProvider_Microsoft_EntityFrameworkCore_ChangeTracking_Internal_IStateManager_Microsoft_EntityFrameworkCore_Storage_IExceptionDetector_Microsoft_EntityFrameworkCore_Diagnostics_IDiagnosticsLogger_Microsoft_EntityFrameworkCore_DbLoggerCategory_Update__Microsoft_EntityFrameworkCore_Diagnostics_IDiagnosticsLogger_Microsoft_EntityFrameworkCore_DbLoggerCategory_Infrastructure___examples">Examples</h4>
+  <pre><code class="lang-csharp">var dependencies = new CloudStorageDbContextDependencies(...);</code></pre>
+
+
+
+
+
+
+  <h2 class="section" id="properties">Properties
+</h2>
+
+
+  <a id="CloudStorageORM_Infrastructure_CloudStorageDbContextDependencies_ChangeDetector_" data-uid="CloudStorageORM.Infrastructure.CloudStorageDbContextDependencies.ChangeDetector*"></a>
+
+  <h3 id="CloudStorageORM_Infrastructure_CloudStorageDbContextDependencies_ChangeDetector" data-uid="CloudStorageORM.Infrastructure.CloudStorageDbContextDependencies.ChangeDetector">
+  ChangeDetector
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageDbContextDependencies.cs/#L102"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+the same compatibility standards as public APIs. It may be changed or removed without notice in
+any release. You should only use it directly in your code with extreme caution and knowing that
+doing so can result in application failures when updating to a new Entity Framework Core release.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IChangeDetector ChangeDetector { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/microsoft.entityframeworkcore.changetracking.internal.ichangedetector">IChangeDetector</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="CloudStorageORM_Infrastructure_CloudStorageDbContextDependencies_ContextOptions_" data-uid="CloudStorageORM.Infrastructure.CloudStorageDbContextDependencies.ContextOptions*"></a>
+
+  <h3 id="CloudStorageORM_Infrastructure_CloudStorageDbContextDependencies_ContextOptions" data-uid="CloudStorageORM.Infrastructure.CloudStorageDbContextDependencies.ContextOptions">
+  ContextOptions
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageDbContextDependencies.cs/#L91"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public DbContextOptions ContextOptions { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/microsoft.entityframeworkcore.dbcontextoptions">DbContextOptions</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="CloudStorageORM_Infrastructure_CloudStorageDbContextDependencies_DesignTimeModel_" data-uid="CloudStorageORM.Infrastructure.CloudStorageDbContextDependencies.DesignTimeModel*"></a>
+
+  <h3 id="CloudStorageORM_Infrastructure_CloudStorageDbContextDependencies_DesignTimeModel" data-uid="CloudStorageORM.Infrastructure.CloudStorageDbContextDependencies.DesignTimeModel">
+  DesignTimeModel
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageDbContextDependencies.cs/#L90"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IModel DesignTimeModel { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/microsoft.entityframeworkcore.metadata.imodel">IModel</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="CloudStorageORM_Infrastructure_CloudStorageDbContextDependencies_EntityFinderFactory_" data-uid="CloudStorageORM.Infrastructure.CloudStorageDbContextDependencies.EntityFinderFactory*"></a>
+
+  <h3 id="CloudStorageORM_Infrastructure_CloudStorageDbContextDependencies_EntityFinderFactory" data-uid="CloudStorageORM.Infrastructure.CloudStorageDbContextDependencies.EntityFinderFactory">
+  EntityFinderFactory
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageDbContextDependencies.cs/#L96"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+the same compatibility standards as public APIs. It may be changed or removed without notice in
+any release. You should only use it directly in your code with extreme caution and knowing that
+doing so can result in application failures when updating to a new Entity Framework Core release.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IEntityFinderFactory EntityFinderFactory { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/microsoft.entityframeworkcore.internal.ientityfinderfactory">IEntityFinderFactory</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="CloudStorageORM_Infrastructure_CloudStorageDbContextDependencies_EntityGraphAttacher_" data-uid="CloudStorageORM.Infrastructure.CloudStorageDbContextDependencies.EntityGraphAttacher*"></a>
+
+  <h3 id="CloudStorageORM_Infrastructure_CloudStorageDbContextDependencies_EntityGraphAttacher" data-uid="CloudStorageORM.Infrastructure.CloudStorageDbContextDependencies.EntityGraphAttacher">
+  EntityGraphAttacher
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageDbContextDependencies.cs/#L104"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+the same compatibility standards as public APIs. It may be changed or removed without notice in
+any release. You should only use it directly in your code with extreme caution and knowing that
+doing so can result in application failures when updating to a new Entity Framework Core release.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IEntityGraphAttacher EntityGraphAttacher { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/microsoft.entityframeworkcore.changetracking.internal.ientitygraphattacher">IEntityGraphAttacher</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="CloudStorageORM_Infrastructure_CloudStorageDbContextDependencies_ExceptionDetector_" data-uid="CloudStorageORM.Infrastructure.CloudStorageDbContextDependencies.ExceptionDetector*"></a>
+
+  <h3 id="CloudStorageORM_Infrastructure_CloudStorageDbContextDependencies_ExceptionDetector" data-uid="CloudStorageORM.Infrastructure.CloudStorageDbContextDependencies.ExceptionDetector">
+  ExceptionDetector
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageDbContextDependencies.cs/#L106"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+the same compatibility standards as public APIs. It may be changed or removed without notice in
+any release. You should only use it directly in your code with extreme caution and knowing that
+doing so can result in application failures when updating to a new Entity Framework Core release.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IExceptionDetector ExceptionDetector { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/microsoft.entityframeworkcore.storage.iexceptiondetector">IExceptionDetector</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="CloudStorageORM_Infrastructure_CloudStorageDbContextDependencies_InfrastructureLogger_" data-uid="CloudStorageORM.Infrastructure.CloudStorageDbContextDependencies.InfrastructureLogger*"></a>
+
+  <h3 id="CloudStorageORM_Infrastructure_CloudStorageDbContextDependencies_InfrastructureLogger" data-uid="CloudStorageORM.Infrastructure.CloudStorageDbContextDependencies.InfrastructureLogger">
+  InfrastructureLogger
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageDbContextDependencies.cs/#L110"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+the same compatibility standards as public APIs. It may be changed or removed without notice in
+any release. You should only use it directly in your code with extreme caution and knowing that
+doing so can result in application failures when updating to a new Entity Framework Core release.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IDiagnosticsLogger&lt;DbLoggerCategory.Infrastructure&gt; InfrastructureLogger { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/microsoft.entityframeworkcore.diagnostics.idiagnosticslogger-1">IDiagnosticsLogger</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/microsoft.entityframeworkcore.dbloggercategory">DbLoggerCategory</a>.<a class="xref" href="https://learn.microsoft.com/dotnet/api/microsoft.entityframeworkcore.dbloggercategory.infrastructure">Infrastructure</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="CloudStorageORM_Infrastructure_CloudStorageDbContextDependencies_InternalServiceProvider_" data-uid="CloudStorageORM.Infrastructure.CloudStorageDbContextDependencies.InternalServiceProvider*"></a>
+
+  <h3 id="CloudStorageORM_Infrastructure_CloudStorageDbContextDependencies_InternalServiceProvider" data-uid="CloudStorageORM.Infrastructure.CloudStorageDbContextDependencies.InternalServiceProvider">
+  InternalServiceProvider
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageDbContextDependencies.cs/#L92"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IServiceProvider InternalServiceProvider { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.iserviceprovider">IServiceProvider</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="CloudStorageORM_Infrastructure_CloudStorageDbContextDependencies_Model_" data-uid="CloudStorageORM.Infrastructure.CloudStorageDbContextDependencies.Model*"></a>
+
+  <h3 id="CloudStorageORM_Infrastructure_CloudStorageDbContextDependencies_Model" data-uid="CloudStorageORM.Infrastructure.CloudStorageDbContextDependencies.Model">
+  Model
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageDbContextDependencies.cs/#L89"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IModel Model { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/microsoft.entityframeworkcore.metadata.imodel">IModel</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="CloudStorageORM_Infrastructure_CloudStorageDbContextDependencies_QueryProvider_" data-uid="CloudStorageORM.Infrastructure.CloudStorageDbContextDependencies.QueryProvider*"></a>
+
+  <h3 id="CloudStorageORM_Infrastructure_CloudStorageDbContextDependencies_QueryProvider" data-uid="CloudStorageORM.Infrastructure.CloudStorageDbContextDependencies.QueryProvider">
+  QueryProvider
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageDbContextDependencies.cs/#L98"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+the same compatibility standards as public APIs. It may be changed or removed without notice in
+any release. You should only use it directly in your code with extreme caution and knowing that
+doing so can result in application failures when updating to a new Entity Framework Core release.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IAsyncQueryProvider QueryProvider { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/microsoft.entityframeworkcore.query.iasyncqueryprovider">IAsyncQueryProvider</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="CloudStorageORM_Infrastructure_CloudStorageDbContextDependencies_SetSource_" data-uid="CloudStorageORM.Infrastructure.CloudStorageDbContextDependencies.SetSource*"></a>
+
+  <h3 id="CloudStorageORM_Infrastructure_CloudStorageDbContextDependencies_SetSource" data-uid="CloudStorageORM.Infrastructure.CloudStorageDbContextDependencies.SetSource">
+  SetSource
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageDbContextDependencies.cs/#L94"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+the same compatibility standards as public APIs. It may be changed or removed without notice in
+any release. You should only use it directly in your code with extreme caution and knowing that
+doing so can result in application failures when updating to a new Entity Framework Core release.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IDbSetSource SetSource { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/microsoft.entityframeworkcore.internal.idbsetsource">IDbSetSource</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="CloudStorageORM_Infrastructure_CloudStorageDbContextDependencies_StateManager_" data-uid="CloudStorageORM.Infrastructure.CloudStorageDbContextDependencies.StateManager*"></a>
+
+  <h3 id="CloudStorageORM_Infrastructure_CloudStorageDbContextDependencies_StateManager" data-uid="CloudStorageORM.Infrastructure.CloudStorageDbContextDependencies.StateManager">
+  StateManager
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageDbContextDependencies.cs/#L100"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+the same compatibility standards as public APIs. It may be changed or removed without notice in
+any release. You should only use it directly in your code with extreme caution and knowing that
+doing so can result in application failures when updating to a new Entity Framework Core release.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IStateManager StateManager { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/microsoft.entityframeworkcore.changetracking.internal.istatemanager">IStateManager</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="CloudStorageORM_Infrastructure_CloudStorageDbContextDependencies_TransactionManager_" data-uid="CloudStorageORM.Infrastructure.CloudStorageDbContextDependencies.TransactionManager*"></a>
+
+  <h3 id="CloudStorageORM_Infrastructure_CloudStorageDbContextDependencies_TransactionManager" data-uid="CloudStorageORM.Infrastructure.CloudStorageDbContextDependencies.TransactionManager">
+  TransactionManager
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageDbContextDependencies.cs/#L88"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IDbContextTransactionManager TransactionManager { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/microsoft.entityframeworkcore.storage.idbcontexttransactionmanager">IDbContextTransactionManager</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="CloudStorageORM_Infrastructure_CloudStorageDbContextDependencies_UpdateLogger_" data-uid="CloudStorageORM.Infrastructure.CloudStorageDbContextDependencies.UpdateLogger*"></a>
+
+  <h3 id="CloudStorageORM_Infrastructure_CloudStorageDbContextDependencies_UpdateLogger" data-uid="CloudStorageORM.Infrastructure.CloudStorageDbContextDependencies.UpdateLogger">
+  UpdateLogger
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageDbContextDependencies.cs/#L108"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+the same compatibility standards as public APIs. It may be changed or removed without notice in
+any release. You should only use it directly in your code with extreme caution and knowing that
+doing so can result in application failures when updating to a new Entity Framework Core release.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IDiagnosticsLogger&lt;DbLoggerCategory.Update&gt; UpdateLogger { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/microsoft.entityframeworkcore.diagnostics.idiagnosticslogger-1">IDiagnosticsLogger</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/microsoft.entityframeworkcore.dbloggercategory">DbLoggerCategory</a>.<a class="xref" href="https://learn.microsoft.com/dotnet/api/microsoft.entityframeworkcore.dbloggercategory.update">Update</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageDbContextDependencies.cs/#L15" class="edit-link">Edit this page</a>
+        </div>
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

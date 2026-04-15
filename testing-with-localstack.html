@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Testing CloudStorageORM with LocalStack | CloudStorageORM </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Testing CloudStorageORM with LocalStack | CloudStorageORM ">
+      
+      
+      <link rel="icon" href="favicon.ico">
+      <link rel="stylesheet" href="public/docfx.min.css">
+      <link rel="stylesheet" href="public/main.css">
+      <meta name="docfx:navrel" content="toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/rzavalik/CloudStorageORM/blob/main/docs/testing-with-localstack.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="index.html">
+            <img id="logo" class="svg" src="logo.svg" alt="CloudStorageORM">
+            CloudStorageORM
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+
+      <div class="content">
+        <div class="actionbar">
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="testing-cloudstorageorm-with-localstack">Testing CloudStorageORM with LocalStack</h1>
+
+<p>CloudStorageORM uses <a href="https://www.localstack.cloud/">LocalStack</a> to emulate AWS S3 locally.
+Use this setup to run AWS integration tests and the AWS sample app flow without a real AWS account.</p>
+<hr>
+<h2 id="prerequisites">Prerequisites</h2>
+<ul>
+<li>.NET 10 SDK</li>
+<li>Docker</li>
+</ul>
+<hr>
+<h2 id="start-localstack-s3">Start LocalStack (S3)</h2>
+<pre><code class="lang-bash">docker rm -f localstack || true
+docker run -d \
+  -p 4566:4566 \
+  --name localstack \
+  -e SERVICES=s3 \
+  -e AWS_DEFAULT_REGION=us-east-1 \
+  localstack/localstack:3
+</code></pre>
+<p>For CI-like local behavior across Azure + AWS tests, use:</p>
+<pre><code class="lang-bash">./scripts/run-local-ci-tests.sh
+</code></pre>
+<hr>
+<h2 id="environment-variables-used-by-cloudstorageorm">Environment variables used by CloudStorageORM</h2>
+<p>These defaults are used by tests/sample if variables are not set:</p>
+<ul>
+<li><code>CLOUDSTORAGEORM_AWS_ACCESS_KEY_ID</code> (<code>test</code>)</li>
+<li><code>CLOUDSTORAGEORM_AWS_SECRET_ACCESS_KEY</code> (<code>test</code>)</li>
+<li><code>CLOUDSTORAGEORM_AWS_REGION</code> (<code>us-east-1</code>)</li>
+<li><code>CLOUDSTORAGEORM_AWS_SERVICE_URL</code> (<code>http://127.0.0.1:4566</code>)</li>
+<li><code>CLOUDSTORAGEORM_AWS_BUCKET</code> (<code>cloudstorageorm-integration-tests</code>)</li>
+<li><code>CLOUDSTORAGEORM_AWS_FORCE_PATH_STYLE</code> (<code>true</code>)</li>
+</ul>
+<hr>
+<h2 id="run-aws-integration-tests-only">Run AWS integration tests only</h2>
+<pre><code class="lang-bash">dotnet test tests/CloudStorageORM.IntegrationTests/CloudStorageORM.IntegrationTests.AWS.csproj --nologo -v minimal
+</code></pre>
+<p>If LocalStack is unavailable, AWS integration scenarios are skipped by fixture guards.</p>
+<hr>
+<h2 id="run-the-sample-app-with-localstack-available">Run the sample app with LocalStack available</h2>
+<pre><code class="lang-bash">dotnet run --project samples/CloudStorageORM.SampleApp/SampleApp.csproj
+</code></pre>
+<p>The sample executes three runs in order:</p>
+<ol>
+<li>InMemory</li>
+<li>Azure</li>
+<li>AWS</li>
+</ol>
+<p>If LocalStack is unreachable, the AWS run is skipped with a warning message.</p>
+<hr>
+<h2 id="common-issues">Common issues</h2>
+<h3 id="localstack-not-reachable">LocalStack not reachable</h3>
+<pre><code class="lang-bash">curl -sS http://127.0.0.1:4566/_localstack/health
+</code></pre>
+<p>You should see <code>&quot;s3&quot;: &quot;running&quot;</code> in the response.</p>
+<h3 id="wrong-endpoint-or-credentials">Wrong endpoint or credentials</h3>
+<p>Set explicit variables before running tests/sample:</p>
+<pre><code class="lang-bash">export CLOUDSTORAGEORM_AWS_ACCESS_KEY_ID=test
+export CLOUDSTORAGEORM_AWS_SECRET_ACCESS_KEY=test
+export CLOUDSTORAGEORM_AWS_REGION=us-east-1
+export CLOUDSTORAGEORM_AWS_SERVICE_URL=http://127.0.0.1:4566
+export CLOUDSTORAGEORM_AWS_BUCKET=cloudstorageorm-integration-tests
+export CLOUDSTORAGEORM_AWS_FORCE_PATH_STYLE=true
+</code></pre>
+<hr>
+<h2 id="related-files">Related files</h2>
+<ul>
+<li><code>src/CloudStorageORM/Providers/Aws/StorageProviders/AwsS3StorageProvider.cs</code></li>
+<li><code>tests/CloudStorageORM.IntegrationTests/CloudStorageORM.IntegrationTests.AWS.csproj</code></li>
+<li><code>tests/CloudStorageORM.IntegrationTests.SampleApp/CloudStorageORM.IntegrationTests.SampleApp.csproj</code></li>
+<li><code>tests/CloudStorageORM.IntegrationTests/Aws/LocalStackFixture.cs</code></li>
+<li><code>tests/CloudStorageORM.IntegrationTests/Aws/StorageProviders/AwsS3StorageProviderTests.cs</code></li>
+<li><code>tests/CloudStorageORM.IntegrationTests.SampleApp/ProgramExitAwsSampleAppTests.cs</code></li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/rzavalik/CloudStorageORM/blob/main/docs/testing-with-localstack.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

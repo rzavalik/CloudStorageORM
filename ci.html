@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>CI workflow (.github/workflows/ci.yml) | CloudStorageORM </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="CI workflow (.github/workflows/ci.yml) | CloudStorageORM ">
+      
+      
+      <link rel="icon" href="favicon.ico">
+      <link rel="stylesheet" href="public/docfx.min.css">
+      <link rel="stylesheet" href="public/main.css">
+      <meta name="docfx:navrel" content="toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/rzavalik/CloudStorageORM/blob/main/docs/ci.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="index.html">
+            <img id="logo" class="svg" src="logo.svg" alt="CloudStorageORM">
+            CloudStorageORM
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+
+      <div class="content">
+        <div class="actionbar">
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="ci-workflow-githubworkflowsciyml">CI workflow (<code>.github/workflows/ci.yml</code>)</h1>
+
+<p>This repository validates build, tests, and coverage through the <code>Build and Test</code> workflow.
+Package publishing is handled by <code>.github/workflows/publish.yml</code>, which validates that the packed NuGet includes
+<code>README.md</code> and correct repository/readme metadata before push, then publishes to both NuGet.org and GitHub Packages.
+The same CI workflow also runs a parallel DocFX documentation job that builds the static site and deploys it by branch:
+<code>main</code> pushes publish to <code>gh-pages</code>, while <code>feature/docs</code> pushes publish to <code>gh-pages-preview</code> for pre-merge validation.
+Publishing runs on <code>v*.*.*</code> tags (for example, <code>v1.0.13</code>) or manual dispatch.</p>
+<hr>
+<h2 id="triggers">Triggers</h2>
+<p>The workflow runs on:</p>
+<ul>
+<li>push to <code>main</code></li>
+<li>push to <code>feature/docs</code></li>
+<li>pull request targeting <code>main</code>, <code>feature/**</code>, <code>bug/**</code>, or <code>hotfix/**</code></li>
+<li>changes under <code>_site/**</code> are ignored at trigger time</li>
+</ul>
+<hr>
+<h2 id="what-ci-does">What CI does</h2>
+<p>CI executes provider-specific test jobs in parallel, plus a dedicated SampleApp integration lane, followed by a report aggregation job:</p>
+<ol start="0">
+<li>force JavaScript-based actions to run on Node.js 24 (<code>FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true</code>)</li>
+<li>checkout</li>
+<li>NuGet cache restore/save</li>
+<li>.NET SDK setup (<code>10.0.x</code>)</li>
+<li><code>dotnet restore CloudStorageORM.sln</code></li>
+<li><code>dotnet build CloudStorageORM.sln --no-restore --configuration Release</code></li>
+<li>generate CycloneDX SBOM (<code>TestResults/SBOM/cloudstorageorm.sbom.cdx.json</code>)</li>
+<li>run unit tests (no emulator dependency)</li>
+<li>upload unit TRX and coverage artifacts</li>
+<li>run Azure integration tests in a dedicated job (Azurite only)</li>
+<li>run AWS integration tests in a dedicated job (LocalStack only)</li>
+<li>run SampleApp integration tests in a dedicated job (Azurite + LocalStack)</li>
+<li>upload provider-specific and SampleApp TRX + coverage artifacts</li>
+<li>aggregate all TRX + coverage XML in a report job</li>
+<li>generate HTML coverage report</li>
+<li>upload HTML coverage artifact</li>
+<li>publish PR test comment and unit test UI results</li>
+</ol>
+<p>In parallel, CI also executes a <code>Build Docs (DocFX)</code> job:</p>
+<ol>
+<li>checkout</li>
+<li>.NET SDK setup (<code>10.0.x</code>)</li>
+<li>install DocFX global tool</li>
+<li>run <code>./scripts/setup-docfx-material.sh</code> to install <code>docfx-material</code> into <code>templates/material</code></li>
+<li><code>dotnet restore CloudStorageORM.sln</code></li>
+<li><code>docfx docfx.json</code> (site output in <code>_site</code>)</li>
+<li>upload <code>_site</code> as <code>docs-site</code> artifact</li>
+<li>deploy <code>_site</code> to <code>gh-pages-preview</code> on pushes to <code>feature/docs</code></li>
+<li>deploy <code>_site</code> to <code>gh-pages</code> on pushes to <code>main</code></li>
+</ol>
+<p>For pull requests, CI treats a change as docs-only only when every changed file stays within the docs allowlist:
+<code>docs/**</code>, <code>docfx.json</code>, <code>README.md</code>, <code>CONTRIBUTING.md</code>, <code>ROADMAP.md</code>, <code>CODE_OF_CONDUCT.md</code>, <code>SECURITY.md</code>,
+<code>.github/PULL_REQUEST_TEMPLATE.md</code>, <code>.github/ISSUE_TEMPLATE/**</code>, and <code>.github/copilot-instructions.md</code>.
+If any file outside this scope changes, full <code>Build, Test, and Coverage</code> still runs.</p>
+<p>The Node.js 24 opt-in keeps workflows aligned with GitHub Actions runtime deprecation timelines while first- and
+third-party actions continue their Node 24 transitions. This opt-in is enabled in both <code>.github/workflows/ci.yml</code> and
+<code>.github/workflows/publish.yml</code>.</p>
+<hr>
+<h2 id="emulator-details-by-job">Emulator details by job</h2>
+<p>CI starts emulators only in integration jobs:</p>
+<ul>
+<li><code>integration-azure</code> starts Azurite (<code>mcr.microsoft.com/azure-storage/azurite</code>) on <code>10000</code>, <code>10001</code>, <code>10002</code></li>
+<li><code>integration-aws</code> starts LocalStack (<code>localstack/localstack:3</code>) on <code>4566</code></li>
+<li><code>integration-sampleapp</code> starts both Azurite and LocalStack</li>
+<li><code>integration-sampleapp</code> waits for Azurite TCP readiness (<code>127.0.0.1:10000</code>) and LocalStack S3 health (<code>/_localstack/health</code>) before tests run</li>
+<li><code>integration-sampleapp</code> dumps Azurite and LocalStack logs automatically when the test step fails</li>
+</ul>
+<p>AWS test environment variables are injected in CI:</p>
+<ul>
+<li><code>CLOUDSTORAGEORM_AWS_SERVICE_URL=http://127.0.0.1:4566</code></li>
+<li><code>CLOUDSTORAGEORM_AWS_ACCESS_KEY_ID=test</code></li>
+<li><code>CLOUDSTORAGEORM_AWS_SECRET_ACCESS_KEY=test</code></li>
+<li><code>CLOUDSTORAGEORM_AWS_REGION=us-east-1</code></li>
+<li><code>CLOUDSTORAGEORM_AWS_BUCKET=cloudstorageorm-integration-tests</code></li>
+</ul>
+<hr>
+<h2 id="test-and-coverage-artifacts">Test and coverage artifacts</h2>
+<p>CI publishes artifacts per job and in the aggregate report stage:</p>
+<ul>
+<li><code>test-results-unit</code>, <code>test-results-azure</code>, <code>test-results-aws</code> -&gt; <code>TestResults/*.trx</code></li>
+<li><code>test-results-sampleapp</code> -&gt; <code>TestResults/*.trx</code></li>
+<li><code>coverage-xml-unit</code>, <code>coverage-xml-azure</code>, <code>coverage-xml-aws</code>, <code>coverage-xml-sampleapp</code> -&gt; <code>TestResults/Coverage/*.xml</code></li>
+<li><code>sbom-cyclonedx</code> -&gt; <code>TestResults/SBOM/*.json</code></li>
+<li><code>coverage-html</code> -&gt; <code>TestResults/CoverageReport</code></li>
+<li><code>docs-site</code> -&gt; <code>_site</code></li>
+</ul>
+<p>The workflow also publishes test results to the GitHub Actions UI on every run.</p>
+<hr>
+<h2 id="local-parity-commands">Local parity commands</h2>
+<p>If you want local behavior close to CI:</p>
+<pre><code class="lang-bash">./scripts/run-local-ci-tests.sh
+</code></pre>
+<p>That script starts:</p>
+<ul>
+<li>Azurite with <code>--skipApiVersionCheck</code></li>
+<li>LocalStack <code>localstack/localstack:3</code></li>
+</ul>
+<p>and then runs restore, build, and test projects with CI-aligned AWS environment variables.</p>
+<p>If you prefer the individual commands, use:</p>
+<pre><code class="lang-bash">dotnet restore CloudStorageORM.sln
+dotnet build CloudStorageORM.sln --no-restore --configuration Release --verbosity normal
+
+mkdir -p TestResults/Coverage
+for proj in $(find . -type f -iname &quot;*.Tests.csproj&quot;); do
+  name=$(basename &quot;$proj&quot; .csproj)
+  dotnet test &quot;$proj&quot; --configuration Release \
+    --logger &quot;trx;LogFileName=${name}.trx&quot; \
+    --collect:&quot;XPlat Code Coverage&quot;
+  find . -name &quot;${name}.trx&quot; -exec cp {} TestResults/ \;
+  find . -name &quot;coverage.cobertura.xml&quot; -exec cp {} TestResults/Coverage/${name}.xml \;
+done
+
+dotnet test tests/CloudStorageORM.IntegrationTests/CloudStorageORM.IntegrationTests.Azure.csproj --configuration Release \
+  --logger &quot;trx;LogFileName=CloudStorageORM.IntegrationTests.Azure.trx&quot; \
+  --collect:&quot;XPlat Code Coverage&quot;
+
+dotnet test tests/CloudStorageORM.IntegrationTests/CloudStorageORM.IntegrationTests.AWS.csproj --configuration Release \
+  --logger &quot;trx;LogFileName=CloudStorageORM.IntegrationTests.AWS.trx&quot; \
+  --collect:&quot;XPlat Code Coverage&quot;
+
+dotnet test tests/CloudStorageORM.IntegrationTests.SampleApp/CloudStorageORM.IntegrationTests.SampleApp.csproj --configuration Release \
+  --logger &quot;trx;LogFileName=CloudStorageORM.IntegrationTests.SampleApp.trx&quot; \
+  --collect:&quot;XPlat Code Coverage&quot;
+</code></pre>
+<p>Then generate HTML coverage:</p>
+<pre><code class="lang-bash">dotnet tool restore
+dotnet tool run reportgenerator \
+  -reports:TestResults/Coverage/*.xml \
+  -targetdir:TestResults/CoverageReport \
+  -reporttypes:HtmlInline_AzurePipelines\;Cobertura
+</code></pre>
+<hr>
+<h2 id="troubleshooting-ci-failures-quickly">Troubleshooting CI failures quickly</h2>
+<ul>
+<li>If Azure tests fail early, verify Azurite readiness and port collisions.</li>
+<li>If AWS tests fail early, verify LocalStack health and <code>CLOUDSTORAGEORM_AWS_*</code> values.</li>
+<li>If SampleApp integration tests fail, inspect the emulator logs emitted by the <code>Dump emulator logs on failure</code> step.</li>
+<li>If report generation fails, verify <code>dotnet-tools.json</code> is restored (<code>dotnet tool restore</code>).</li>
+<li>If test reporting fails, inspect generated <code>TestResults/*.trx</code> files first.</li>
+<li>If DocFX build fails, run <code>./scripts/setup-docfx-material.sh</code> and then <code>docfx docfx.json</code> locally.</li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/rzavalik/CloudStorageORM/blob/main/docs/ci.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

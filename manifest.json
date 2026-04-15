@@ -1,0 +1,1269 @@
+{
+  "source_base_path": "/home/runner/work/CloudStorageORM/CloudStorageORM",
+  "xrefmap": "xrefmap.yml",
+  "files": [
+    {
+      "type": "Resource",
+      "output": {
+        "resource": {
+          "relative_path": "index.json"
+        }
+      }
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "CONTRIBUTING.md",
+      "output": {
+        ".html": {
+          "relative_path": "CONTRIBUTING.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "LICENSE",
+      "output": {
+        "resource": {
+          "relative_path": "LICENSE"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "README.md",
+      "output": {
+        ".html": {
+          "relative_path": "README.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "ROADMAP.md",
+      "output": {
+        ".html": {
+          "relative_path": "ROADMAP.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "SECURITY.md",
+      "output": {
+        ".html": {
+          "relative_path": "SECURITY.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Abstractions.BlobSettingsAttribute.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Abstractions.BlobSettingsAttribute.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Abstractions.BlobSettingsAttribute",
+      "Summary": "<p sourcefile=\"api/CloudStorageORM.Abstractions.BlobSettingsAttribute.yml\" sourcestartlinenumber=\"1\">Declares blob settings metadata for an entity type.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Abstractions.IETag.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Abstractions.IETag.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Abstractions.IETag",
+      "Summary": "<p sourcefile=\"api/CloudStorageORM.Abstractions.IETag.yml\" sourcestartlinenumber=\"1\">Contract for entities that persist an object-store ETag for optimistic concurrency checks.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Abstractions.ModelAttribute.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Abstractions.ModelAttribute.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Abstractions.ModelAttribute",
+      "Summary": "<p sourcefile=\"api/CloudStorageORM.Abstractions.ModelAttribute.yml\" sourcestartlinenumber=\"1\">Base attribute type for CloudStorageORM model annotations.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Abstractions.StorageListPage.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Abstractions.StorageListPage.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Abstractions.StorageListPage",
+      "Summary": "<p sourcefile=\"api/CloudStorageORM.Abstractions.StorageListPage.yml\" sourcestartlinenumber=\"1\">Represents a single provider list page with continuation state.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Abstractions.StorageObject-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Abstractions.StorageObject-1.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Abstractions.StorageObject<T>",
+      "Summary": "<p sourcefile=\"api/CloudStorageORM.Abstractions.StorageObject-1.yml\" sourcestartlinenumber=\"1\">Represents a storage read result that includes the entity value, ETag, and existence status.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Abstractions.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Abstractions.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Abstractions",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Contexts.CloudStorageDbContext.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Contexts.CloudStorageDbContext.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Contexts.CloudStorageDbContext",
+      "Summary": "<p sourcefile=\"api/CloudStorageORM.Contexts.CloudStorageDbContext.yml\" sourcestartlinenumber=\"1\">Base DbContext implementation for CloudStorageORM-backed models.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Contexts.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Contexts.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Contexts",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Enums.CloudProvider.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Enums.CloudProvider.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Enums.CloudProvider",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Enums.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Enums.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Enums",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Extensions.CloudStorageDbSetExtensions.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Extensions.CloudStorageDbSetExtensions.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Extensions.CloudStorageDbSetExtensions",
+      "Summary": "<p sourcefile=\"api/CloudStorageORM.Extensions.CloudStorageDbSetExtensions.yml\" sourcestartlinenumber=\"1\">Extensions for bulk-like operations on DbSet instances in CloudStorageORM.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Extensions.CloudStorageOrmExtensions.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Extensions.CloudStorageOrmExtensions.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Extensions.CloudStorageOrmExtensions",
+      "Summary": "<p sourcefile=\"api/CloudStorageORM.Extensions.CloudStorageOrmExtensions.yml\" sourcestartlinenumber=\"1\">Extension methods for configuring CloudStorageORM on EF Core option builders.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Extensions.CloudStorageOrmOptionsExtensionInfo.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Extensions.CloudStorageOrmOptionsExtensionInfo.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Extensions.CloudStorageOrmOptionsExtensionInfo",
+      "Summary": "<p sourcefile=\"api/CloudStorageORM.Extensions.CloudStorageOrmOptionsExtensionInfo.yml\" sourcestartlinenumber=\"1\">EF Core extension metadata used to describe CloudStorageORM options in logging and service-provider caching.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Extensions.CloudStorageOrmServiceCollectionExtensions.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Extensions.CloudStorageOrmServiceCollectionExtensions.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Extensions.CloudStorageOrmServiceCollectionExtensions",
+      "Summary": "<p sourcefile=\"api/CloudStorageORM.Extensions.CloudStorageOrmServiceCollectionExtensions.yml\" sourcestartlinenumber=\"1\">Service collection extensions for registering CloudStorageORM services.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Extensions.ModelBuilderExtensions.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Extensions.ModelBuilderExtensions.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Extensions.ModelBuilderExtensions",
+      "Summary": "<p sourcefile=\"api/CloudStorageORM.Extensions.ModelBuilderExtensions.yml\" sourcestartlinenumber=\"1\">Extensions for applying CloudStorageORM model conventions and validation.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Extensions.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Extensions.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Extensions",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Infrastructure.BlobPathResolver.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Infrastructure.BlobPathResolver.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Infrastructure.BlobPathResolver",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Infrastructure.CloudStorageDatabase.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Infrastructure.CloudStorageDatabase.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Infrastructure.CloudStorageDatabase",
+      "Summary": "<p sourcefile=\"api/CloudStorageORM.Infrastructure.CloudStorageDatabase.yml\" sourcestartlinenumber=\"1\">IDatabase implementation that persists EF entity changes to object storage.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Infrastructure.CloudStorageDatabaseCreator.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Infrastructure.CloudStorageDatabaseCreator.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Infrastructure.CloudStorageDatabaseCreator",
+      "Summary": "<p sourcefile=\"api/CloudStorageORM.Infrastructure.CloudStorageDatabaseCreator.yml\" sourcestartlinenumber=\"1\">Lightweight database-creator implementation for the object-storage provider.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Infrastructure.CloudStorageDatabaseProvider.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Infrastructure.CloudStorageDatabaseProvider.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Infrastructure.CloudStorageDatabaseProvider",
+      "Summary": "<p sourcefile=\"api/CloudStorageORM.Infrastructure.CloudStorageDatabaseProvider.yml\" sourcestartlinenumber=\"1\">EF Core database-provider descriptor for CloudStorageORM.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Infrastructure.CloudStorageDbContextDependencies.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Infrastructure.CloudStorageDbContextDependencies.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Infrastructure.CloudStorageDbContextDependencies",
+      "Summary": "<p sourcefile=\"api/CloudStorageORM.Infrastructure.CloudStorageDbContextDependencies.yml\" sourcestartlinenumber=\"1\">Provides EF Core DbContext dependency implementations for CloudStorageORM.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Infrastructure.CloudStorageDbContextTransaction.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Infrastructure.CloudStorageDbContextTransaction.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Infrastructure.CloudStorageDbContextTransaction",
+      "Summary": "<p sourcefile=\"api/CloudStorageORM.Infrastructure.CloudStorageDbContextTransaction.yml\" sourcestartlinenumber=\"1\">Transaction wrapper used by <xref href=\"CloudStorageORM.Infrastructure.CloudStorageTransactionManager\" data-throw-if-not-resolved=\"false\"></xref>.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Infrastructure.CloudStorageDbSetInitializer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Infrastructure.CloudStorageDbSetInitializer.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Infrastructure.CloudStorageDbSetInitializer",
+      "Summary": "<p sourcefile=\"api/CloudStorageORM.Infrastructure.CloudStorageDbSetInitializer.yml\" sourcestartlinenumber=\"1\">No-op DbSet initializer for CloudStorageORM contexts.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Infrastructure.CloudStorageLoggingDefinitions.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Infrastructure.CloudStorageLoggingDefinitions.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Infrastructure.CloudStorageLoggingDefinitions",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Infrastructure.CloudStorageOrmOptionsExtension.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Infrastructure.CloudStorageOrmOptionsExtension.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Infrastructure.CloudStorageOrmOptionsExtension",
+      "Summary": "<p sourcefile=\"api/CloudStorageORM.Infrastructure.CloudStorageOrmOptionsExtension.yml\" sourcestartlinenumber=\"1\">EF Core options extension that wires CloudStorageORM services and settings.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Infrastructure.CloudStorageQueryContext.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Infrastructure.CloudStorageQueryContext.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Infrastructure.CloudStorageQueryContext",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Infrastructure.CloudStorageQueryContextFactory.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Infrastructure.CloudStorageQueryContextFactory.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Infrastructure.CloudStorageQueryContextFactory",
+      "Summary": "<p sourcefile=\"api/CloudStorageORM.Infrastructure.CloudStorageQueryContextFactory.yml\" sourcestartlinenumber=\"1\">Creates query contexts used by CloudStorageORM query execution.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Infrastructure.CloudStorageQueryProvider.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Infrastructure.CloudStorageQueryProvider.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Infrastructure.CloudStorageQueryProvider",
+      "Summary": "<p sourcefile=\"api/CloudStorageORM.Infrastructure.CloudStorageQueryProvider.yml\" sourcestartlinenumber=\"1\">Query provider that executes LINQ expressions against object-storage-backed entities.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Infrastructure.CloudStorageQueryVisitor.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Infrastructure.CloudStorageQueryVisitor.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Infrastructure.CloudStorageQueryVisitor",
+      "Summary": "<p sourcefile=\"api/CloudStorageORM.Infrastructure.CloudStorageQueryVisitor.yml\" sourcestartlinenumber=\"1\">Expression visitor used to evaluate provider-backed query constants.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Infrastructure.CloudStorageQueryable-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Infrastructure.CloudStorageQueryable-1.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Infrastructure.CloudStorageQueryable<T>",
+      "Summary": "<p sourcefile=\"api/CloudStorageORM.Infrastructure.CloudStorageQueryable-1.yml\" sourcestartlinenumber=\"1\">Queryable wrapper used to expose CloudStorageORM query results through LINQ.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Infrastructure.CloudStorageSingletonOptionsInitializer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Infrastructure.CloudStorageSingletonOptionsInitializer.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Infrastructure.CloudStorageSingletonOptionsInitializer",
+      "Summary": "<p sourcefile=\"api/CloudStorageORM.Infrastructure.CloudStorageSingletonOptionsInitializer.yml\" sourcestartlinenumber=\"1\">Singleton options initializer for CloudStorageORM EF services.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Infrastructure.CloudStorageTransactionManager.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Infrastructure.CloudStorageTransactionManager.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Infrastructure.CloudStorageTransactionManager",
+      "Summary": "<p sourcefile=\"api/CloudStorageORM.Infrastructure.CloudStorageTransactionManager.yml\" sourcestartlinenumber=\"1\">Transaction manager that stages object-storage operations and optionally persists a durable journal.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Infrastructure.CloudStorageTypeMapping.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Infrastructure.CloudStorageTypeMapping.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Infrastructure.CloudStorageTypeMapping",
+      "Summary": "<p sourcefile=\"api/CloudStorageORM.Infrastructure.CloudStorageTypeMapping.yml\" sourcestartlinenumber=\"1\">Type mapping used by CloudStorageORM for EF Core value conversion services.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Infrastructure.CloudStorageTypeMappingSource.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Infrastructure.CloudStorageTypeMappingSource.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Infrastructure.CloudStorageTypeMappingSource",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Infrastructure.DbContextServicesDependencies.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Infrastructure.DbContextServicesDependencies.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Infrastructure.DbContextServicesDependencies",
+      "Summary": "<p sourcefile=\"api/CloudStorageORM.Infrastructure.DbContextServicesDependencies.yml\" sourcestartlinenumber=\"1\">Placeholder wrapper for DbContext service dependencies used by CloudStorageORM.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Infrastructure.InMemoryExpressionVisitor.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Infrastructure.InMemoryExpressionVisitor.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Infrastructure.InMemoryExpressionVisitor",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Infrastructure.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Infrastructure.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Infrastructure",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Interfaces.Infrastructure.IBlobPathResolver.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Interfaces.Infrastructure.IBlobPathResolver.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Interfaces.Infrastructure.IBlobPathResolver",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Interfaces.Infrastructure.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Interfaces.Infrastructure.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Interfaces.Infrastructure",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Interfaces.Repositories.ICloudStorageRepository-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Interfaces.Repositories.ICloudStorageRepository-1.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Interfaces.Repositories.ICloudStorageRepository<TEntity>",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Interfaces.Repositories.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Interfaces.Repositories.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Interfaces.Repositories",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Interfaces.StorageProviders.IStorageProvider.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Interfaces.StorageProviders.IStorageProvider.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Interfaces.StorageProviders.IStorageProvider",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Interfaces.StorageProviders.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Interfaces.StorageProviders.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Interfaces.StorageProviders",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Interfaces.Validators.IBlobValidator.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Interfaces.Validators.IBlobValidator.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Interfaces.Validators.IBlobValidator",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Interfaces.Validators.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Interfaces.Validators.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Interfaces.Validators",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Observability.CloudStorageOrmActivitySource.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Observability.CloudStorageOrmActivitySource.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Observability.CloudStorageOrmActivitySource",
+      "Summary": "<p sourcefile=\"api/CloudStorageORM.Observability.CloudStorageOrmActivitySource.yml\" sourcestartlinenumber=\"1\">Central ActivitySource for CloudStorageORM distributed tracing.\nProvides a singleton instance for all tracing operations.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Observability.CloudStorageOrmEventIds.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Observability.CloudStorageOrmEventIds.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Observability.CloudStorageOrmEventIds",
+      "Summary": "<p sourcefile=\"api/CloudStorageORM.Observability.CloudStorageOrmEventIds.yml\" sourcestartlinenumber=\"1\">Event IDs for CloudStorageORM logging and diagnostics.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Observability.CloudStorageOrmObservabilityOptions.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Observability.CloudStorageOrmObservabilityOptions.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Observability.CloudStorageOrmObservabilityOptions",
+      "Summary": "<p sourcefile=\"api/CloudStorageORM.Observability.CloudStorageOrmObservabilityOptions.yml\" sourcestartlinenumber=\"1\">Configuration options for CloudStorageORM observability features including logging, tracing, and diagnostics.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Observability.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Observability.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Observability",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Options.CloudStorageAwsOptions.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Options.CloudStorageAwsOptions.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Options.CloudStorageAwsOptions",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Options.CloudStorageAzureOptions.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Options.CloudStorageAzureOptions.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Options.CloudStorageAzureOptions",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Options.CloudStorageOptions.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Options.CloudStorageOptions.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Options.CloudStorageOptions",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Options.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Options.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Options",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Providers.Aws.StorageProviders.AwsS3StorageProvider.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Providers.Aws.StorageProviders.AwsS3StorageProvider.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Providers.Aws.StorageProviders.AwsS3StorageProvider",
+      "Summary": "<p sourcefile=\"api/CloudStorageORM.Providers.Aws.StorageProviders.AwsS3StorageProvider.yml\" sourcestartlinenumber=\"1\">Amazon S3 implementation of <xref href=\"CloudStorageORM.Interfaces.StorageProviders.IStorageProvider\" data-throw-if-not-resolved=\"false\"></xref>.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Providers.Aws.StorageProviders.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Providers.Aws.StorageProviders.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Providers.Aws.StorageProviders",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Providers.Aws.Validators.AwsBlobValidator.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Providers.Aws.Validators.AwsBlobValidator.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Providers.Aws.Validators.AwsBlobValidator",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Providers.Aws.Validators.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Providers.Aws.Validators.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Providers.Aws.Validators",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Providers.Azure.StorageProviders.AzureBlobStorageProvider.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Providers.Azure.StorageProviders.AzureBlobStorageProvider.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Providers.Azure.StorageProviders.AzureBlobStorageProvider",
+      "Summary": "<p sourcefile=\"api/CloudStorageORM.Providers.Azure.StorageProviders.AzureBlobStorageProvider.yml\" sourcestartlinenumber=\"1\">Azure Blob Storage implementation of <xref href=\"CloudStorageORM.Interfaces.StorageProviders.IStorageProvider\" data-throw-if-not-resolved=\"false\"></xref>.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Providers.Azure.StorageProviders.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Providers.Azure.StorageProviders.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Providers.Azure.StorageProviders",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Providers.Azure.Validators.AzureBlobValidator.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Providers.Azure.Validators.AzureBlobValidator.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Providers.Azure.Validators.AzureBlobValidator",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Providers.Azure.Validators.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Providers.Azure.Validators.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Providers.Azure.Validators",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Providers.ProviderFactory.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Providers.ProviderFactory.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Providers.ProviderFactory",
+      "Summary": "<p sourcefile=\"api/CloudStorageORM.Providers.ProviderFactory.yml\" sourcestartlinenumber=\"1\">Creates storage provider implementations from validated CloudStorageORM options.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Providers.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Providers.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Providers",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Repositories.CloudStorageDbSet-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Repositories.CloudStorageDbSet-1.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Repositories.CloudStorageDbSet<TEntity>",
+      "Summary": "<p sourcefile=\"api/CloudStorageORM.Repositories.CloudStorageDbSet-1.yml\" sourcestartlinenumber=\"1\">Lightweight query and enumeration wrapper for entities stored through <xref href=\"CloudStorageORM.Interfaces.StorageProviders.IStorageProvider\" data-throw-if-not-resolved=\"false\"></xref>.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Repositories.CloudStorageRepository-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Repositories.CloudStorageRepository-1.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Repositories.CloudStorageRepository<TEntity>",
+      "Summary": "<p sourcefile=\"api/CloudStorageORM.Repositories.CloudStorageRepository-1.yml\" sourcestartlinenumber=\"1\">Repository wrapper that maps entity identifiers to provider-backed storage objects.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Repositories.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Repositories.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Repositories",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Validators.BlobValidatorFactory.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Validators.BlobValidatorFactory.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Validators.BlobValidatorFactory",
+      "Summary": "<p sourcefile=\"api/CloudStorageORM.Validators.BlobValidatorFactory.yml\" sourcestartlinenumber=\"1\">Creates provider-specific blob-name validators.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Validators.CloudStorageModelValidator.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Validators.CloudStorageModelValidator.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Validators.CloudStorageModelValidator",
+      "Summary": "<p sourcefile=\"api/CloudStorageORM.Validators.CloudStorageModelValidator.yml\" sourcestartlinenumber=\"1\">Validates EF models using provider-specific CloudStorageORM rules.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Validators.CloudStorageOptionsValidator.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Validators.CloudStorageOptionsValidator.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Validators.CloudStorageOptionsValidator",
+      "Summary": "<p sourcefile=\"api/CloudStorageORM.Validators.CloudStorageOptionsValidator.yml\" sourcestartlinenumber=\"1\">Validates CloudStorageORM configuration options before provider initialization.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Validators.ModelValidator.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Validators.ModelValidator.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Validators.ModelValidator",
+      "Summary": "<p sourcefile=\"api/CloudStorageORM.Validators.ModelValidator.yml\" sourcestartlinenumber=\"1\">Validates entity model metadata such as blob naming, keys, and JSON serializability.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Validators.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Validators.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Validators",
+      "Summary": null
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "api/toc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/toc.html"
+        },
+        ".json": {
+          "relative_path": "api/toc.json"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "docs/CloudStorageORM.md",
+      "output": {
+        ".html": {
+          "relative_path": "CloudStorageORM.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "docs/api-reference.md",
+      "output": {
+        ".html": {
+          "relative_path": "api-reference.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "docs/ci.md",
+      "output": {
+        ".html": {
+          "relative_path": "ci.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "docs/comparison.md",
+      "output": {
+        ".html": {
+          "relative_path": "comparison.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "docs/concurrency.md",
+      "output": {
+        ".html": {
+          "relative_path": "concurrency.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "docs/configuration.md",
+      "output": {
+        ".html": {
+          "relative_path": "configuration.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "docs/docs-guide.md",
+      "output": {
+        ".html": {
+          "relative_path": "docs-guide.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "docs/getting-started.md",
+      "output": {
+        ".html": {
+          "relative_path": "getting-started.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "docs/index.md",
+      "output": {
+        ".html": {
+          "relative_path": "index.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "docs/migration.md",
+      "output": {
+        ".html": {
+          "relative_path": "migration.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "docs/observability.md",
+      "output": {
+        ".html": {
+          "relative_path": "observability.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "docs/providers.md",
+      "output": {
+        ".html": {
+          "relative_path": "providers.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "docs/query-patterns.md",
+      "output": {
+        ".html": {
+          "relative_path": "query-patterns.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "docs/sampleapp.md",
+      "output": {
+        ".html": {
+          "relative_path": "sampleapp.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "docs/testing-with-azurite.md",
+      "output": {
+        ".html": {
+          "relative_path": "testing-with-azurite.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "docs/testing-with-localstack.md",
+      "output": {
+        ".html": {
+          "relative_path": "testing-with-localstack.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "docs/toc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "toc.html"
+        },
+        ".json": {
+          "relative_path": "toc.json"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "docs/transactions.md",
+      "output": {
+        ".html": {
+          "relative_path": "transactions.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "docs/troubleshooting.md",
+      "output": {
+        ".html": {
+          "relative_path": "troubleshooting.html"
+        }
+      },
+      "version": ""
+    }
+  ],
+  "groups": [
+    {
+      "xrefmap": "xrefmap.yml"
+    }
+  ]
+}

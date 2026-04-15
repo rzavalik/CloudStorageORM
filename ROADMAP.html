@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>CloudStorageORM - Roadmap | CloudStorageORM </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="CloudStorageORM - Roadmap | CloudStorageORM ">
+      
+      
+      <link rel="icon" href="favicon.ico">
+      <link rel="stylesheet" href="public/docfx.min.css">
+      <link rel="stylesheet" href="public/main.css">
+      <meta name="docfx:navrel" content="toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/rzavalik/CloudStorageORM/blob/main/ROADMAP.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="index.html">
+            <img id="logo" class="svg" src="logo.svg" alt="CloudStorageORM">
+            CloudStorageORM
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+
+      <div class="content">
+        <div class="actionbar">
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="cloudstorageorm---roadmap">CloudStorageORM - Roadmap</h1>
+
+<p>This document outlines the evolution of CloudStorageORM from the current release line into the next planned milestones.</p>
+<hr>
+<h2 id="-current-released-version">✅ Current released version</h2>
+<h3 id="v1013">v1.0.13</h3>
+<ul>
+<li>Version bump to <code>1.0.13</code> for the current release line</li>
+<li>Documentation refreshed to keep local test guidance aligned with CI emulator setup</li>
+<li>Server-side <code>Skip</code>/<code>Take</code> pushdown for supported query shapes</li>
+<li>Observability improvements and refreshed guidance for logging, tracing, and diagnostics options</li>
+<li>ETag-based optimistic concurrency support to CloudStorageORM:
+<ul>
+<li>Introduces StorageObject<t> to encapsulate the stored value, ETag, and existence state, and adds IETag for entities that optionally expose an ETag property.</t></li>
+<li>The storage pipeline now supports SaveAsync and DeleteAsync operations with ETag conditions, and both Azure Blob Storage and AWS S3 providers have been updated to enforce concurrency checks.</li>
+<li>Model configuration has also been updated so entities can be configured for ETag concurrency, and tests were added to cover the new concurrency scenarios.</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h2 id="-previous-releases">📋 Previous releases</h2>
+<h3 id="v1012">v1.0.12</h3>
+<ul>
+<li>Version bump to <code>1.0.12</code> for the previous release line</li>
+<li>Documentation refreshed to keep local test guidance aligned with CI emulator setup</li>
+<li>ETag-based optimistic concurrency support to CloudStorageORM:
+<ul>
+<li>Introduces StorageObject<t> to encapsulate the stored value, ETag, and existence state, and adds IETag for entities that optionally expose an ETag property.</t></li>
+<li>The storage pipeline now supports SaveAsync and DeleteAsync operations with ETag conditions, and both Azure Blob Storage and AWS S3 providers have been updated to enforce concurrency checks.</li>
+<li>Model configuration has also been updated so entities can be configured for ETag concurrency, and tests were added to cover the new concurrency scenarios.</li>
+</ul>
+</li>
+</ul>
+<h3 id="v1011">v1.0.11</h3>
+<ul>
+<li>Targets <code>.NET 10</code></li>
+<li>Azure Blob Storage provider implemented</li>
+<li>AWS S3 provider implemented</li>
+<li>EF-style configuration through <code>UseCloudStorageOrm(...)</code></li>
+<li><code>CloudStorageDbContext</code> integration for consumer contexts</li>
+<li>Primary-key range query operators: <code>&gt;</code>, <code>&gt;=</code>, <code>&lt;</code>, <code>&lt;=</code> with direct range-aware loading</li>
+<li>Enhanced GitHub Actions workflows with Node.js 24 opt-in</li>
+<li>Dual NuGet package publishing to NuGet.org and GitHub Packages</li>
+<li>SBOM (Software Bill of Materials) export in CI pipeline</li>
+<li>One-type-per-file library structure enforced</li>
+<li>Sample app runs the same CRUD flow against EF InMemory, Azure, and AWS</li>
+<li>LINQ query execution optimized for range predicates</li>
+<li>Unit and integration tests with full coverage</li>
+<li>Integration coverage includes Azurite and LocalStack paths</li>
+<li>Coverage collection/reporting is wired with Coverlet + ReportGenerator</li>
+<li>File-scoped namespace style enforced repository-wide</li>
+<li>Keep roadmap, CI workflows, and package metadata aligned with the current release line</li>
+<li>Preserve sample app parity between EF InMemory and CloudStorageORM providers</li>
+<li>Maintain HTML coverage reporting workflow and contributor guidance</li>
+</ul>
+<h3 id="v1010">v1.0.10</h3>
+<ul>
+<li>Targets <code>.NET 10</code></li>
+<li>Azure Blob Storage provider implemented</li>
+<li>AWS S3 provider implemented</li>
+<li>EF-style configuration through <code>UseCloudStorageOrm(...)</code></li>
+<li><code>CloudStorageDbContext</code> integration for consumer contexts</li>
+<li>Sample app runs the same CRUD flow against EF InMemory, Azure, and AWS</li>
+<li>LINQ query execution improved to better match expected EF provider behavior</li>
+<li>Unit and integration tests are in place</li>
+<li>Integration coverage includes Azurite and LocalStack paths</li>
+<li>Coverage collection/reporting is wired with Coverlet + ReportGenerator</li>
+<li>File-scoped namespace style enforced repository-wide</li>
+</ul>
+<hr>
+<h2 id="-planned-future-milestones">🔜 Planned future milestones</h2>
+<h3 id="v110">v1.1.0</h3>
+<ul>
+<li>Add provider-native lock and unlock support (Azure lease-based coordination)</li>
+<li>Add AWS concurrency coordination via conditional/object-lock style mechanisms</li>
+<li>Improve concurrency control mechanisms across provider implementations</li>
+<li>Extend Azure provider for richer blob lifecycle semantics</li>
+<li>Expand sample scenarios to include concurrency-sensitive operations</li>
+</ul>
+<hr>
+<h3 id="v120">v1.2.0</h3>
+<ul>
+<li>AWS provider hardening (resilience, retries, and diagnostics)</li>
+<li>Expanded AWS integration test matrix (lifecycle, edge cases, and failure scenarios)</li>
+<li>CI improvements for AWS test execution reliability</li>
+<li>Performance profiling for larger AWS object sets</li>
+</ul>
+<hr>
+<h3 id="v130">v1.3.0</h3>
+<ul>
+<li>Google Cloud Storage provider</li>
+<li>Save, read, delete, and list operations on Google Cloud Storage</li>
+<li>Improve runtime provider selection behavior</li>
+<li>Extend configuration options for multi-provider scenarios</li>
+</ul>
+<hr>
+<h3 id="v140">v1.4.0</h3>
+<ul>
+<li>Snapshot and versioning support</li>
+<li>Point-in-time entity recovery concepts</li>
+<li>Provider-specific capabilities matrix for Azure, AWS, and Google</li>
+</ul>
+<hr>
+<h3 id="v150">v1.5.0</h3>
+<ul>
+<li>Production-readiness guidance per provider</li>
+<li>Hardening and performance review of query/persistence flows</li>
+<li>Additional samples beyond the console application</li>
+<li>Broader end-to-end validation scenarios</li>
+</ul>
+<hr>
+<h2 id="-future-ideas">🌟 Future ideas</h2>
+<ul>
+<li>Cross-provider replication (Azure ↔ AWS ↔ Google)</li>
+<li>Event-driven change tracking (webhooks, queues, or storage events)</li>
+<li>Encryption-at-rest and encryption-in-transit options</li>
+<li>Automatic retry policies and transient fault handling</li>
+<li>Advanced metadata indexing for faster queries</li>
+</ul>
+<hr>
+<blockquote>
+<p>CloudStorageORM is evolving toward a practical EF-style experience over object storage, starting with Azure and expanding provider support over time.</p>
+</blockquote>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/rzavalik/CloudStorageORM/blob/main/ROADMAP.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

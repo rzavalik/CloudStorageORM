@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Configuration | CloudStorageORM </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Configuration | CloudStorageORM ">
+      
+      
+      <link rel="icon" href="favicon.ico">
+      <link rel="stylesheet" href="public/docfx.min.css">
+      <link rel="stylesheet" href="public/main.css">
+      <meta name="docfx:navrel" content="toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/rzavalik/CloudStorageORM/blob/main/docs/configuration.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="index.html">
+            <img id="logo" class="svg" src="logo.svg" alt="CloudStorageORM">
+            CloudStorageORM
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+
+      <div class="content">
+        <div class="actionbar">
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="configuration">Configuration</h1>
+
+<p>CloudStorageORM uses a fluent configuration model through <code>CloudStorageOptions</code> to configure storage providers and
+behavior.</p>
+<h2 id="basic-configuration">Basic configuration</h2>
+<pre><code class="lang-csharp">services.AddDbContext&lt;AppDbContext&gt;(options =&gt;
+{
+    options.UseCloudStorageOrm(storage =&gt;
+    {
+        // Common settings
+        storage.Provider = CloudProvider.Azure;
+        storage.ContainerName = &quot;my-container&quot;;
+
+        // Provider-specific settings
+        storage.Azure.ConnectionString = &quot;DefaultEndpointsProtocol=https;...&quot;;
+    });
+});
+</code></pre>
+<h2 id="azure-configuration">Azure configuration</h2>
+<p>Configure CloudStorageORM to use <strong>Azure Blob Storage</strong>:</p>
+<pre><code class="lang-csharp">storage.Provider = CloudProvider.Azure;
+storage.ContainerName = &quot;my-blob-container&quot;;
+storage.Azure.ConnectionString = &quot;DefaultEndpointsProtocol=https;AccountName=...&quot;;
+</code></pre>
+<h3 id="connection-string-formats">Connection string formats</h3>
+<ul>
+<li><p><strong>Development</strong> (Azurite):<br>
+<code>UseDevelopmentStorage=true</code></p>
+</li>
+<li><p><strong>Production</strong> (Azure):<br>
+<code>DefaultEndpointsProtocol=https;AccountName=myaccount;AccountKey=...;EndpointSuffix=core.windows.net</code></p>
+</li>
+<li><p><strong>Connection string from environment</strong>:</p>
+<pre><code class="lang-csharp">var connStr = Environment.GetEnvironmentVariable(&quot;AZURE_STORAGE_CONNECTION_STRING&quot;);
+storage.Azure.ConnectionString = connStr;
+</code></pre>
+</li>
+</ul>
+<h2 id="aws-configuration">AWS configuration</h2>
+<p>Configure CloudStorageORM to use <strong>AWS S3</strong>:</p>
+<pre><code class="lang-csharp">storage.Provider = CloudProvider.Aws;
+storage.ContainerName = &quot;my-s3-bucket&quot;;
+storage.Aws.AccessKeyId = &quot;AKIA...&quot;;
+storage.Aws.SecretAccessKey = &quot;...&quot;;
+storage.Aws.Region = &quot;us-east-1&quot;;
+storage.Aws.ServiceUrl = &quot;http://127.0.0.1:4566&quot;; // For LocalStack
+storage.Aws.ForcePathStyle = false; // Set to true for S3-compatible services
+</code></pre>
+<h3 id="environment-based-aws-config">Environment-based AWS config</h3>
+<pre><code class="lang-csharp">storage.Provider = CloudProvider.Aws;
+storage.ContainerName = Environment.GetEnvironmentVariable(&quot;AWS_BUCKET&quot;) ?? &quot;my-bucket&quot;;
+storage.Aws.AccessKeyId = Environment.GetEnvironmentVariable(&quot;AWS_ACCESS_KEY_ID&quot;);
+storage.Aws.SecretAccessKey = Environment.GetEnvironmentVariable(&quot;AWS_SECRET_ACCESS_KEY&quot;);
+storage.Aws.Region = Environment.GetEnvironmentVariable(&quot;AWS_REGION&quot;) ?? &quot;us-east-1&quot;;
+storage.Aws.ServiceUrl = Environment.GetEnvironmentVariable(&quot;AWS_SERVICE_URL&quot;);
+</code></pre>
+<h2 id="configuration-validation">Configuration validation</h2>
+<p>CloudStorageORM validates the configuration at context initialization. Common errors:</p>
+<table>
+<thead>
+<tr>
+<th>Error</th>
+<th>Cause</th>
+<th>Fix</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>CloudProvider.NotSupported</code></td>
+<td>Invalid provider</td>
+<td>Use <code>CloudProvider.Azure</code> or <code>CloudProvider.Aws</code></td>
+</tr>
+<tr>
+<td><code>ContainerName</code> required</td>
+<td>No container specified</td>
+<td>Set <code>storage.ContainerName</code></td>
+</tr>
+<tr>
+<td>Connection failed</td>
+<td>Invalid credentials</td>
+<td>Verify connection string or AWS keys</td>
+</tr>
+</tbody>
+</table>
+<h2 id="observability-configuration-optional">Observability configuration (optional)</h2>
+<p>CloudStorageORM can emit structured logs, tracing spans, and diagnostics hooks. All are enabled by default and can be
+controlled under <code>CloudStorageOptions.Observability</code>.</p>
+<p>Current behavior on <code>main</code>:</p>
+<ul>
+<li><code>EnableLogging</code> controls CloudStorageORM <code>ILogger</code> events.</li>
+<li><code>EnableTracing</code> controls CloudStorageORM <code>ActivitySource</code> span creation.</li>
+<li><code>EnableDiagnostics</code> is part of options/debug info; custom runtime <code>DiagnosticListener</code> events are not emitted yet.</li>
+</ul>
+<pre><code class="lang-csharp">storage.Observability.EnableLogging = true;
+storage.Observability.EnableTracing = true;
+storage.Observability.EnableDiagnostics = true;
+
+// Optional custom names (reserved for future custom-source wiring)
+storage.Observability.ActivitySourceName = &quot;CloudStorageORM&quot;;
+storage.Observability.DiagnosticListenerName = &quot;CloudStorageORM&quot;;
+</code></pre>
+<p>If your application does not consume these signals, you can disable them individually.</p>
+<p>See <a href="observability.html">Observability guide</a> for practical usage profiles and consumer examples.</p>
+<h2 id="model-configuration">Model configuration</h2>
+<h3 id="primary-keys">Primary keys</h3>
+<p>Entities must define an explicit primary key:</p>
+<pre><code class="lang-csharp">modelBuilder.Entity&lt;User&gt;().HasKey(x =&gt; x.Id);
+</code></pre>
+<h3 id="optional-etag-concurrency">Optional: ETag concurrency</h3>
+<p>Enable optimistic concurrency checking (see <a href="concurrency.html">Concurrency guide</a>):</p>
+<pre><code class="lang-csharp">modelBuilder.Entity&lt;User&gt;().UseObjectETagConcurrency();
+</code></pre>
+<h2 id="see-also">See also</h2>
+<ul>
+<li><a href="getting-started.html">Getting started</a></li>
+<li><a href="transactions.html">Transactions</a></li>
+<li><a href="concurrency.html">Concurrency</a></li>
+<li><a href="api-reference.html">API reference</a></li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/rzavalik/CloudStorageORM/blob/main/docs/configuration.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

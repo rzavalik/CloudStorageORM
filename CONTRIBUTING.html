@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Contributing to CloudStorageORM | CloudStorageORM </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Contributing to CloudStorageORM | CloudStorageORM ">
+      
+      
+      <link rel="icon" href="favicon.ico">
+      <link rel="stylesheet" href="public/docfx.min.css">
+      <link rel="stylesheet" href="public/main.css">
+      <meta name="docfx:navrel" content="toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/rzavalik/CloudStorageORM/blob/main/CONTRIBUTING.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="index.html">
+            <img id="logo" class="svg" src="logo.svg" alt="CloudStorageORM">
+            CloudStorageORM
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+
+      <div class="content">
+        <div class="actionbar">
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="contributing-to-cloudstorageorm">Contributing to CloudStorageORM</h1>
+
+<p>Thank you for considering contributing to <strong>CloudStorageORM</strong>.
+This document reflects the current expectations for the <code>main</code> branch.</p>
+<hr>
+<h2 id="-quick-checklist">✅ Quick checklist</h2>
+<p>Before opening a PR, make sure you have:</p>
+<ul>
+<li>[ ] built with the <strong>.NET 10 SDK</strong></li>
+<li>[ ] formatted the solution with <code>dotnet format</code></li>
+<li>[ ] run the relevant tests</li>
+<li>[ ] run <code>./scripts/setup-docfx-material.sh &amp;&amp; docfx docfx.json</code> when changing docs/public API references</li>
+<li>[ ] updated documentation when changing public behavior, supported platforms, or contributor workflows</li>
+</ul>
+<hr>
+<h2 id="local-prerequisites">Local prerequisites</h2>
+<p>For active development on the current branch, you should have:</p>
+<ul>
+<li>.NET 10 SDK</li>
+<li>Docker (recommended for Azurite- and LocalStack-backed integration tests)</li>
+</ul>
+<hr>
+<h2 id="how-to-contribute">How to contribute</h2>
+<ul>
+<li>Fork the repository.</li>
+<li>Create a branch for your work following the naming convention below.</li>
+<li>Implement your change.</li>
+<li>Run formatting and tests locally.</li>
+<li>Open a Pull Request referencing the related issue.</li>
+</ul>
+<hr>
+<h2 id="branch-naming-convention">Branch naming convention</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Prefix</th>
+<th style="text-align: left;">Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">New Feature</td>
+<td style="text-align: left;"><code>feature/</code></td>
+<td style="text-align: left;"><code>feature/implement-azureprovider</code></td>
+</tr>
+<tr>
+<td style="text-align: left;">Bug Fix</td>
+<td style="text-align: left;"><code>bug/</code></td>
+<td style="text-align: left;"><code>bug/fix-query-evaluation</code></td>
+</tr>
+<tr>
+<td style="text-align: left;">Hotfix</td>
+<td style="text-align: left;"><code>hotfix/</code></td>
+<td style="text-align: left;"><code>hotfix/fix-release-blocker</code></td>
+</tr>
+<tr>
+<td style="text-align: left;">Tests</td>
+<td style="text-align: left;"><code>test/</code></td>
+<td style="text-align: left;"><code>test/add-sampleapp-exit-coverage</code></td>
+</tr>
+<tr>
+<td style="text-align: left;">Documentation</td>
+<td style="text-align: left;"><code>docs/</code></td>
+<td style="text-align: left;"><code>docs/update-net10-guidance</code></td>
+</tr>
+<tr>
+<td style="text-align: left;">Refactoring</td>
+<td style="text-align: left;"><code>refactor/</code></td>
+<td style="text-align: left;"><code>refactor/simplify-query-provider</code></td>
+</tr>
+</tbody>
+</table>
+<p>Examples:</p>
+<ul>
+<li><code>feature/create-istorageprovider</code></li>
+<li><code>bug/fix-path-handling</code></li>
+<li><code>hotfix/fix-ci-breakage</code></li>
+<li><code>test/unit-azureblobstorageprovider</code></li>
+</ul>
+<hr>
+<h2 id="pull-request-guidelines">Pull request guidelines</h2>
+<h3 id="pr-title-format">PR title format</h3>
+<p>Use:</p>
+<pre><code class="lang-text">[TYPE] Short Description
+</code></pre>
+<p>Where <code>TYPE</code> is one of:</p>
+<ul>
+<li><code>[FEATURE]</code></li>
+<li><code>[BUGFIX]</code></li>
+<li><code>[TEST]</code></li>
+<li><code>[DOCS]</code></li>
+<li><code>[REFACTOR]</code></li>
+</ul>
+<p>Examples:</p>
+<ul>
+<li><code>[FEATURE] Implement AzureBlobStorageProvider</code></li>
+<li><code>[BUGFIX] Fix LINQ execution for single-entity queries</code></li>
+<li><code>[TEST] Add sample app process integration test</code></li>
+</ul>
+<h3 id="pr-description">PR description</h3>
+<p>Please include:</p>
+<ul>
+<li>a short summary of what changed</li>
+<li>why the change was needed</li>
+<li><code>Closes #issue_number</code> when applicable</li>
+<li>any local setup notes reviewers need (for example, Azurite or LocalStack)</li>
+</ul>
+<hr>
+<h2 id="coding-style-requirements">Coding style requirements</h2>
+<p>The repository formatting rules are driven by <code>.editorconfig</code>.
+The current branch expects, among other things:</p>
+<ul>
+<li><strong>file-scoped namespaces</strong>: <code>namespace My.Namespace;</code></li>
+<li><code>using</code> directives <strong>outside</strong> namespaces</li>
+<li><code>var</code> usage preferred in the configured style rules</li>
+<li>standard solution-wide formatting via <code>dotnet format</code></li>
+</ul>
+<p>Public API documentation expectations:</p>
+<ul>
+<li>document all public methods/properties with XML comments</li>
+<li>prefer documenting contracts on public interfaces</li>
+<li>for implementations of documented interfaces, use <code>&lt;inheritdoc /&gt;</code> instead of duplicating XML text</li>
+<li>when no interface exists, document the public member directly on the class</li>
+</ul>
+<p>Run:</p>
+<pre><code class="lang-bash">dotnet format CloudStorageORM.sln --verbosity minimal
+</code></pre>
+<hr>
+<h2 id="testing-expectations">Testing expectations</h2>
+<h3 id="unit--integration-tests">Unit + integration tests</h3>
+<pre><code class="lang-bash">./scripts/run-local-ci-tests.sh
+</code></pre>
+<p>This script mirrors CI startup/test behavior and runs Azurite with <code>--skipApiVersionCheck</code> for local compatibility.</p>
+<p>Integration tests are split by provider:</p>
+<ul>
+<li><code>tests/CloudStorageORM.IntegrationTests/CloudStorageORM.IntegrationTests.Azure.csproj</code></li>
+<li><code>tests/CloudStorageORM.IntegrationTests/CloudStorageORM.IntegrationTests.AWS.csproj</code></li>
+<li><code>tests/CloudStorageORM.IntegrationTests.SampleApp/CloudStorageORM.IntegrationTests.SampleApp.csproj</code></li>
+</ul>
+<h3 id="integration-tests-with-azurite">Integration tests with Azurite</h3>
+<p>If your change touches Azure provider behavior, sample app behavior, or end-to-end query execution, start Azurite first:</p>
+<pre><code class="lang-bash">docker rm -f azurite || true
+docker run -d \
+  -p 10000:10000 \
+  -p 10001:10001 \
+  -p 10002:10002 \
+  --name azurite \
+  mcr.microsoft.com/azure-storage/azurite:latest \
+  azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0 --skipApiVersionCheck
+</code></pre>
+<p>Then run Azure integration tests:</p>
+<pre><code class="lang-bash">dotnet test tests/CloudStorageORM.IntegrationTests/CloudStorageORM.IntegrationTests.Azure.csproj --nologo -v minimal
+</code></pre>
+<h3 id="integration-tests-with-localstack-aws">Integration tests with LocalStack (AWS)</h3>
+<p>If your change touches AWS provider behavior, start LocalStack with S3 enabled:</p>
+<pre><code class="lang-bash">docker rm -f localstack || true
+docker run -d \
+  -p 4566:4566 \
+  --name localstack \
+  -e SERVICES=s3 \
+  -e AWS_DEFAULT_REGION=us-east-1 \
+  localstack/localstack:3
+</code></pre>
+<p>Then run AWS integration tests:</p>
+<pre><code class="lang-bash">dotnet test tests/CloudStorageORM.IntegrationTests/CloudStorageORM.IntegrationTests.AWS.csproj --nologo -v minimal
+</code></pre>
+<h3 id="sampleapp-integration-tests">SampleApp integration tests</h3>
+<p>If your change touches sample startup/wiring or end-to-end provider flow expectations, run the dedicated SampleApp lane:</p>
+<pre><code class="lang-bash">dotnet test tests/CloudStorageORM.IntegrationTests.SampleApp/CloudStorageORM.IntegrationTests.SampleApp.csproj --nologo -v minimal
+</code></pre>
+<h3 id="coverage-workflow">Coverage workflow</h3>
+<pre><code class="lang-bash">dotnet test CloudStorageORM.sln --nologo --settings coverlet.runsettings --collect:&quot;XPlat Code Coverage&quot; -v minimal
+dotnet tool restore
+dotnet tool run reportgenerator \
+  -reports:&quot;tests/**/TestResults/*/coverage.cobertura.xml&quot; \
+  -targetdir:&quot;coverage/report&quot; \
+  -reporttypes:&quot;Html&quot;
+</code></pre>
+<hr>
+<h2 id="documentation-expectations">Documentation expectations</h2>
+<p>Documentation updates are required when your PR changes any of the following:</p>
+<ul>
+<li>target framework or SDK expectations</li>
+<li>supported providers</li>
+<li>public namespaces or public API shape</li>
+<li>sample app behavior</li>
+<li>test, coverage, or local development workflow</li>
+</ul>
+<p>The most likely files to update are:</p>
+<ul>
+<li><code>README.md</code></li>
+<li><code>docs/CloudStorageORM.md</code></li>
+<li><code>docs/sampleapp.md</code></li>
+<li><code>docs/testing-with-azurite.md</code></li>
+<li><code>docs/testing-with-localstack.md</code></li>
+<li><code>docs/ci.md</code></li>
+<li><code>docfx.json</code></li>
+<li><code>docs/toc.yml</code></li>
+<li><code>docs/index.md</code></li>
+<li><code>.github/copilot-instructions.md</code></li>
+<li><code>ROADMAP.md</code></li>
+</ul>
+<hr>
+<h2 id="pull-request-checklist">Pull request checklist</h2>
+<p>Before submitting your PR, verify:</p>
+<ul>
+<li>[ ] The branch name follows the convention.</li>
+<li>[ ] The PR title follows the convention.</li>
+<li>[ ] The relevant tests pass.</li>
+<li>[ ] The solution is formatted.</li>
+<li>[ ] Documentation was updated if behavior changed.</li>
+<li>[ ] Related issues are referenced.</li>
+</ul>
+<hr>
+<h2 id="branch-protection">Branch protection</h2>
+<p>Direct pushes to <code>main</code> are not allowed.
+All changes should go through a PR and pass CI.</p>
+<p>Current CI (<code>.github/workflows/ci.yml</code>) runs on:</p>
+<ul>
+<li>pushes to <code>main</code></li>
+<li>pushes to <code>feature/docs</code> (DocFX preview validation branch)</li>
+<li>pull requests targeting <code>main</code>, <code>feature/**</code>, <code>bug/**</code>, or <code>hotfix/**</code></li>
+</ul>
+<p>Release publishing (<code>.github/workflows/publish.yml</code>) runs on <code>v*.*.*</code> tags (or manual dispatch) and publishes
+<code>CloudStorageORM</code> to NuGet.org and GitHub Packages.</p>
+<p>CI and publish workflows currently opt JavaScript-based GitHub Actions into the Node.js 24 runtime using
+<code>FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true</code>.</p>
+<p>CI runs test lanes in parallel: unit tests, Azure integration tests (Azurite), AWS integration tests (LocalStack),
+and SampleApp integration tests (Azurite + LocalStack), then aggregates TRX and coverage artifacts.</p>
+<p>The SampleApp lane waits for emulator readiness (Azurite TCP + LocalStack S3 health) before running tests and prints
+emulator logs automatically when that lane fails.</p>
+<p>CI also exports a CycloneDX SBOM artifact (<code>sbom-cyclonedx</code>) for each run.</p>
+<p>If you change CI behavior, update contributor and testing docs in the same PR.</p>
+<hr>
+<h2 id="need-help">Need help?</h2>
+<p>Open a <a href="https://github.com/rzavalik/CloudStorageORM/discussions">Discussion</a> if you have questions, ideas, or design
+feedback.</p>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/rzavalik/CloudStorageORM/blob/main/CONTRIBUTING.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

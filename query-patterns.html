@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Query patterns | CloudStorageORM </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Query patterns | CloudStorageORM ">
+      
+      
+      <link rel="icon" href="favicon.ico">
+      <link rel="stylesheet" href="public/docfx.min.css">
+      <link rel="stylesheet" href="public/main.css">
+      <meta name="docfx:navrel" content="toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/rzavalik/CloudStorageORM/blob/main/docs/query-patterns.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="index.html">
+            <img id="logo" class="svg" src="logo.svg" alt="CloudStorageORM">
+            CloudStorageORM
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+
+      <div class="content">
+        <div class="actionbar">
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="query-patterns">Query patterns</h1>
+
+<p>This guide explains how queries are executed today in CloudStorageORM, which patterns are optimized, and which patterns
+fall back to in-memory evaluation.</p>
+<h2 id="how-query-execution-works-current-behavior">How query execution works (current behavior)</h2>
+<p>CloudStorageORM currently uses two execution paths:</p>
+<ol>
+<li><strong>Primary-key optimized path</strong>
+<ul>
+<li>Used when the predicate is recognized as a constraint on the entity primary key (<code>==</code>, <code>&gt;</code>, <code>&gt;=</code>, <code>&lt;</code>, <code>&lt;=</code>).</li>
+</ul>
+</li>
+<li><strong>In-memory path</strong>
+<ul>
+<li>Used for non-key predicates or predicates that cannot be translated into a primary-key constraint.</li>
+<li>CloudStorageORM loads entity objects from storage and applies LINQ operators in memory.</li>
+</ul>
+</li>
+</ol>
+<p>In practice, this means your assumption is correct: for non-key filtering, CloudStorageORM may need to enumerate and
+materialize many objects before filtering.</p>
+<h2 id="basic-queries">Basic queries</h2>
+<h3 id="get-all-entities">Get all entities</h3>
+<pre><code class="lang-csharp">var allUsers = await context.Users.ToListAsync();
+</code></pre>
+<h3 id="filter-by-condition">Filter by condition</h3>
+<pre><code class="lang-csharp">var activeUsers = await context.Users
+    .Where(u =&gt; u.Status == &quot;Active&quot;)
+    .ToListAsync();
+</code></pre>
+<blockquote>
+<p><code>Status</code> is a non-key property, so this query is evaluated in memory after loading entities.</p>
+</blockquote>
+<h2 id="primary-key-optimized-queries">Primary-key optimized queries</h2>
+<h3 id="query-by-primary-key">Query by primary key</h3>
+<p>CloudStorageORM optimizes direct primary-key equality lookups:</p>
+<pre><code class="lang-csharp">// Efficient: direct range-aware load
+var user = await context.Users
+    .FirstOrDefaultAsync(u =&gt; u.Id == &quot;123&quot;);
+</code></pre>
+<h3 id="range-queries">Range queries</h3>
+<p>CloudStorageORM recognizes range constraints on the primary key using comparison operators:</p>
+<pre><code class="lang-csharp">// Load users with IDs &gt; &quot;100&quot; and &lt; &quot;200&quot;
+var users = await context.Users
+    .Where(u =&gt; u.Id &gt; &quot;100&quot; &amp;&amp; u.Id &lt; &quot;200&quot;)
+    .ToListAsync();
+
+// Supported operators: &gt;, &gt;=, &lt;, &lt;=
+</code></pre>
+<p>Range queries are more efficient than full scans, but still depend on object listing. They are not equivalent to
+relational
+index seek/scan behavior.</p>
+<h3 id="single-entity-retrieval">Single entity retrieval</h3>
+<pre><code class="lang-csharp">// Using FirstOrDefault (efficient for PK)
+var user = await context.Users
+    .FirstOrDefaultAsync(u =&gt; u.Id == &quot;123&quot;);
+
+// Using Single (throws if not found)
+var user = await context.Users
+    .SingleAsync(u =&gt; u.Id == &quot;123&quot;);
+</code></pre>
+<h2 id="non-key-predicates-in-memory">Non-key predicates (in-memory)</h2>
+<p>Predicates on non-key fields are currently evaluated in memory:</p>
+<pre><code class="lang-csharp">var premiumUsers = await context.Users
+    .Where(u =&gt; u.Plan == &quot;Premium&quot;)
+    .ToListAsync();
+</code></pre>
+<p>This pattern can require loading all objects for the entity type before applying the predicate.</p>
+<h2 id="practical-guidance">Practical guidance</h2>
+<ol>
+<li>Prefer primary-key equality for hot-path reads.</li>
+<li>Prefer primary-key ranges over broad non-key filtering when possible.</li>
+<li>For frequent non-key access patterns, maintain a separate lookup/projection model designed for key-based reads.</li>
+<li>Use feature flags and incremental rollouts when moving relational query workloads to object storage.</li>
+</ol>
+<h2 id="supported-linq-operations">Supported LINQ operations</h2>
+<table>
+<thead>
+<tr>
+<th>Operation</th>
+<th>Supported</th>
+<th>Optimized path</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Where()</code></td>
+<td>✅</td>
+<td>⚠️ key-only</td>
+<td>Primary-key predicates can be optimized; non-key predicates run in memory</td>
+</tr>
+<tr>
+<td><code>FirstOrDefault()</code></td>
+<td>✅</td>
+<td>⚠️ key-only</td>
+<td>Optimized for recognized primary-key predicates</td>
+</tr>
+<tr>
+<td><code>Single()</code></td>
+<td>✅</td>
+<td>⚠️ key-only</td>
+<td>Optimized for recognized primary-key predicates</td>
+</tr>
+<tr>
+<td><code>Any()</code></td>
+<td>✅</td>
+<td>⚠️ key-only</td>
+<td>Non-key checks may require materialization</td>
+</tr>
+<tr>
+<td><code>Count()</code></td>
+<td>✅</td>
+<td>⚠️ key-only</td>
+<td>Non-key counts may require materialization</td>
+</tr>
+<tr>
+<td><code>ToList()</code></td>
+<td>✅</td>
+<td>N/A</td>
+<td>Materializes query results</td>
+</tr>
+<tr>
+<td><code>ToListAsync()</code></td>
+<td>✅</td>
+<td>N/A</td>
+<td>Async materialization</td>
+</tr>
+<tr>
+<td><code>Select()</code></td>
+<td>✅</td>
+<td>⚠️ key-only</td>
+<td>Projection is applied after data is loaded</td>
+</tr>
+</tbody>
+</table>
+<h2 id="pagination">Pagination</h2>
+<p>CloudStorageORM now supports <code>Skip</code>/<code>Take</code> pushdown for supported query shapes. When pushdown applies, object paths are
+paged provider-side and only the requested slice is materialized.</p>
+<p>Pushdown applies when:</p>
+<ul>
+<li>pagination appears as a <code>Skip(...).Take(...)</code>/<code>Take(...).Skip(...)</code> chain at the query edge</li>
+<li>the pre-pagination query shape avoids unsupported operators (<code>OrderBy*</code>, <code>ThenBy*</code>, <code>Select*</code>, <code>Reverse</code>, <code>GroupBy</code>,
+<code>Distinct</code>)</li>
+<li>any predicate is either absent or recognized as a primary-key constraint (<code>==</code>, <code>&gt;</code>, <code>&gt;=</code>, <code>&lt;</code>, <code>&lt;=</code>)</li>
+</ul>
+<p>Example (eligible for pushdown):</p>
+<pre><code class="lang-csharp">var pageSize = 10;
+var pageNumber = 2;
+
+var pagedUsers = await context.Users
+    .Skip((pageNumber - 1) * pageSize)
+    .Take(pageSize)
+    .ToListAsync();
+</code></pre>
+<p>Example with primary-key range + pagination (eligible for pushdown):</p>
+<pre><code class="lang-csharp">var users = await context.Users
+    .Where(u =&gt; u.Id &gt;= &quot;100&quot; &amp;&amp; u.Id &lt; &quot;200&quot;)
+    .Skip(20)
+    .Take(20)
+    .ToListAsync();
+</code></pre>
+<p>When the shape is not eligible, CloudStorageORM falls back to materialize-then-slice behavior.</p>
+<h2 id="performance-considerations">Performance considerations</h2>
+<ol>
+<li><strong>Prefer primary-key filters</strong> (<code>Id == ...</code>, key ranges) in latency-sensitive paths</li>
+<li><strong>Treat non-key predicates as scan-like</strong> in current implementation</li>
+<li><strong>Use async methods</strong> (<code>ToListAsync</code>, <code>FirstOrDefaultAsync</code>) to avoid blocking</li>
+<li><strong>Avoid repeated full materialization</strong> of the same entity set in request hot paths</li>
+</ol>
+<h2 id="limitations">Limitations</h2>
+<ul>
+<li>No server-side relational query execution; non-key filtering is in-memory</li>
+<li><code>Skip()</code>/<code>Take()</code> pushdown is shape-dependent; unsupported query shapes fall back to in-memory slicing</li>
+<li>No <code>Include()</code> for related entities (object storage is not relational)</li>
+<li>Composite-key optimization behavior is limited; optimize primarily for single primary-key constraints</li>
+<li>Complex nested queries may require manual materialization and reshaping</li>
+</ul>
+<h2 id="see-also">See also</h2>
+<ul>
+<li><a href="getting-started.html">Getting started</a></li>
+<li><a href="configuration.html">Configuration</a></li>
+<li><a href="api-reference.html">API reference</a></li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/rzavalik/CloudStorageORM/blob/main/docs/query-patterns.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
