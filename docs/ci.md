@@ -72,6 +72,8 @@ CI starts emulators only in integration jobs:
 - `integration-azure` starts Azurite (`mcr.microsoft.com/azure-storage/azurite`) on `10000`, `10001`, `10002`
 - `integration-aws` starts LocalStack (`localstack/localstack:3`) on `4566`
 - `integration-sampleapp` starts both Azurite and LocalStack
+- `integration-sampleapp` waits for Azurite TCP readiness (`127.0.0.1:10000`) and LocalStack S3 health (`/_localstack/health`) before tests run
+- `integration-sampleapp` dumps Azurite and LocalStack logs automatically when the test step fails
 
 AWS test environment variables are injected in CI:
 
@@ -158,6 +160,7 @@ dotnet tool run reportgenerator \
 
 - If Azure tests fail early, verify Azurite readiness and port collisions.
 - If AWS tests fail early, verify LocalStack health and `CLOUDSTORAGEORM_AWS_*` values.
+- If SampleApp integration tests fail, inspect the emulator logs emitted by the `Dump emulator logs on failure` step.
 - If report generation fails, verify `dotnet-tools.json` is restored (`dotnet tool restore`).
 - If test reporting fails, inspect generated `TestResults/*.trx` files first.
 - If DocFX build fails, run `./scripts/setup-docfx-material.sh` and then `docfx docfx.json` locally.

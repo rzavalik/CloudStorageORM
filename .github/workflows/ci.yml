@@ -304,8 +304,38 @@ jobs:
             --name localstack \
             localstack/localstack:3
 
-      - name: Wait for emulators
-        run: sleep 8
+      - name: Wait for Azurite + LocalStack readiness
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          echo "Waiting for Azurite (port 10000)..."
+          for i in {1..60}; do
+            if (echo > /dev/tcp/127.0.0.1/10000) >/dev/null 2>&1; then
+              echo "Azurite is up."
+              break
+            fi
+            sleep 1
+            if [ "$i" -eq 60 ]; then
+              echo "Azurite did not become ready in time."
+              docker logs azurite || true
+              exit 1
+            fi
+          done
+
+          echo "Waiting for LocalStack health..."
+          for i in {1..60}; do
+            if curl -fsS "http://127.0.0.1:4566/_localstack/health" | grep -q '"s3": "running"'; then
+              echo "LocalStack S3 is running."
+              break
+            fi
+            sleep 1
+            if [ "$i" -eq 60 ]; then
+              echo "LocalStack did not become ready in time."
+              docker logs localstack || true
+              exit 1
+            fi
+          done
 
       - name: Run SampleApp integration tests
         run: |
@@ -316,6 +346,14 @@ jobs:
             --collect:"XPlat Code Coverage"
           find . -name "CloudStorageORM.IntegrationTests.SampleApp.trx" -exec cp {} TestResults/ \;
           find . -name "coverage.cobertura.xml" -exec cp {} TestResults/Coverage/CloudStorageORM.IntegrationTests.SampleApp.xml \;
+
+      - name: Dump emulator logs on failure
+        if: failure()
+        run: |
+          echo "==== azurite logs ===="
+          docker logs azurite || true
+          echo "==== localstack logs ===="
+          docker logs localstack || true
 
       - name: Upload SampleApp TRX Test Results
         uses: actions/upload-artifact@v4

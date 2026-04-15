@@ -250,8 +250,11 @@ Release publishing (`.github/workflows/publish.yml`) runs on `v*.*.*` tags (or m
 CI and publish workflows currently opt JavaScript-based GitHub Actions into the Node.js 24 runtime using
 `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true`.
 
-CI runs test lanes in parallel: unit tests, Azure integration tests (Azurite), and AWS integration tests (LocalStack),
-then aggregates TRX and coverage artifacts.
+CI runs test lanes in parallel: unit tests, Azure integration tests (Azurite), AWS integration tests (LocalStack),
+and SampleApp integration tests (Azurite + LocalStack), then aggregates TRX and coverage artifacts.
+
+The SampleApp lane waits for emulator readiness (Azurite TCP + LocalStack S3 health) before running tests and prints
+emulator logs automatically when that lane fails.
 
 CI also exports a CycloneDX SBOM artifact (`sbom-cyclonedx`) for each run.
 
