@@ -73,15 +73,67 @@
         <article data-uid="">
 <h1 id="api-reference">API reference</h1>
 
-<p>The API reference is generated from XML documentation and source metadata using DocFX.</p>
-<h2 id="browse-the-api">Browse the API</h2>
+<p>The complete auto-generated API documentation for CloudStorageORM, extracted from source code and XML documentation.</p>
+<h2 id="main-namespaces">Main namespaces</h2>
+<h3 id="core-contexts">Core contexts</h3>
 <ul>
-<li><a class="xref" href="api/CloudStorageORM.Contexts.html">CloudStorageORM.Contexts</a></li>
-<li><a class="xref" href="api/CloudStorageORM.Extensions.html">CloudStorageORM.Extensions</a></li>
-<li><a class="xref" href="api/CloudStorageORM.Options.html">CloudStorageORM.Options</a></li>
-<li><a class="xref" href="api/CloudStorageORM.Providers.html">CloudStorageORM.Providers</a></li>
+<li><a class="xref" href="api/CloudStorageORM.Contexts.html">CloudStorageORM.Contexts</a> — Base <code>CloudStorageDbContext</code> for consumer applications</li>
 </ul>
-<p>Open any API page above and use the left navigation tree to explore all namespaces and types.</p>
+<h3 id="configuration-and-setup">Configuration and setup</h3>
+<ul>
+<li><a class="xref" href="api/CloudStorageORM.Extensions.html">CloudStorageORM.Extensions</a> — Configuration extensions (<code>UseCloudStorageOrm</code>, etc.)</li>
+<li><a class="xref" href="api/CloudStorageORM.Options.html">CloudStorageORM.Options</a> — Configuration model (<code>CloudStorageOptions</code>, Azure/AWS options)</li>
+</ul>
+<h3 id="providers">Providers</h3>
+<ul>
+<li><a class="xref" href="api/CloudStorageORM.Providers.html">CloudStorageORM.Providers</a> — Provider factory and base abstractions</li>
+<li><a class="xref" href="api/CloudStorageORM.Providers.Azure.StorageProviders.html">CloudStorageORM.Providers.Azure.StorageProviders</a> — Azure Blob Storage provider</li>
+<li><a class="xref" href="api/CloudStorageORM.Providers.Aws.StorageProviders.html">CloudStorageORM.Providers.Aws.StorageProviders</a> — AWS S3 provider</li>
+</ul>
+<h3 id="querying-and-repositories">Querying and repositories</h3>
+<ul>
+<li><a class="xref" href="api/CloudStorageORM.Repositories.html">CloudStorageORM.Repositories</a> — Repository helpers and queryable implementations</li>
+<li><a class="xref" href="api/CloudStorageORM.Infrastructure.html">CloudStorageORM.Infrastructure</a> — Query pipeline and EF integration</li>
+</ul>
+<h3 id="model-support">Model support</h3>
+<ul>
+<li><a class="xref" href="api/CloudStorageORM.Abstractions.html">CloudStorageORM.Abstractions</a> — Base interfaces and attributes (including <code>IETag</code>)</li>
+<li><a class="xref" href="api/CloudStorageORM.Enums.html">CloudStorageORM.Enums</a> — Enums like <code>CloudProvider</code></li>
+</ul>
+<h2 id="by-common-task">By common task</h2>
+<h3 id="i-want-to">I want to...</h3>
+<p><strong>...configure CloudStorageORM</strong></p>
+<ul>
+<li>See <a class="xref" href="api/CloudStorageORM.Extensions.CloudStorageOrmExtensions.html">CloudStorageOrmExtensions</a></li>
+<li>See <a class="xref" href="api/CloudStorageORM.Options.CloudStorageOptions.html">CloudStorageOptions</a></li>
+</ul>
+<p><strong>...use transactions</strong></p>
+<ul>
+<li>See <code>CloudStorageDbContext.Database.BeginTransactionAsync()</code></li>
+<li>See transaction classes in <a class="xref" href="api/CloudStorageORM.Infrastructure.html">CloudStorageORM.Infrastructure</a></li>
+</ul>
+<p><strong>...implement optimistic concurrency</strong></p>
+<ul>
+<li>See <a class="xref" href="api/CloudStorageORM.Extensions.ModelBuilderExtensions.html">ModelBuilderExtensions</a></li>
+<li>See <a class="xref" href="api/CloudStorageORM.Abstractions.IETag.html">IETag</a></li>
+</ul>
+<p><strong>...write custom queries</strong></p>
+<ul>
+<li>See <a class="xref" href="api/CloudStorageORM.Repositories.CloudStorageRepository-1.html">CloudStorageRepository&lt;TEntity&gt;</a></li>
+<li>See <a class="xref" href="api/CloudStorageORM.Infrastructure.CloudStorageQueryable-1.html">CloudStorageQueryable&lt;T&gt;</a></li>
+</ul>
+<p><strong>...build a custom provider</strong></p>
+<ul>
+<li>See <a class="xref" href="api/CloudStorageORM.Interfaces.StorageProviders.IStorageProvider.html">IStorageProvider</a></li>
+<li>See <a class="xref" href="api/CloudStorageORM.Providers.ProviderFactory.html">ProviderFactory</a></li>
+</ul>
+<h2 id="see-also">See also</h2>
+<ul>
+<li><a href="getting-started.html">Getting started</a></li>
+<li><a href="configuration.html">Configuration guide</a></li>
+<li><a href="query-patterns.html">Query patterns</a></li>
+<li><a href="CloudStorageORM.html">Library guide</a></li>
+</ul>
 
 </article>
 

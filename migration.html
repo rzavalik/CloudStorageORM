@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Migration guide | CloudStorageORM </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Migration guide | CloudStorageORM ">
+      
+      
+      <link rel="icon" href="favicon.ico">
+      <link rel="stylesheet" href="public/docfx.min.css">
+      <link rel="stylesheet" href="public/main.css">
+      <meta name="docfx:navrel" content="toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/rzavalik/CloudStorageORM/blob/feature/docs/docs/migration.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="index.html">
+            <img id="logo" class="svg" src="logo.svg" alt="CloudStorageORM">
+            CloudStorageORM
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+
+      <div class="content">
+        <div class="actionbar">
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="migration-guide">Migration guide</h1>
+
+<p>This guide helps you migrate existing Entity Framework or in-memory applications to CloudStorageORM.</p>
+<h2 id="conceptual-differences">Conceptual differences</h2>
+<h3 id="from-ef-core-relational">From EF Core (relational)</h3>
+<table>
+<thead>
+<tr>
+<th>Aspect</th>
+<th>EF Core (SQL)</th>
+<th>CloudStorageORM</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Storage</td>
+<td>Relational tables</td>
+<td>Cloud object storage (blobs)</td>
+</tr>
+<tr>
+<td>Relationships</td>
+<td>Foreign keys, joins</td>
+<td>Not supported; embed or denormalize</td>
+</tr>
+<tr>
+<td>Transactions</td>
+<td>Full ACID</td>
+<td>Durable journal + replay</td>
+</tr>
+<tr>
+<td>Queries</td>
+<td>Server-side SQL evaluation</td>
+<td>In-memory LINQ evaluation</td>
+</tr>
+<tr>
+<td>Concurrency</td>
+<td>Row versioning</td>
+<td>ETag-based optimistic</td>
+</tr>
+</tbody>
+</table>
+<h3 id="from-ef-inmemory">From EF InMemory</h3>
+<p>CloudStorageORM is designed to be <strong>API-compatible</strong> with EF InMemory, so most code transitions directly:</p>
+<pre><code class="lang-csharp">// Works the same
+var user = await context.Users.FirstOrDefaultAsync(u =&gt; u.Id == &quot;123&quot;);
+context.Add(newUser);
+await context.SaveChangesAsync();
+</code></pre>
+<p><strong>Differences</strong>:</p>
+<ul>
+<li>Data is persisted to cloud storage (not lost on restart)</li>
+<li>No relationships/navigation properties</li>
+<li>Limited LINQ support (no complex server-side queries)</li>
+</ul>
+<h2 id="step-by-step-migration">Step-by-step migration</h2>
+<h3 id="step-1-update-dbcontext">Step 1: Update DbContext</h3>
+<p><strong>Before</strong> (EF Core or InMemory):</p>
+<pre><code class="lang-csharp">public class AppDbContext : DbContext
+{
+    public DbSet&lt;User&gt; Users { get; set; }
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        optionsBuilder.UseInMemoryDatabase(&quot;test&quot;);
+    }
+}
+</code></pre>
+<p><strong>After</strong> (CloudStorageORM):</p>
+<pre><code class="lang-csharp">using CloudStorageORM.Contexts;
+
+public class AppDbContext : CloudStorageDbContext
+{
+    public DbSet&lt;User&gt; Users =&gt; Set&lt;User&gt;();
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity&lt;User&gt;().HasKey(x =&gt; x.Id);
+        base.OnModelCreating(modelBuilder);
+    }
+}
+</code></pre>
+<h3 id="step-2-remove-relationships">Step 2: Remove relationships</h3>
+<p><strong>Before</strong> (EF with foreign keys):</p>
+<pre><code class="lang-csharp">public class Order
+{
+    public int Id { get; set; }
+    public int UserId { get; set; }
+    public User User { get; set; } // Navigation property
+}
+</code></pre>
+<p><strong>After</strong> (CloudStorageORM - denormalized):</p>
+<pre><code class="lang-csharp">public class Order
+{
+    public string Id { get; set; }
+    public string UserId { get; set; } // Store ID, not full entity
+    // Fetch related User separately if needed
+}
+</code></pre>
+<h3 id="step-3-update-queries">Step 3: Update queries</h3>
+<p><strong>Before</strong> (EF with includes):</p>
+<pre><code class="lang-csharp">var order = await context.Orders
+    .Include(o =&gt; o.User)
+    .FirstOrDefaultAsync(o =&gt; o.Id == orderId);
+</code></pre>
+<p><strong>After</strong> (CloudStorageORM - fetch separately):</p>
+<pre><code class="lang-csharp">var order = await context.Orders
+    .FirstOrDefaultAsync(o =&gt; o.Id == orderId);
+
+if (order != null)
+{
+    var user = await context.Users
+        .FirstOrDefaultAsync(u =&gt; u.Id == order.UserId);
+}
+</code></pre>
+<h3 id="step-4-simplify-models">Step 4: Simplify models</h3>
+<p><strong>Before</strong> (Complex relational model):</p>
+<pre><code class="lang-csharp">public class User
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public ICollection&lt;Order&gt; Orders { get; set; }
+    public Address Address { get; set; }
+}
+</code></pre>
+<p><strong>After</strong> (Flattened, self-contained):</p>
+<pre><code class="lang-csharp">public class User
+{
+    public string Id { get; set; } = Guid.NewGuid().ToString();
+    public string Name { get; set; }
+    public string City { get; set; }
+    public string Country { get; set; }
+}
+</code></pre>
+<h3 id="step-5-configure-storage-provider">Step 5: Configure storage provider</h3>
+<p><strong>Before</strong>:</p>
+<pre><code class="lang-csharp">services.AddDbContext&lt;AppDbContext&gt;(options =&gt;
+    options.UseInMemoryDatabase(&quot;test&quot;));
+</code></pre>
+<p><strong>After</strong>:</p>
+<pre><code class="lang-csharp">services.AddDbContext&lt;AppDbContext&gt;(options =&gt;
+    options.UseCloudStorageOrm(storage =&gt;
+    {
+        storage.Provider = CloudProvider.Azure;
+        storage.ContainerName = &quot;my-app&quot;;
+        storage.Azure.ConnectionString = Environment.GetEnvironmentVariable(&quot;AZURE_CONNECTION_STRING&quot;);
+    }));
+</code></pre>
+<h2 id="testing-strategy">Testing strategy</h2>
+<h3 id="during-migration">During migration</h3>
+<p>Keep both implementations running in parallel:</p>
+<pre><code class="lang-csharp">// Feature flag
+var useCloudStorage = Environment.GetEnvironmentVariable(&quot;USE_CLOUD_STORAGE&quot;) == &quot;true&quot;;
+
+if (useCloudStorage)
+{
+    services.AddDbContext&lt;AppDbContext&gt;(options =&gt;
+        options.UseCloudStorageOrm(storage =&gt; { /* ... */ }));
+}
+else
+{
+    services.AddDbContext&lt;AppDbContext&gt;(options =&gt;
+        options.UseInMemoryDatabase(&quot;test&quot;));
+}
+</code></pre>
+<h3 id="test-both-paths">Test both paths</h3>
+<pre><code class="lang-csharp">[Theory]
+[InlineData(true)]  // CloudStorageORM
+[InlineData(false)] // InMemory
+public async Task TestUserPersistence(bool useCloudStorage)
+{
+    // Setup context based on useCloudStorage flag
+    // Run same test against both providers
+}
+</code></pre>
+<h2 id="performance-tuning">Performance tuning</h2>
+<h3 id="from-relational-indexing">From relational indexing</h3>
+<p><strong>Before</strong> (SQL indexes):</p>
+<pre><code class="lang-sql">CREATE INDEX idx_user_email ON users(email);
+</code></pre>
+<p><strong>After</strong> (Query filtering in code):</p>
+<pre><code class="lang-csharp">// Load and filter in-memory
+var users = await context.Users.ToListAsync();
+var byEmail = users.FirstOrDefault(u =&gt; u.Email == email);
+</code></pre>
+<h3 id="caching-strategy">Caching strategy</h3>
+<p>For frequently accessed entities:</p>
+<pre><code class="lang-csharp">private static readonly Dictionary&lt;string, User&gt; _userCache = new();
+
+public async Task&lt;User&gt; GetUserAsync(string id)
+{
+    if (_userCache.TryGetValue(id, out var cachedUser))
+        return cachedUser;
+
+    var user = await context.Users.FirstOrDefaultAsync(u =&gt; u.Id == id);
+    if (user != null)
+        _userCache[id] = user;
+
+    return user;
+}
+</code></pre>
+<h2 id="rollback-plan">Rollback plan</h2>
+<p>If migration becomes problematic:</p>
+<ol>
+<li>Keep feature flag enabled</li>
+<li>Gradually shift traffic back to previous provider</li>
+<li>Monitor error rates and performance</li>
+<li>Complete migration in phases by entity type</li>
+</ol>
+<h2 id="data-migration">Data migration</h2>
+<h3 id="one-time-exportimport">One-time export/import</h3>
+<pre><code class="lang-csharp">// Export from source
+var allUsers = await sourceContext.Users.ToListAsync();
+
+// Import to CloudStorageORM
+foreach (var user in allUsers)
+{
+    cloudStorageContext.Add(user);
+}
+await cloudStorageContext.SaveChangesAsync();
+</code></pre>
+<h3 id="continuous-sync-during-migration">Continuous sync (during migration)</h3>
+<pre><code class="lang-csharp">public async Task SyncUser(User user)
+{
+    // Write to both
+    sourceContext.Update(user);
+    cloudStorageContext.Update(user);
+
+    await sourceContext.SaveChangesAsync();
+    await cloudStorageContext.SaveChangesAsync();
+}
+</code></pre>
+<h2 id="see-also">See also</h2>
+<ul>
+<li><a href="getting-started.html">Getting started</a></li>
+<li><a href="configuration.html">Configuration</a></li>
+<li><a href="query-patterns.html">Query patterns</a></li>
+<li><a href="transactions.html">Transactions</a></li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/rzavalik/CloudStorageORM/blob/feature/docs/docs/migration.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

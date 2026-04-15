@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Query patterns | CloudStorageORM </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Query patterns | CloudStorageORM ">
+      
+      
+      <link rel="icon" href="favicon.ico">
+      <link rel="stylesheet" href="public/docfx.min.css">
+      <link rel="stylesheet" href="public/main.css">
+      <meta name="docfx:navrel" content="toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/rzavalik/CloudStorageORM/blob/feature/docs/docs/query-patterns.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="index.html">
+            <img id="logo" class="svg" src="logo.svg" alt="CloudStorageORM">
+            CloudStorageORM
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+
+      <div class="content">
+        <div class="actionbar">
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="query-patterns">Query patterns</h1>
+
+<p>This guide covers common query patterns when using CloudStorageORM.</p>
+<h2 id="basic-queries">Basic queries</h2>
+<h3 id="get-all-entities">Get all entities</h3>
+<pre><code class="lang-csharp">var allUsers = await context.Users.ToListAsync();
+</code></pre>
+<h3 id="filter-by-condition">Filter by condition</h3>
+<pre><code class="lang-csharp">var activeUsers = await context.Users
+    .Where(u =&gt; u.Status == &quot;Active&quot;)
+    .ToListAsync();
+</code></pre>
+<h2 id="efficient-queries">Efficient queries</h2>
+<h3 id="query-by-primary-key">Query by primary key</h3>
+<p>CloudStorageORM optimizes primary-key lookups:</p>
+<pre><code class="lang-csharp">// Efficient: direct range-aware load
+var user = await context.Users
+    .FirstOrDefaultAsync(u =&gt; u.Id == &quot;123&quot;);
+</code></pre>
+<h3 id="range-queries">Range queries</h3>
+<p>Efficient range queries using comparison operators:</p>
+<pre><code class="lang-csharp">// Load users with IDs &gt; &quot;100&quot; and &lt; &quot;200&quot;
+var users = await context.Users
+    .Where(u =&gt; u.Id &gt; &quot;100&quot; &amp;&amp; u.Id &lt; &quot;200&quot;)
+    .ToListAsync();
+
+// Supported operators: &gt;, &gt;=, &lt;, &lt;=
+</code></pre>
+<h3 id="single-entity-retrieval">Single entity retrieval</h3>
+<pre><code class="lang-csharp">// Using FirstOrDefault (efficient for PK)
+var user = await context.Users
+    .FirstOrDefaultAsync(u =&gt; u.Id == &quot;123&quot;);
+
+// Using Single (throws if not found)
+var user = await context.Users
+    .SingleAsync(u =&gt; u.Id == &quot;123&quot;);
+</code></pre>
+<h2 id="supported-linq-operations">Supported LINQ operations</h2>
+<table>
+<thead>
+<tr>
+<th>Operation</th>
+<th>Status</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Where()</code></td>
+<td>✅</td>
+<td>All conditions supported</td>
+</tr>
+<tr>
+<td><code>FirstOrDefault()</code></td>
+<td>✅</td>
+<td>Optimized for PK queries</td>
+</tr>
+<tr>
+<td><code>Single()</code></td>
+<td>✅</td>
+<td>Optimized for PK queries</td>
+</tr>
+<tr>
+<td><code>ToList()</code></td>
+<td>✅</td>
+<td>Materializes all results</td>
+</tr>
+<tr>
+<td><code>ToListAsync()</code></td>
+<td>✅</td>
+<td>Async materialization</td>
+</tr>
+<tr>
+<td><code>Count()</code></td>
+<td>✅</td>
+<td>Counts all entities</td>
+</tr>
+<tr>
+<td><code>Any()</code></td>
+<td>✅</td>
+<td>Checks existence</td>
+</tr>
+<tr>
+<td><code>Select()</code></td>
+<td>✅</td>
+<td>Projection supported</td>
+</tr>
+</tbody>
+</table>
+<h2 id="pagination">Pagination</h2>
+<p>Since CloudStorageORM materializes results, implement pagination manually:</p>
+<pre><code class="lang-csharp">var pageSize = 10;
+var pageNumber = 2;
+
+var users = await context.Users
+    .ToListAsync();
+
+var pagedUsers = users
+    .Skip((pageNumber - 1) * pageSize)
+    .Take(pageSize)
+    .ToList();
+</code></pre>
+<h2 id="performance-considerations">Performance considerations</h2>
+<ol>
+<li><strong>Prefer range queries</strong> over full materializations when possible</li>
+<li><strong>Filter early</strong> to reduce data transfer</li>
+<li><strong>Use async methods</strong> (<code>ToListAsync</code>, <code>FirstOrDefaultAsync</code>)</li>
+<li><strong>Avoid multiple materializations</strong> of the same query</li>
+</ol>
+<h2 id="limitations">Limitations</h2>
+<ul>
+<li>No server-side <code>Skip()</code> or <code>Take()</code></li>
+<li>No <code>Include()</code> for related entities (object storage is not relational)</li>
+<li>Complex nested queries may require manual materialization</li>
+</ul>
+<h2 id="see-also">See also</h2>
+<ul>
+<li><a href="getting-started.html">Getting started</a></li>
+<li><a href="configuration.html">Configuration</a></li>
+<li><a href="api-reference.html">API reference</a></li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/rzavalik/CloudStorageORM/blob/feature/docs/docs/query-patterns.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

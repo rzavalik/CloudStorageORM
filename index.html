@@ -73,22 +73,77 @@
         <article data-uid="">
 <h1 id="cloudstorageorm-documentation">CloudStorageORM Documentation</h1>
 
-<p>CloudStorageORM is an EF-style provider over cloud object storage.</p>
-<h2 id="quick-links">Quick links</h2>
+<p>An Entity Framework-style ORM provider for .NET that persists entities into cloud object storage.</p>
+<h2 id="-get-started-in-5-minutes">🚀 Get started in 5 minutes</h2>
+<p><a href="getting-started.html"><strong>Quick start guide →</strong></a></p>
+<p>Spin up a working example with Azure Blob Storage or AWS S3 in just a few lines of C#.</p>
+<h2 id="-documentation-sections">📚 Documentation sections</h2>
+<h3 id="for-developers">For developers</h3>
 <ul>
-<li><a href="CloudStorageORM.html">Library guide</a></li>
-<li><a href="sampleapp.html">Sample app guide</a></li>
-<li><a href="testing-with-azurite.html">Testing with Azurite</a></li>
-<li><a href="testing-with-localstack.html">Testing with LocalStack</a></li>
-<li><a href="ci.html">CI workflow</a></li>
-<li><a href="api-reference.html">API reference</a></li>
+<li><a href="getting-started.html"><strong>Getting started</strong></a> — Setup, first entity, basic operations</li>
+<li><a href="configuration.html"><strong>Configuration</strong></a> — Connect to Azure or AWS, tune options</li>
+<li><a href="query-patterns.html"><strong>Query patterns</strong></a> — LINQ queries, filtering, range queries</li>
+<li><a href="transactions.html"><strong>Transactions</strong></a> — Durable transactions with recovery</li>
+<li><a href="concurrency.html"><strong>Concurrency</strong></a> — Optimistic locking with ETags</li>
+<li><a href="providers.html"><strong>Provider guides</strong></a> — Azure Blob Storage and AWS S3 details</li>
 </ul>
-<h2 id="notes">Notes</h2>
+<h3 id="for-contributors--operators">For contributors &amp; operators</h3>
 <ul>
-<li>Current supported providers: Azure Blob Storage and AWS S3.</li>
-<li>Target framework on <code>main</code>: <code>net10.0</code>.</li>
-<li>Google Cloud Storage support is planned and not implemented yet.</li>
+<li><a href="CloudStorageORM.html"><strong>Library documentation</strong></a> — Architecture, public APIs, project structure</li>
+<li><a href="sampleapp.html"><strong>Sample application</strong></a> — End-to-end CRUD example</li>
+<li><a href="testing-with-azurite.html"><strong>Testing with Azurite</strong></a> — Local Azure testing</li>
+<li><a href="testing-with-localstack.html"><strong>Testing with LocalStack</strong></a> — Local AWS testing</li>
+<li><a href="ci.html"><strong>CI workflow</strong></a> — Build, test, and deployment pipeline</li>
+<li><a href="api-reference.html"><strong>API reference</strong></a> — Auto-generated API docs</li>
 </ul>
+<h2 id="-current-status">✅ Current status</h2>
+<table>
+<thead>
+<tr>
+<th>Aspect</th>
+<th>Status</th>
+<th>Details</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Azure Blob Storage</strong></td>
+<td>✅ Production-ready</td>
+<td>Full CRUD, transactions, concurrency</td>
+</tr>
+<tr>
+<td><strong>AWS S3</strong></td>
+<td>✅ Production-ready</td>
+<td>Full CRUD, transactions, concurrency</td>
+</tr>
+<tr>
+<td><strong>Google Cloud Storage</strong></td>
+<td>🚧 Planned (v1.3.0)</td>
+<td>Coming soon</td>
+</tr>
+<tr>
+<td><strong>.NET version</strong></td>
+<td>✅ .NET 10</td>
+<td><code>net10.0</code> target</td>
+</tr>
+<tr>
+<td><strong>Package</strong></td>
+<td>✅ NuGet</td>
+<td><code>CloudStorageORM</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="-quick-links">🔗 Quick links</h2>
+<ul>
+<li>📦 <a href="https://www.nuget.org/packages/CloudStorageORM">NuGet package</a></li>
+<li>🐙 <a href="https://github.com/rzavalik/CloudStorageORM">GitHub repository</a></li>
+<li>📋 <a href="ROADMAP.html">Roadmap</a></li>
+<li>🛡️ <a href="SECURITY.html">Security policy</a></li>
+</ul>
+<h2 id="-contributing">🤝 Contributing</h2>
+<p>See <a href="CONTRIBUTING.html">CONTRIBUTING.md</a> for contribution guidelines and development setup.</p>
+<h2 id="-license">📜 License</h2>
+<p>GNU General Public License v3.0 (GPL-3.0-or-later). See <a href="LICENSE">LICENSE</a> for details.</p>
 
 </article>
 

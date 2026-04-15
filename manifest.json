@@ -1029,10 +1029,80 @@
     },
     {
       "type": "Conceptual",
+      "source_relative_path": "docs/concurrency.md",
+      "output": {
+        ".html": {
+          "relative_path": "concurrency.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "docs/configuration.md",
+      "output": {
+        ".html": {
+          "relative_path": "configuration.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "docs/docs-guide.md",
+      "output": {
+        ".html": {
+          "relative_path": "docs-guide.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "docs/getting-started.md",
+      "output": {
+        ".html": {
+          "relative_path": "getting-started.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
       "source_relative_path": "docs/index.md",
       "output": {
         ".html": {
           "relative_path": "index.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "docs/migration.md",
+      "output": {
+        ".html": {
+          "relative_path": "migration.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "docs/providers.md",
+      "output": {
+        ".html": {
+          "relative_path": "providers.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "docs/query-patterns.md",
+      "output": {
+        ".html": {
+          "relative_path": "query-patterns.html"
         }
       },
       "version": ""
@@ -1076,6 +1146,26 @@
         },
         ".json": {
           "relative_path": "toc.json"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "docs/transactions.md",
+      "output": {
+        ".html": {
+          "relative_path": "transactions.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "docs/troubleshooting.md",
+      "output": {
+        ".html": {
+          "relative_path": "troubleshooting.html"
         }
       },
       "version": ""
