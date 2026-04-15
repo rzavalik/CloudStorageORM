@@ -44,8 +44,14 @@ public sealed class CloudStorageDbContextTransaction(CloudStorageTransactionMana
             return;
         }
 
-        await transactionManager.CommitTransactionInternalAsync(this, cancellationToken);
-        _completed = true;
+        try
+        {
+            await transactionManager.CommitTransactionInternalAsync(this, cancellationToken);
+        }
+        finally
+        {
+            _completed = true;
+        }
     }
 
     /// <inheritdoc />
@@ -56,8 +62,14 @@ public sealed class CloudStorageDbContextTransaction(CloudStorageTransactionMana
             return;
         }
 
-        await transactionManager.RollbackTransactionInternalAsync(this, cancellationToken);
-        _completed = true;
+        try
+        {
+            await transactionManager.RollbackTransactionInternalAsync(this, cancellationToken);
+        }
+        finally
+        {
+            _completed = true;
+        }
     }
 
     /// <inheritdoc />

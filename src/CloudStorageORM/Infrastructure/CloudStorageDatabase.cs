@@ -242,7 +242,8 @@ public class CloudStorageDatabase(
         {
             if (manager.IsDurableJournalEnabled)
             {
-                await manager.StageSaveOperationAsync(path, entity, cancellationToken);
+                var stagedIfMatchETag = useConditionalRequest ? ifMatchETag : null;
+                await manager.StageSaveOperationAsync(path, entity, stagedIfMatchETag, cancellationToken);
             }
             else
             {
@@ -278,7 +279,8 @@ public class CloudStorageDatabase(
         {
             if (manager.IsDurableJournalEnabled)
             {
-                await manager.StageDeleteOperationAsync(path, cancellationToken);
+                var stagedIfMatchETag = useConditionalRequest ? ifMatchETag : null;
+                await manager.StageDeleteOperationAsync(path, stagedIfMatchETag, cancellationToken);
             }
             else
             {
