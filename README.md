@@ -132,7 +132,7 @@ await db.SaveChangesAsync();
 - Primary-key query predicates now support direct range-aware loading for `>`, `>=`, `<`, and `<=` in addition to
   equality-based lookups.
 - Coding style is enforced with **file-scoped namespaces** (`namespace X;`).
-- The sample app is covered by an integration test that verifies `dotnet run` exits successfully.
+- The sample app is covered by integration tests that publish the sample (`dotnet publish`) and verify the published app exits successfully.
 - Integration fixtures can skip Azure/AWS scenarios when Azurite/LocalStack are unavailable.
 - CloudStorage transaction support now uses a durable transaction journal under
   `__cloudstorageorm/tx/<transactionId>/manifest.json`.

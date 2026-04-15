@@ -5,6 +5,7 @@ namespace CloudStorageORM.IntegrationTests.SampleApp;
 internal static class SampleAppProcessRunner
 {
     private const string SampleAppProjectPath = "samples/CloudStorageORM.SampleApp/SampleApp.csproj";
+    private const string PublishRootEnvironmentVariableName = "CLOUDSTORAGEORM_SAMPLEAPP_PUBLISH_ROOT";
 
     public static string FindRepoRoot()
     {
@@ -25,7 +26,10 @@ internal static class SampleAppProcessRunner
 
     public static async Task<string> PublishSampleAppAsync(string repoRoot)
     {
-        var publishDir = Path.Combine(Path.GetTempPath(), "CloudStorageORM.SampleApp", Guid.NewGuid().ToString("N"));
+        var publishRoot = ResolvePublishRoot();
+        Directory.CreateDirectory(publishRoot);
+
+        var publishDir = Path.Combine(publishRoot, Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(publishDir);
 
         using var publishProcess = new Process();
@@ -134,6 +138,14 @@ internal static class SampleAppProcessRunner
         {
             // Best-effort cleanup only.
         }
+    }
+
+    private static string ResolvePublishRoot()
+    {
+        var configuredPublishRoot = Environment.GetEnvironmentVariable(PublishRootEnvironmentVariableName);
+        return string.IsNullOrWhiteSpace(configuredPublishRoot)
+            ? Path.Combine(Path.GetTempPath(), "CloudStorageORM.SampleApp")
+            : Path.GetFullPath(configuredPublishRoot);
     }
 
     private static string ResolvePublishedEntryAssemblyPath(string publishDir)

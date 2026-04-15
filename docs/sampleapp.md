@@ -128,12 +128,13 @@ You can override values with env vars (for example `CLOUDSTORAGEORM_AZURE_CONNEC
 
 ## Regression safety
 
-This sample is also covered by an integration test:
+This sample is also covered by integration tests:
 
 - `tests/CloudStorageORM.IntegrationTests.SampleApp/ProgramExitAzureSampleAppTests.cs`
 - `tests/CloudStorageORM.IntegrationTests.SampleApp/ProgramExitAwsSampleAppTests.cs`
 
-Those tests launch the sample through `dotnet run` and verify it exits with code `0` and prints `SampleApp Finished`.
+Those tests publish the sample app (`dotnet publish`) and execute the published assembly, then verify it exits with code
+`0` and prints `SampleApp Finished`.
 
 ---
 

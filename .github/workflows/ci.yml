@@ -282,6 +282,7 @@ jobs:
       CLOUDSTORAGEORM_AWS_SECRET_ACCESS_KEY: test
       CLOUDSTORAGEORM_AWS_REGION: us-east-1
       CLOUDSTORAGEORM_AWS_BUCKET: cloudstorageorm-integration-tests
+      CLOUDSTORAGEORM_SAMPLEAPP_PUBLISH_ROOT: ${{ runner.temp }}/CloudStorageORM.SampleApp/${{ github.run_id }}-${{ github.run_attempt }}-${{ github.job }}
 
     steps:
       - name: Checkout repository
@@ -508,3 +509,4 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./_site
           publish_branch: gh-pages
+

@@ -74,10 +74,7 @@ If using an editor with live markdown preview, files in `docs/` can be previewed
 
 ## Publishing
 
-The site is **auto-published** by GitHub Actions:
-
-1. **On pushes to `feature/docs`**: Published to `gh-pages-preview` branch (preview)
-2. **On pushes to `main`**: Published to `gh-pages` branch (production)
+The site is **auto-published** by GitHub Actions on pushes to `main`, which deploys to the `gh-pages` branch.
 
 See [CI workflow](ci.md) for documentation, or view the configuration at `.github/workflows/ci.yml` in the repo.
 

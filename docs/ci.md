@@ -3,9 +3,9 @@
 This repository validates build, tests, and coverage through the `Build and Test` workflow.
 Package publishing is handled by `.github/workflows/publish.yml`, which validates that the packed NuGet includes
 `README.md` and correct repository/readme metadata before push, then publishes to both NuGet.org and GitHub Packages.
-The same CI workflow also runs a parallel DocFX documentation job that builds the static site and deploys it by branch:
-`main` pushes publish to `gh-pages`, while `feature/docs` pushes publish to `gh-pages-preview` for pre-merge validation.
-ePublishing runs on `v*.*.*` tags (for example, `v1.0.13`) or manual dispatch.
+The same CI workflow also runs a parallel DocFX documentation job that builds the static site and deploys it on
+`main` pushes to `gh-pages`.
+Publishing runs on `v*.*.*` tags (for example, `v1.0.13`) or manual dispatch.
 
 ---
 
@@ -14,7 +14,6 @@ ePublishing runs on `v*.*.*` tags (for example, `v1.0.13`) or manual dispatch.
 The workflow runs on:
 
 - push to `main`
-- push to `feature/docs`
 - pull request targeting `main`, `feature/**`, `bug/**`, or `hotfix/**`
 - changes under `_site/**` are ignored at trigger time
 
@@ -36,7 +35,8 @@ Dependabot pull requests run the same CI checks as any other pull request target
 
 ## What CI does
 
-CI executes provider-specific test jobs in parallel, plus a dedicated SampleApp integration lane, followed by a report aggregation job:
+CI executes provider-specific test jobs in parallel, plus a dedicated SampleApp integration lane, followed by a report
+aggregation job:
 
 0. force JavaScript-based actions to run on Node.js 24 (`FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true`)
 1. checkout
@@ -65,8 +65,7 @@ In parallel, CI also executes a `Build Docs (DocFX)` job:
 5. `dotnet restore CloudStorageORM.sln`
 6. `docfx docfx.json` (site output in `_site`)
 7. upload `_site` as `docs-site` artifact
-8. deploy `_site` to `gh-pages-preview` on pushes to `feature/docs`
-9. deploy `_site` to `gh-pages` on pushes to `main`
+8. deploy `_site` to `gh-pages` on pushes to `main`
 
 For pull requests, CI treats a change as docs-only only when every changed file stays within the docs allowlist:
 `docs/**`, `docfx.json`, `README.md`, `CONTRIBUTING.md`, `ROADMAP.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md`,
@@ -86,7 +85,10 @@ CI starts emulators only in integration jobs:
 - `integration-azure` starts Azurite (`mcr.microsoft.com/azure-storage/azurite`) on `10000`, `10001`, `10002`
 - `integration-aws` starts LocalStack (`localstack/localstack:3`) on `4566`
 - `integration-sampleapp` starts both Azurite and LocalStack
-- `integration-sampleapp` waits for Azurite TCP readiness (`127.0.0.1:10000`) and LocalStack S3 health (`/_localstack/health`) before tests run
+- `integration-sampleapp` waits for Azurite TCP readiness (`127.0.0.1:10000`) and LocalStack S3 health (
+  `/_localstack/health`) before tests run
+- `integration-sampleapp` sets `CLOUDSTORAGEORM_SAMPLEAPP_PUBLISH_ROOT` to a run/job-unique path so published SampleApp
+  outputs do not collide across concurrent pipelines
 - `integration-sampleapp` dumps Azurite and LocalStack logs automatically when the test step fails
 
 AWS test environment variables are injected in CI:
@@ -105,7 +107,8 @@ CI publishes artifacts per job and in the aggregate report stage:
 
 - `test-results-unit`, `test-results-azure`, `test-results-aws` -> `TestResults/*.trx`
 - `test-results-sampleapp` -> `TestResults/*.trx`
-- `coverage-xml-unit`, `coverage-xml-azure`, `coverage-xml-aws`, `coverage-xml-sampleapp` -> `TestResults/Coverage/*.xml`
+- `coverage-xml-unit`, `coverage-xml-azure`, `coverage-xml-aws`, `coverage-xml-sampleapp` ->
+  `TestResults/Coverage/*.xml`
 - `sbom-cyclonedx` -> `TestResults/SBOM/*.json`
 - `coverage-html` -> `TestResults/CoverageReport`
 - `docs-site` -> `_site`
