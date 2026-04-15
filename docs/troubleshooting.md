@@ -140,13 +140,13 @@ var users = await context.Users
 
 **Solution**:
 
-1. Filter at query time:
+1. Prefer primary-key predicates when possible (non-key filters still materialize then filter):
    ```csharp
    // ❌ Slow: fetch all
    var users = (await context.Users.ToListAsync())
        .Where(u => u.Status == "Active");
 
-   // ✅ Better: filter first
+   // ⚠️ Same non-key behavior here today (materialize + in-memory filter)
    var users = await context.Users
        .Where(u => u.Status == "Active")
        .ToListAsync();

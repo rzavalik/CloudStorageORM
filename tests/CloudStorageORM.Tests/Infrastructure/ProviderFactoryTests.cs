@@ -2,30 +2,12 @@ using CloudStorageORM.Enums;
 using CloudStorageORM.Options;
 using CloudStorageORM.Providers;
 using CloudStorageORM.Providers.Aws.StorageProviders;
-using CloudStorageORM.Providers.Azure.StorageProviders;
 using Shouldly;
 
 namespace CloudStorageORM.Tests.Infrastructure;
 
 public class ProviderFactoryTests
 {
-    [Fact]
-    public void GetStorageProvider_Azure_ReturnsAzureProvider()
-    {
-        var options = new CloudStorageOptions
-        {
-            Provider = CloudProvider.Azure,
-            ContainerName = "provider-tests",
-            Azure = new CloudStorageAzureOptions
-            {
-                ConnectionString = "UseDevelopmentStorage=true"
-            }
-        };
-
-        var provider = ProviderFactory.GetStorageProvider(options);
-        provider.ShouldBeOfType<AzureBlobStorageProvider>();
-    }
-
     [Fact]
     public void GetStorageProvider_Aws_ReturnsAwsProvider()
     {

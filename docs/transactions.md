@@ -81,7 +81,7 @@ When you call `CommitAsync()`:
 
 On startup of a new transaction manager instance:
 
-- **Completed manifests**: Are finalized and removed
+- **Completed manifests**: Are treated as finalized/completed state
 - **Preparing manifests**: Are marked as `Aborted` (uncommitted work is discarded)
 - **Committed manifests**: Are replayed to ensure durability
 
