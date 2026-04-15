@@ -131,11 +131,7 @@ open _site/index.html
 <h3 id="live-preview-development">Live preview (development)</h3>
 <p>If using an editor with live markdown preview, files in <code>docs/</code> can be previewed locally during writing.</p>
 <h2 id="publishing">Publishing</h2>
-<p>The site is <strong>auto-published</strong> by GitHub Actions:</p>
-<ol>
-<li><strong>On pushes to <code>feature/docs</code></strong>: Published to <code>gh-pages-preview</code> branch (preview)</li>
-<li><strong>On pushes to <code>main</code></strong>: Published to <code>gh-pages</code> branch (production)</li>
-</ol>
+<p>The site is <strong>auto-published</strong> by GitHub Actions on pushes to <code>main</code>, which deploys to the <code>gh-pages</code> branch.</p>
 <p>See <a href="ci.html">CI workflow</a> for documentation, or view the configuration at <code>.github/workflows/ci.yml</code> in the repo.</p>
 <h3 id="manual-checks-before-merge">Manual checks before merge</h3>
 <pre><code class="lang-bash">./scripts/setup-docfx-material.sh

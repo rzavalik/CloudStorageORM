@@ -188,12 +188,13 @@
 <code>CLOUDSTORAGEORM_AWS_SERVICE_URL</code>, <code>CLOUDSTORAGEORM_AWS_BUCKET</code>).</p>
 <hr>
 <h2 id="regression-safety">Regression safety</h2>
-<p>This sample is also covered by an integration test:</p>
+<p>This sample is also covered by integration tests:</p>
 <ul>
 <li><code>tests/CloudStorageORM.IntegrationTests.SampleApp/ProgramExitAzureSampleAppTests.cs</code></li>
 <li><code>tests/CloudStorageORM.IntegrationTests.SampleApp/ProgramExitAwsSampleAppTests.cs</code></li>
 </ul>
-<p>Those tests launch the sample through <code>dotnet run</code> and verify it exits with code <code>0</code> and prints <code>SampleApp Finished</code>.</p>
+<p>Those tests publish the sample app (<code>dotnet publish</code>) and execute the published assembly, then verify it exits with code
+<code>0</code> and prints <code>SampleApp Finished</code>.</p>
 <hr>
 <h2 id="why-this-sample-matters">Why this sample matters</h2>
 <p>The sample is the clearest executable proof, on the current branch, that CloudStorageORM is intended to be consumed like

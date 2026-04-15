@@ -76,15 +76,14 @@
 <p>This repository validates build, tests, and coverage through the <code>Build and Test</code> workflow.
 Package publishing is handled by <code>.github/workflows/publish.yml</code>, which validates that the packed NuGet includes
 <code>README.md</code> and correct repository/readme metadata before push, then publishes to both NuGet.org and GitHub Packages.
-The same CI workflow also runs a parallel DocFX documentation job that builds the static site and deploys it by branch:
-<code>main</code> pushes publish to <code>gh-pages</code>, while <code>feature/docs</code> pushes publish to <code>gh-pages-preview</code> for pre-merge validation.
-ePublishing runs on <code>v*.*.*</code> tags (for example, <code>v1.0.13</code>) or manual dispatch.</p>
+The same CI workflow also runs a parallel DocFX documentation job that builds the static site and deploys it on
+<code>main</code> pushes to <code>gh-pages</code>.
+Publishing runs on <code>v*.*.*</code> tags (for example, <code>v1.0.13</code>) or manual dispatch.</p>
 <hr>
 <h2 id="triggers">Triggers</h2>
 <p>The workflow runs on:</p>
 <ul>
 <li>push to <code>main</code></li>
-<li>push to <code>feature/docs</code></li>
 <li>pull request targeting <code>main</code>, <code>feature/**</code>, <code>bug/**</code>, or <code>hotfix/**</code></li>
 <li>changes under <code>_site/**</code> are ignored at trigger time</li>
 </ul>
@@ -101,7 +100,8 @@ ePublishing runs on <code>v*.*.*</code> tags (for example, <code>v1.0.13</code>)
 <p>Dependabot pull requests run the same CI checks as any other pull request targeting supported branches.</p>
 <hr>
 <h2 id="what-ci-does">What CI does</h2>
-<p>CI executes provider-specific test jobs in parallel, plus a dedicated SampleApp integration lane, followed by a report aggregation job:</p>
+<p>CI executes provider-specific test jobs in parallel, plus a dedicated SampleApp integration lane, followed by a report
+aggregation job:</p>
 <ol start="0">
 <li>force JavaScript-based actions to run on Node.js 24 (<code>FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true</code>)</li>
 <li>checkout</li>
@@ -130,7 +130,6 @@ ePublishing runs on <code>v*.*.*</code> tags (for example, <code>v1.0.13</code>)
 <li><code>dotnet restore CloudStorageORM.sln</code></li>
 <li><code>docfx docfx.json</code> (site output in <code>_site</code>)</li>
 <li>upload <code>_site</code> as <code>docs-site</code> artifact</li>
-<li>deploy <code>_site</code> to <code>gh-pages-preview</code> on pushes to <code>feature/docs</code></li>
 <li>deploy <code>_site</code> to <code>gh-pages</code> on pushes to <code>main</code></li>
 </ol>
 <p>For pull requests, CI treats a change as docs-only only when every changed file stays within the docs allowlist:
@@ -147,7 +146,10 @@ third-party actions continue their Node 24 transitions. This opt-in is enabled i
 <li><code>integration-azure</code> starts Azurite (<code>mcr.microsoft.com/azure-storage/azurite</code>) on <code>10000</code>, <code>10001</code>, <code>10002</code></li>
 <li><code>integration-aws</code> starts LocalStack (<code>localstack/localstack:3</code>) on <code>4566</code></li>
 <li><code>integration-sampleapp</code> starts both Azurite and LocalStack</li>
-<li><code>integration-sampleapp</code> waits for Azurite TCP readiness (<code>127.0.0.1:10000</code>) and LocalStack S3 health (<code>/_localstack/health</code>) before tests run</li>
+<li><code>integration-sampleapp</code> waits for Azurite TCP readiness (<code>127.0.0.1:10000</code>) and LocalStack S3 health (
+<code>/_localstack/health</code>) before tests run</li>
+<li><code>integration-sampleapp</code> sets <code>CLOUDSTORAGEORM_SAMPLEAPP_PUBLISH_ROOT</code> to a run/job-unique path so published SampleApp
+outputs do not collide across concurrent pipelines</li>
 <li><code>integration-sampleapp</code> dumps Azurite and LocalStack logs automatically when the test step fails</li>
 </ul>
 <p>AWS test environment variables are injected in CI:</p>
@@ -164,7 +166,8 @@ third-party actions continue their Node 24 transitions. This opt-in is enabled i
 <ul>
 <li><code>test-results-unit</code>, <code>test-results-azure</code>, <code>test-results-aws</code> -&gt; <code>TestResults/*.trx</code></li>
 <li><code>test-results-sampleapp</code> -&gt; <code>TestResults/*.trx</code></li>
-<li><code>coverage-xml-unit</code>, <code>coverage-xml-azure</code>, <code>coverage-xml-aws</code>, <code>coverage-xml-sampleapp</code> -&gt; <code>TestResults/Coverage/*.xml</code></li>
+<li><code>coverage-xml-unit</code>, <code>coverage-xml-azure</code>, <code>coverage-xml-aws</code>, <code>coverage-xml-sampleapp</code> -&gt;
+<code>TestResults/Coverage/*.xml</code></li>
 <li><code>sbom-cyclonedx</code> -&gt; <code>TestResults/SBOM/*.json</code></li>
 <li><code>coverage-html</code> -&gt; <code>TestResults/CoverageReport</code></li>
 <li><code>docs-site</code> -&gt; <code>_site</code></li>
