@@ -1029,6 +1029,16 @@
     },
     {
       "type": "Conceptual",
+      "source_relative_path": "docs/comparison.md",
+      "output": {
+        ".html": {
+          "relative_path": "comparison.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
       "source_relative_path": "docs/concurrency.md",
       "output": {
         ".html": {
