@@ -9,19 +9,41 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 namespace CloudStorageORM.Infrastructure;
 
+/// <summary>
+/// Provides EF Core DbContext dependency implementations for CloudStorageORM.
+/// </summary>
 public class CloudStorageDbContextDependencies : IDbContextDependencies
 {
     private readonly IModel _model;
-    private IChangeDetector _changeDetector;
-    private IDbSetSource _setSource;
-    private IEntityGraphAttacher _entityGraphAttacher;
-    private IAsyncQueryProvider _queryProvider;
-    private IStateManager _stateManager;
-    private IExceptionDetector _exceptionDetector;
-    private IDiagnosticsLogger<DbLoggerCategory.Update> _updateLogger;
-    private IDiagnosticsLogger<DbLoggerCategory.Infrastructure> _infrastructureLogger;
-    private EntityFinderFactory _entityFinderFactory;
+    private readonly IChangeDetector _changeDetector;
+    private readonly IDbSetSource _setSource;
+    private readonly IEntityGraphAttacher _entityGraphAttacher;
+    private readonly IAsyncQueryProvider _queryProvider;
+    private readonly IStateManager _stateManager;
+    private readonly IExceptionDetector _exceptionDetector;
+    private readonly IDiagnosticsLogger<DbLoggerCategory.Update> _updateLogger;
+    private readonly IDiagnosticsLogger<DbLoggerCategory.Infrastructure> _infrastructureLogger;
+    private readonly EntityFinderFactory _entityFinderFactory;
 
+    /// <summary>
+    /// Initializes a new dependency container used by CloudStorageORM DbContext services.
+    /// </summary>
+    /// <param name="model">Resolved EF model.</param>
+    /// <param name="currentContext">Current DbContext accessor.</param>
+    /// <param name="changeDetector">EF change detector.</param>
+    /// <param name="setSource">EF DbSet source.</param>
+    /// <param name="entityFinderSource">EF entity finder source.</param>
+    /// <param name="entityGraphAttacher">EF entity graph attacher.</param>
+    /// <param name="queryProvider">Async query provider.</param>
+    /// <param name="stateManager">EF state manager.</param>
+    /// <param name="exceptionDetector">EF exception detector.</param>
+    /// <param name="updateLogger">Update diagnostics logger.</param>
+    /// <param name="infrastructureLogger">Infrastructure diagnostics logger.</param>
+    /// <example>
+    /// <code>
+    /// var dependencies = new CloudStorageDbContextDependencies(...);
+    /// </code>
+    /// </example>
     public CloudStorageDbContextDependencies(
         IModel model,
         ICurrentDbContext currentContext,
@@ -65,7 +87,7 @@ public class CloudStorageDbContextDependencies : IDbContextDependencies
 
     public IDbContextTransactionManager TransactionManager => new CloudStorageTransactionManager();
     public IModel Model => _model;
-    public IModel DesignTimeModel => _model;  // Returning the same model for design-time usage
+    public IModel DesignTimeModel => _model; // Returning the same model for design-time usage
     public DbContextOptions ContextOptions => throw new NotImplementedException();
     public IServiceProvider InternalServiceProvider => throw new NotImplementedException();
 

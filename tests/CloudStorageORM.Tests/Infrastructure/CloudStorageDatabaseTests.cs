@@ -260,14 +260,189 @@ public class CloudStorageDatabaseTests
     [Fact]
     public async Task LoadEntitiesAsync_UsesBlobNameFromResolver()
     {
+        const string dbUsers = "dbusers";
         var fixture = CreateFixture();
-        fixture.PathResolverMock.Setup(x => x.GetBlobName(typeof(DbUser))).Returns("dbusers");
-        fixture.StorageProviderMock.Setup(x => x.ListAsync("dbusers")).ReturnsAsync([]);
+        fixture.PathResolverMock.Setup(x => x.GetBlobName(typeof(DbUser))).Returns(dbUsers);
+        fixture.StorageProviderMock.Setup(x => x.ListAsync(dbUsers)).ReturnsAsync([]);
 
         var list = await fixture.Database.LoadEntitiesAsync<DbUser>(fixture.Context);
 
         list.ShouldNotBeNull();
         fixture.PathResolverMock.Verify(x => x.GetBlobName(typeof(DbUser)), Times.Once);
+    }
+
+    [Fact]
+    public async Task LoadPageAsync_UsesPagedListingAndLoadsOnlyRequestedWindow()
+    {
+        var fixture = CreateFixture();
+        fixture.PathResolverMock.Setup(x => x.GetBlobName(typeof(DbUser))).Returns("users");
+        fixture.StorageProviderMock
+            .Setup(x => x.ListPageAsync("users", It.IsAny<int>(), null, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new StorageListPage(["users/1.json", "users/2.json", "users/3.json"], null, false));
+        fixture.StorageProviderMock
+            .Setup(x => x.ReadWithMetadataAsync<DbUser?>("users/2.json"))
+            .ReturnsAsync(new StorageObject<DbUser?>(new DbUser { Id = "2", Name = "Two" }, "etag-2", true));
+
+        var page = await fixture.Database.LoadPageAsync<DbUser>(skip: 1, take: 1, fixture.Context);
+
+        page.Count.ShouldBe(1);
+        page[0].Id.ShouldBe("2");
+        fixture.StorageProviderMock.Verify(x => x.ReadWithMetadataAsync<DbUser?>("users/1.json"), Times.Never);
+        fixture.StorageProviderMock.Verify(x => x.ReadWithMetadataAsync<DbUser?>("users/2.json"), Times.Once);
+        fixture.StorageProviderMock.Verify(x => x.ReadWithMetadataAsync<DbUser?>("users/3.json"), Times.Never);
+    }
+
+    [Fact]
+    public async Task LoadPageAsync_TakeZero_ReturnsEmptyWithoutProviderCalls()
+    {
+        var fixture = CreateFixture();
+
+        var page = await fixture.Database.LoadPageAsync<DbUser>(skip: 10, take: 0, fixture.Context);
+
+        page.ShouldBeEmpty();
+        fixture.StorageProviderMock.Verify(
+            x => x.ListPageAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<string?>(),
+                It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task LoadPageAsync_WhenFirstPageIsEmptyAndTerminal_ReturnsEmpty()
+    {
+        var fixture = CreateFixture();
+        fixture.PathResolverMock.Setup(x => x.GetBlobName(typeof(DbUser))).Returns("users");
+        fixture.StorageProviderMock
+            .Setup(x => x.ListPageAsync("users", It.IsAny<int>(), null, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new StorageListPage([], null, false));
+
+        var page = await fixture.Database.LoadPageAsync<DbUser>(skip: 0, take: 5, fixture.Context);
+
+        page.ShouldBeEmpty();
+        fixture.StorageProviderMock.Verify(x => x.ReadWithMetadataAsync<DbUser?>(It.IsAny<string>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task LoadPageAsync_WhenContinuationExists_RequestsNextPage()
+    {
+        var fixture = CreateFixture();
+        fixture.PathResolverMock.Setup(x => x.GetBlobName(typeof(DbUser))).Returns("users");
+        fixture.StorageProviderMock
+            .SetupSequence(x =>
+                x.ListPageAsync("users", It.IsAny<int>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new StorageListPage(["users/1.json"], "next", true))
+            .ReturnsAsync(new StorageListPage(["users/2.json"], null, false));
+        fixture.StorageProviderMock
+            .Setup(x => x.ReadWithMetadataAsync<DbUser?>("users/1.json"))
+            .ReturnsAsync(new StorageObject<DbUser?>(new DbUser { Id = "1", Name = "One" }, "etag-1", true));
+        fixture.StorageProviderMock
+            .Setup(x => x.ReadWithMetadataAsync<DbUser?>("users/2.json"))
+            .ReturnsAsync(new StorageObject<DbUser?>(new DbUser { Id = "2", Name = "Two" }, "etag-2", true));
+
+        var page = await fixture.Database.LoadPageAsync<DbUser>(skip: 1, take: 1, fixture.Context);
+
+        page.Count.ShouldBe(1);
+        page[0].Id.ShouldBe("2");
+        fixture.StorageProviderMock.Verify(
+            x => x.ListPageAsync("users", It.IsAny<int>(), null, It.IsAny<CancellationToken>()), Times.Once);
+        fixture.StorageProviderMock.Verify(
+            x => x.ListPageAsync("users", It.IsAny<int>(), "next", It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task LoadPageAsync_WhenContinuationTokenIsWhitespace_StopsPaging()
+    {
+        var fixture = CreateFixture();
+        fixture.PathResolverMock.Setup(x => x.GetBlobName(typeof(DbUser))).Returns("users");
+        fixture.StorageProviderMock
+            .Setup(x => x.ListPageAsync("users", It.IsAny<int>(), null, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new StorageListPage(["users/1.json"], "   ", true));
+        fixture.StorageProviderMock
+            .Setup(x => x.ReadWithMetadataAsync<DbUser?>("users/1.json"))
+            .ReturnsAsync(new StorageObject<DbUser?>(new DbUser { Id = "1", Name = "One" }, "etag-1", true));
+
+        var page = await fixture.Database.LoadPageAsync<DbUser>(skip: 0, take: 2, fixture.Context);
+
+        page.Count.ShouldBe(1);
+        fixture.StorageProviderMock.Verify(
+            x => x.ListPageAsync("users", It.IsAny<int>(), null, It.IsAny<CancellationToken>()), Times.Once);
+        fixture.StorageProviderMock.Verify(
+            x => x.ListPageAsync("users", It.IsAny<int>(), It.Is<string?>(s => s == "   "),
+                It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task LoadByPrimaryKeyRangePageAsync_TakeZero_ReturnsEmptyWithoutProviderCalls()
+    {
+        var fixture = CreateFixture();
+
+        var page = await fixture.Database.LoadByPrimaryKeyRangePageAsync<DbUser>(
+            lowerBound: null,
+            lowerInclusive: true,
+            upperBound: null,
+            upperInclusive: true,
+            skip: 0,
+            take: 0,
+            context: fixture.Context);
+
+        page.ShouldBeEmpty();
+        fixture.StorageProviderMock.Verify(
+            x => x.ListPageAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<string?>(),
+                It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task LoadByPrimaryKeyRangePageAsync_UsesPagedListingAndAppliesRangeSkipTake()
+    {
+        var fixture = CreateFixture();
+        fixture.PathResolverMock.Setup(x => x.GetBlobName(typeof(DbUser))).Returns("users");
+        fixture.StorageProviderMock
+            .Setup(x => x.ListPageAsync("users", It.IsAny<int>(), null, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new StorageListPage(["users/1.json", "users/2.json", "users/3.json"], null, false));
+        fixture.StorageProviderMock
+            .Setup(x => x.ReadWithMetadataAsync<DbUser?>("users/2.json"))
+            .ReturnsAsync(new StorageObject<DbUser?>(new DbUser { Id = "2", Name = "Two" }, "etag-2", true));
+
+        var page = await fixture.Database.LoadByPrimaryKeyRangePageAsync<DbUser>(
+            lowerBound: "1",
+            lowerInclusive: true,
+            upperBound: "3",
+            upperInclusive: false,
+            skip: 1,
+            take: 1,
+            context: fixture.Context);
+
+        page.Count.ShouldBe(1);
+        page[0].Id.ShouldBe("2");
+        fixture.StorageProviderMock.Verify(x => x.ReadWithMetadataAsync<DbUser?>("users/1.json"), Times.Never);
+        fixture.StorageProviderMock.Verify(x => x.ReadWithMetadataAsync<DbUser?>("users/2.json"), Times.Once);
+        fixture.StorageProviderMock.Verify(x => x.ReadWithMetadataAsync<DbUser?>("users/3.json"), Times.Never);
+    }
+
+    [Theory]
+    [InlineData(-1, 1)]
+    [InlineData(0, -1)]
+    public async Task LoadPageAsync_WithInvalidPagination_Throws(int skip, int take)
+    {
+        var fixture = CreateFixture();
+
+        await Should.ThrowAsync<ArgumentOutOfRangeException>(() => fixture.Database.LoadPageAsync<DbUser>(skip, take));
+    }
+
+    [Theory]
+    [InlineData(-1, 1)]
+    [InlineData(0, -1)]
+    public async Task LoadByPrimaryKeyRangePageAsync_WithInvalidPagination_Throws(int skip, int take)
+    {
+        var fixture = CreateFixture();
+
+        await Should.ThrowAsync<ArgumentOutOfRangeException>(() =>
+            fixture.Database.LoadByPrimaryKeyRangePageAsync<DbUser>(
+                lowerBound: null,
+                lowerInclusive: true,
+                upperBound: null,
+                upperInclusive: true,
+                skip: skip,
+                take: take,
+                context: fixture.Context));
     }
 
     [Fact]
@@ -345,7 +520,7 @@ public class CloudStorageDatabaseTests
     private static List<IUpdateEntry> GetUpdateEntries(DbContext context)
     {
         return context.ChangeTracker.Entries()
-            .Select(e => (IUpdateEntry)e.GetInfrastructure())
+            .Select(IUpdateEntry (e) => e.GetInfrastructure())
             .ToList();
     }
 

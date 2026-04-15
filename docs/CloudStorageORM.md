@@ -1,7 +1,7 @@
 # 📦 CloudStorageORM - Library Documentation
 
 **Target Framework**: `net10.0`  
-**Current Release**: `v1.0.12`  
+**Current Release**: `v1.0.13`  
 **Language Version**: `C# 14`  
 **EF Core Packages**: `Microsoft.EntityFrameworkCore 9.0.4`, `Microsoft.EntityFrameworkCore.Relational 9.0.4`  
 **Testing**: `xUnit`, `Shouldly`, `Moq`, `Coverlet`, `ReportGenerator`
@@ -22,24 +22,31 @@ The current branch is focused on:
 - CRUD flows that behave similarly to the EF InMemory provider for the sample app
 - Unit and integration test coverage around infrastructure, queries, validators, and provider behavior
 
+## Release notes for `v1.0.13`
+
+- Server-side `Skip`/`Take` pushdown is now supported for eligible query shapes.
+- Observability guidance has been refreshed to reflect the logging, tracing, and diagnostics options available in `CloudStorageOptions.Observability`.
+- The release line has been advanced to `v1.0.13` in the package metadata and public docs.
+
 ---
 
 ## Current project structure
 
-| Path                                     | Purpose                                                                                  |
-|:-----------------------------------------|:-----------------------------------------------------------------------------------------|
-| `src/CloudStorageORM/Contexts`           | Base `CloudStorageDbContext` used by consuming applications                              |
-| `src/CloudStorageORM/Extensions`         | EF and DI extension methods such as `UseCloudStorageOrm(...)`                            |
-| `src/CloudStorageORM/Infrastructure`     | Query pipeline, database abstractions, type mapping, and EF integration internals        |
-| `src/CloudStorageORM/Interfaces`         | Contracts for storage providers, validators, repositories, and infrastructure helpers    |
-| `src/CloudStorageORM/Options`            | `CloudStorageOptions` configuration model                                                |
-| `src/CloudStorageORM/Providers/Azure`    | Azure Blob Storage provider and validator implementation                                 |
-| `src/CloudStorageORM/Providers/Aws`      | AWS S3 provider and validator implementation                                             |
-| `src/CloudStorageORM/Repositories`       | Repository and queryable helpers                                                         |
-| `src/CloudStorageORM/Validators`         | Model and blob validation rules                                                          |
-| `samples/CloudStorageORM.SampleApp`      | Console sample that runs the same flow against InMemory and CloudStorageORM              |
-| `tests/CloudStorageORM.Tests`            | Unit tests                                                                               |
-| `tests/CloudStorageORM.IntegrationTests` | Azurite- and LocalStack-backed integration tests, including sample app process execution |
+| Path                                               | Purpose                                                                               |
+|:---------------------------------------------------|:--------------------------------------------------------------------------------------|
+| `src/CloudStorageORM/Contexts`                     | Base `CloudStorageDbContext` used by consuming applications                           |
+| `src/CloudStorageORM/Extensions`                   | EF and DI extension methods such as `UseCloudStorageOrm(...)`                         |
+| `src/CloudStorageORM/Infrastructure`               | Query pipeline, database abstractions, type mapping, and EF integration internals     |
+| `src/CloudStorageORM/Interfaces`                   | Contracts for storage providers, validators, repositories, and infrastructure helpers |
+| `src/CloudStorageORM/Options`                      | `CloudStorageOptions` configuration model                                             |
+| `src/CloudStorageORM/Providers/Azure`              | Azure Blob Storage provider and validator implementation                              |
+| `src/CloudStorageORM/Providers/Aws`                | AWS S3 provider and validator implementation                                          |
+| `src/CloudStorageORM/Repositories`                 | Repository and queryable helpers                                                      |
+| `src/CloudStorageORM/Validators`                   | Model and blob validation rules                                                       |
+| `samples/CloudStorageORM.SampleApp`                | Console sample that runs the same flow against InMemory and CloudStorageORM           |
+| `tests/CloudStorageORM.Tests`                      | Unit tests                                                                            |
+| `tests/CloudStorageORM.IntegrationTests`           | Provider integration tests split by Azure and AWS                                     |
+| `tests/CloudStorageORM.IntegrationTests.SampleApp` | Sample app process integration tests                                                  |
 
 ---
 
@@ -56,9 +63,10 @@ Use this when configuring a context with `AddDbContext(...)`.
 
 Configuration model on the current branch:
 
-- common fields: `CloudStorageOptions.Provider`, `CloudStorageOptions.ContainerName`
+- Common fields: `CloudStorageOptions.Provider`, `CloudStorageOptions.ContainerName`
 - Azure fields: `CloudStorageOptions.Azure.ConnectionString`
 - AWS fields: `CloudStorageOptions.Aws.AccessKeyId`, `SecretAccessKey`, `Region`, `ServiceUrl`, `ForcePathStyle`
+- Observability fields: `CloudStorageOptions.Observability.EnableLogging`, `EnableTracing`, `EnableDiagnostics`
 - `CloudStorageOptions.ConnectionString` at the root level is no longer used
 
 ### `CloudStorageORM.Contexts.CloudStorageDbContext`
@@ -88,6 +96,18 @@ Optional entity convenience contract:
 - `CloudStorageORM.Abstractions.IETag` with `string? ETag { get; set; }`.
 - The interface is optional; shadow-property tracking is the default behavior.
 
+### `CloudStorageORM.Extensions.CloudStorageDbSetExtensions`
+
+Includes bulk-like helper operations for EF `DbSet<TEntity>` usage:
+
+- `ClearAsync(this DbSet<TEntity> dbSet, DbContext context, CancellationToken cancellationToken = default)`
+
+Current behavior:
+
+- For non-CloudStorageORM contexts, it uses `ToListAsync` + `RemoveRange` + `SaveChangesAsync`.
+- For CloudStorageORM contexts, it deletes provider objects under the entity blob prefix and detaches tracked entries.
+- The return value is the number of deleted entities/objects.
+
 ### `CloudStorageORM.Providers.ProviderFactory`
 
 Current behavior:
@@ -95,6 +115,23 @@ Current behavior:
 - `CloudProvider.Azure` → `AzureBlobStorageProvider`
 - `CloudProvider.Aws` → `AwsS3StorageProvider`
 - any other provider → `NotSupportedException`
+
+### Observability internals
+
+CloudStorageORM observability is configured through `CloudStorageOptions.Observability`:
+
+- `EnableLogging` gates logging inside persistence and query paths.
+- `EnableTracing` gates `ActivitySource` spans emitted by internal operations.
+- `EnableDiagnostics` is currently surfaced as configuration/debug metadata and reserved for future custom diagnostics
+  events.
+
+Related types:
+
+- `CloudStorageORM.Observability.CloudStorageOrmActivitySource`
+- `CloudStorageORM.Observability.CloudStorageOrmEventIds`
+- `CloudStorageORM.Observability.CloudStorageOrmLoggingExtensions`
+
+For end-user setup examples, see [Observability guide](observability.md).
 
 ---
 
@@ -124,6 +161,12 @@ ETag concurrency behavior on the current branch (when explicitly enabled per ent
 - updates/deletes use provider-native conditional requests (`If-Match`) against the original ETag
 - mismatches are translated to `DbUpdateConcurrencyException`
 - ETags are sourced from object storage metadata and are not persisted inside entity JSON payloads
+
+Storage key/path format on the current branch:
+
+- Entity folders are generated by `BlobPathResolver.GetBlobName(Type)` using a deterministic hash + sanitized type name.
+- Object paths are resolved as `{entityFolder}/{primaryKey}.json`.
+- Paths are provider-sanitized through `IStorageProvider.SanitizeBlobName(...)`.
 
 The recent query work on `main` focuses on:
 
@@ -185,7 +228,12 @@ These items are important for anyone consuming the current `main` branch:
 The repository currently includes:
 
 - unit tests in `tests/CloudStorageORM.Tests`
-- Azurite- and LocalStack-backed integration tests in `tests/CloudStorageORM.IntegrationTests`
+- Azurite-backed Azure integration tests in
+  `tests/CloudStorageORM.IntegrationTests/CloudStorageORM.IntegrationTests.Azure.csproj`
+- LocalStack-backed AWS integration tests in
+  `tests/CloudStorageORM.IntegrationTests/CloudStorageORM.IntegrationTests.AWS.csproj`
+- Sample app integration tests in
+  `tests/CloudStorageORM.IntegrationTests.SampleApp/CloudStorageORM.IntegrationTests.SampleApp.csproj`
 - coverage collection through `coverlet.collector` / `coverlet.msbuild`
 - HTML report generation through the local tool manifest in `dotnet-tools.json`
 
@@ -203,8 +251,8 @@ dotnet tool run reportgenerator -reports:"tests/**/TestResults/*/coverage.cobert
 ## Sample app relationship
 
 The sample app is not just a demo now; it is also part of the regression safety net.
-The integration tests `tests/CloudStorageORM.IntegrationTests/ProgramExitTests.cs` and
-`tests/CloudStorageORM.IntegrationTests/Aws/ProgramExitAwsTests.cs` execute:
+The integration tests `tests/CloudStorageORM.IntegrationTests.SampleApp/ProgramExitAzureSampleAppTests.cs` and
+`tests/CloudStorageORM.IntegrationTests.SampleApp/ProgramExitAwsSampleAppTests.cs` execute:
 
 ```bash
 dotnet run --project samples/CloudStorageORM.SampleApp/SampleApp.csproj

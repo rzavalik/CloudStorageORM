@@ -3,8 +3,15 @@ using Microsoft.EntityFrameworkCore.Query;
 
 namespace CloudStorageORM.Infrastructure;
 
+/// <summary>
+/// Expression visitor used to evaluate provider-backed query constants.
+/// </summary>
 public class CloudStorageQueryVisitor : ExpressionVisitor
 {
+    /// <summary>
+    /// Creates a query visitor for a specific EF query context.
+    /// </summary>
+    /// <param name="context">Query context instance associated with the current query execution.</param>
     public CloudStorageQueryVisitor(QueryContext context)
     {
         _ = context;

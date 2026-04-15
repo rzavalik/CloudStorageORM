@@ -1,9 +1,12 @@
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq.Expressions;
 using CloudStorageORM.Abstractions;
 using CloudStorageORM.Constants;
 using CloudStorageORM.Interfaces.Infrastructure;
 using CloudStorageORM.Interfaces.StorageProviders;
+using CloudStorageORM.Observability;
+using CloudStorageORM.Options;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
@@ -12,9 +15,13 @@ using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Update;
+using Microsoft.Extensions.Logging;
 
 namespace CloudStorageORM.Infrastructure;
 
+/// <summary>
+/// IDatabase implementation that persists EF entity changes to object storage.
+/// </summary>
 public class CloudStorageDatabase(
     IModel model,
     IDatabaseCreator databaseCreator,
@@ -22,7 +29,10 @@ public class CloudStorageDatabase(
     IStorageProvider storageProvider,
     ICurrentDbContext currentDbContext,
     IBlobPathResolver blobPathResolver,
-    IDbContextTransactionManager transactionManager)
+    IDbContextTransactionManager transactionManager,
+    CloudStorageOptions? cloudStorageOptions = null,
+    ILoggerFactory? loggerFactory = null,
+    ILogger<CloudStorageDatabase>? logger = null)
     : IDatabase
 {
     private readonly DbContext _context =
@@ -37,6 +47,14 @@ public class CloudStorageDatabase(
     private readonly IDbContextTransactionManager _transactionManager =
         transactionManager ?? throw new ArgumentNullException(nameof(transactionManager));
 
+    private readonly ILogger<CloudStorageDatabase>? _logger = logger;
+
+    private readonly ILogger<CloudStorageQueryProvider>? _queryLogger =
+        loggerFactory?.CreateLogger<CloudStorageQueryProvider>();
+
+    private readonly bool _enableLogging = cloudStorageOptions?.Observability.EnableLogging ?? true;
+    private readonly bool _enableTracing = cloudStorageOptions?.Observability.EnableTracing ?? true;
+
     public IModel Model { get; } = model ?? throw new ArgumentNullException(nameof(model));
 
     private IDatabaseCreator Creator { get; } =
@@ -46,12 +64,27 @@ public class CloudStorageDatabase(
                                                                          throw new ArgumentNullException(
                                                                              nameof(executionStrategyFactory));
 
+    /// <summary>
+    /// Ensures the backing store is created for the current provider.
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token for the async operation.</param>
+    /// <returns>A task that completes when creation has been verified or performed.</returns>
     public Task EnsureCreatedAsync(CancellationToken cancellationToken = default)
         => Creator.EnsureCreatedAsync(cancellationToken);
 
+    /// <summary>
+    /// Ensures the backing store is deleted for the current provider.
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token for the async operation.</param>
+    /// <returns>A task that completes when deletion has been verified or performed.</returns>
     public Task EnsureDeletedAsync(CancellationToken cancellationToken = default)
         => Creator.EnsureDeletedAsync(cancellationToken);
 
+    /// <summary>
+    /// Persists pending update entries to object storage synchronously.
+    /// </summary>
+    /// <param name="entries">Update entries representing tracked entity changes.</param>
+    /// <returns>The number of persisted changes.</returns>
     public int SaveChanges(IList<IUpdateEntry> entries)
     {
         var request = ProcessChangesAsync(entries, CancellationToken.None);
@@ -59,105 +92,149 @@ public class CloudStorageDatabase(
         return request.Result;
     }
 
+    /// <summary>
+    /// Persists pending update entries to object storage asynchronously.
+    /// </summary>
+    /// <param name="entries">Update entries representing tracked entity changes.</param>
+    /// <param name="cancellationToken">Cancellation token for the async operation.</param>
+    /// <returns>The number of persisted changes.</returns>
     public async Task<int> SaveChangesAsync(IList<IUpdateEntry> entries,
         CancellationToken cancellationToken = default)
     {
         return await ProcessChangesAsync(entries, cancellationToken);
     }
 
-    private async Task<int> ProcessChangesAsync(IList<IUpdateEntry> entries, CancellationToken cancellationToken)
+    public Func<QueryContext, TResult> CompileQuery<TResult>(Expression query, bool async)
     {
-        var changes = 0;
-
-        foreach (var entry in entries)
-        {
-            var entity = ((InternalEntityEntry)entry).Entity;
-            var path = _blobPathResolver.GetPath(entry);
-
-            // Check whether another entity with the same key is already tracked.
-            var entityType = entry.EntityType.ClrType;
-            var key = entry.EntityType.FindPrimaryKey();
-            var keyProps = key?.Properties;
-
-            if (keyProps != null)
-            {
-                var existingTracked = entry.Context.ChangeTracker.Entries()
-                    .FirstOrDefault(e =>
-                        e.Entity.GetType() == entityType &&
-                        !ReferenceEquals(e.Entity, entity) &&
-                        keyProps.All(p =>
-                            Equals(
-                                p.PropertyInfo?.GetValue(e.Entity),
-                                p.PropertyInfo?.GetValue(entity))));
-
-                if (existingTracked != null)
-                {
-                    // Detach the previous instance so the new one can be used.
-                    entry.Context.Entry(existingTracked.Entity).State = EntityState.Detached;
-                }
-            }
-
-            // Ensure the entity is still tracked after resolving key conflicts.
-            var tracked = entry.Context.ChangeTracker
-                .Entries()
-                .Any(e =>
-                    e.Entity.GetType() == entity.GetType() &&
-                    KeysMatch(e, entry));
-
-            if (!tracked)
-            {
-                continue;
-            }
-
-            switch (entry.EntityState)
-            {
-                case EntityState.Added:
-                {
-                    var concurrencyEnabled = TryGetConcurrencyProperty(entry.EntityType, out _);
-                    var newETag = await ExecuteOrStageSaveAsync(path, entity, null, concurrencyEnabled, cancellationToken);
-                    ApplySavedETag(entry, newETag);
-                    changes++;
-                    break;
-                }
-
-                case EntityState.Modified:
-                {
-                    var concurrencyEnabled = TryGetConcurrencyProperty(entry.EntityType, out _);
-                    var originalETag = GetOriginalETag(entry);
-                    if (concurrencyEnabled && string.IsNullOrWhiteSpace(originalETag))
-                    {
-                        throw new DbUpdateConcurrencyException(
-                            "ETag concurrency is enabled, but no original ETag value is available for update.");
-                    }
-
-                    var newETag = await ExecuteOrStageSaveAsync(path, entity, originalETag, concurrencyEnabled,
-                        cancellationToken);
-                    ApplySavedETag(entry, newETag);
-                    changes++;
-                    break;
-                }
-
-                case EntityState.Deleted:
-                {
-                    var concurrencyEnabled = TryGetConcurrencyProperty(entry.EntityType, out _);
-                    var originalETag = GetOriginalETag(entry);
-                    if (concurrencyEnabled && string.IsNullOrWhiteSpace(originalETag))
-                    {
-                        throw new DbUpdateConcurrencyException(
-                            "ETag concurrency is enabled, but no original ETag value is available for delete.");
-                    }
-
-                    await ExecuteOrStageDeleteAsync(path, originalETag, concurrencyEnabled, cancellationToken);
-                    changes++;
-                    break;
-                }
-            }
-        }
-
-        return changes;
+        throw new NotImplementedException();
     }
 
-    private async Task<string?> ExecuteOrStageSaveAsync(string path, object entity, string? ifMatchETag,
+    private async Task<int> ProcessChangesAsync(IList<IUpdateEntry> entries, CancellationToken cancellationToken)
+    {
+        using var activity = _enableTracing ? CloudStorageOrmActivitySource.StartActivity("SaveChanges") : null;
+        var stopwatch = Stopwatch.StartNew();
+
+        try
+        {
+            if (_enableLogging)
+            {
+                _logger?.LogSaveChangesStarting(entries.Count);
+            }
+
+            var changes = 0;
+
+            foreach (var entry in entries)
+            {
+                var path = _blobPathResolver.GetPath(entry);
+                var entity = ((InternalEntityEntry)entry).Entity;
+
+                // Check whether another entity with the same key is already tracked.
+                var entityType = entry.EntityType.ClrType;
+                var key = entry.EntityType.FindPrimaryKey();
+                var keyProps = key?.Properties;
+
+                if (keyProps != null)
+                {
+                    var existingTracked = entry.Context.ChangeTracker.Entries()
+                        .FirstOrDefault(e =>
+                            e.Entity.GetType() == entityType &&
+                            !ReferenceEquals(e.Entity, entity) &&
+                            keyProps.All(p =>
+                                Equals(
+                                    p.PropertyInfo?.GetValue(e.Entity),
+                                    p.PropertyInfo?.GetValue(entity))));
+
+                    if (existingTracked != null)
+                    {
+                        // Detach the previous instance so the new one can be used.
+                        entry.Context.Entry(existingTracked.Entity).State = EntityState.Detached;
+                    }
+                }
+
+                // Ensure the entity is still tracked after resolving key conflicts.
+                var tracked = entry.Context.ChangeTracker
+                    .Entries()
+                    .Any(e =>
+                        e.Entity.GetType() == entity.GetType() &&
+                        KeysMatch(e, entry));
+
+                if (!tracked)
+                {
+                    continue;
+                }
+
+                switch (entry.EntityState)
+                {
+                    case EntityState.Added:
+                    {
+                        var concurrencyEnabled = TryGetConcurrencyProperty(entry.EntityType, out _);
+                        var newETag = await ExecuteOrStageSaveAsync(path, entity, null, concurrencyEnabled,
+                            cancellationToken);
+                        ApplySavedETag(entry, newETag);
+                        changes++;
+                        break;
+                    }
+
+                    case EntityState.Modified:
+                    {
+                        var concurrencyEnabled = TryGetConcurrencyProperty(entry.EntityType, out _);
+                        var originalETag = GetOriginalETag(entry);
+                        if (concurrencyEnabled && string.IsNullOrWhiteSpace(originalETag))
+                        {
+                            throw new DbUpdateConcurrencyException(
+                                "ETag concurrency is enabled, but no original ETag value is available for update.");
+                        }
+
+                        var newETag = await ExecuteOrStageSaveAsync(path, entity, originalETag, concurrencyEnabled,
+                            cancellationToken);
+                        ApplySavedETag(entry, newETag);
+                        changes++;
+                        break;
+                    }
+
+                    case EntityState.Deleted:
+                    {
+                        var concurrencyEnabled = TryGetConcurrencyProperty(entry.EntityType, out _);
+                        var originalETag = GetOriginalETag(entry);
+                        if (concurrencyEnabled && string.IsNullOrWhiteSpace(originalETag))
+                        {
+                            throw new DbUpdateConcurrencyException(
+                                "ETag concurrency is enabled, but no original ETag value is available for delete.");
+                        }
+
+                        await ExecuteOrStageDeleteAsync(path, originalETag, concurrencyEnabled, cancellationToken);
+                        changes++;
+                        break;
+                    }
+                }
+            }
+
+            stopwatch.Stop();
+            if (_enableLogging)
+            {
+                _logger?.LogSaveChangesCompleted(changes, stopwatch.ElapsedMilliseconds);
+            }
+
+            activity?.SetTag("changes.count", changes);
+            return changes;
+        }
+        catch (Exception ex)
+        {
+            stopwatch.Stop();
+            if (_enableLogging)
+            {
+                _logger?.LogSaveChangesFailed(ex, stopwatch.ElapsedMilliseconds);
+            }
+
+            activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
+            throw;
+        }
+    }
+
+    private async Task<string?> ExecuteOrStageSaveAsync(
+        string path,
+        object entity,
+        string? ifMatchETag,
         bool useConditionalRequest,
         CancellationToken cancellationToken)
     {
@@ -177,13 +254,13 @@ public class CloudStorageDatabase(
 
         try
         {
-            if (!useConditionalRequest)
+            if (useConditionalRequest)
             {
-                await _storageProvider.SaveAsync(path, entity);
-                return null;
+                return await _storageProvider.SaveAsync(path, entity, ifMatchETag);
             }
 
-            return await _storageProvider.SaveAsync(path, entity, ifMatchETag);
+            await _storageProvider.SaveAsync(path, entity);
+            return null;
         }
         catch (StoragePreconditionFailedException ex)
         {
@@ -191,7 +268,10 @@ public class CloudStorageDatabase(
         }
     }
 
-    private async Task ExecuteOrStageDeleteAsync(string path, string? ifMatchETag, bool useConditionalRequest,
+    private async Task ExecuteOrStageDeleteAsync(
+        string path,
+        string? ifMatchETag,
+        bool useConditionalRequest,
         CancellationToken cancellationToken)
     {
         if (_transactionManager is CloudStorageTransactionManager { HasActiveTransaction: true } manager)
@@ -245,7 +325,12 @@ public class CloudStorageDatabase(
 
     Func<QueryContext, TResult> IDatabase.CompileQuery<TResult>(Expression query, bool async)
     {
-        var provider = new CloudStorageQueryProvider(this, _blobPathResolver);
+        var provider = new CloudStorageQueryProvider(
+            this,
+            _blobPathResolver,
+            _queryLogger,
+            _enableLogging,
+            _enableTracing);
 
         return queryContext =>
         {
@@ -334,6 +419,17 @@ public class CloudStorageDatabase(
         return results;
     }
 
+    /// <summary>
+    /// Loads all entities of a given type and attaches them to the provided DbContext.
+    /// </summary>
+    /// <typeparam name="TEntity">Entity type to load.</typeparam>
+    /// <param name="context">DbContext used for tracking loaded entities.</param>
+    /// <returns>All existing entities for the requested type.</returns>
+    /// <example>
+    /// <code>
+    /// var users = await database.LoadEntitiesAsync&lt;User&gt;(context);
+    /// </code>
+    /// </example>
     public async Task<IList<TEntity>> LoadEntitiesAsync<TEntity>(DbContext context)
         where TEntity : class
     {
@@ -342,6 +438,50 @@ public class CloudStorageDatabase(
             context);
     }
 
+    /// <summary>
+    /// Loads a paged slice of entities for the requested type using provider-native key listing.
+    /// </summary>
+    /// <typeparam name="TEntity">Entity type to load.</typeparam>
+    /// <param name="skip">Number of matching entities to skip.</param>
+    /// <param name="take">Maximum number of matching entities to load.</param>
+    /// <param name="context">Optional context used for tracking; defaults to the current context.</param>
+    /// <returns>A page of entities after applying skip/take.</returns>
+    public async Task<IList<TEntity>> LoadPageAsync<TEntity>(int skip, int take, DbContext? context = null)
+        where TEntity : class
+    {
+        if (skip < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(skip), skip, "Skip must be greater than or equal to zero.");
+        }
+
+        switch (take)
+        {
+            case < 0:
+                throw new ArgumentOutOfRangeException(nameof(take), take,
+                    "Take must be greater than or equal to zero.");
+
+            case 0:
+                return [];
+        }
+
+        var targetContext = context ?? _context;
+        var blobName = _blobPathResolver.GetBlobName(typeof(TEntity));
+        var pagePaths = await SelectPathsPageAsync(blobName, _ => true, skip, take);
+        return await LoadEntitiesByPathsAsync<TEntity>(targetContext, pagePaths);
+    }
+
+    /// <summary>
+    /// Loads a single entity by primary-key value from object storage and attaches it to the context.
+    /// </summary>
+    /// <typeparam name="TEntity">Entity type to load.</typeparam>
+    /// <param name="keyValue">Primary-key value used to resolve the blob path.</param>
+    /// <param name="context">Optional context used for tracking; defaults to the current context.</param>
+    /// <returns>The loaded entity when found; otherwise <see langword="null" />.</returns>
+    /// <example>
+    /// <code>
+    /// var user = await database.TryLoadByPrimaryKeyAsync&lt;User&gt;(42);
+    /// </code>
+    /// </example>
     public async Task<TEntity?> TryLoadByPrimaryKeyAsync<TEntity>(object keyValue, DbContext? context = null)
         where TEntity : class
     {
@@ -353,6 +493,21 @@ public class CloudStorageDatabase(
         return entity;
     }
 
+    /// <summary>
+    /// Loads entities whose primary keys are within the provided range and attaches them to the context.
+    /// </summary>
+    /// <typeparam name="TEntity">Entity type to load.</typeparam>
+    /// <param name="lowerBound">Optional lower bound key value.</param>
+    /// <param name="lowerInclusive"><see langword="true" /> to include the lower bound.</param>
+    /// <param name="upperBound">Optional upper bound key value.</param>
+    /// <param name="upperInclusive"><see langword="true" /> to include the upper bound.</param>
+    /// <param name="context">Optional context used for tracking; defaults to the current context.</param>
+    /// <returns>Entities whose storage keys satisfy the specified range.</returns>
+    /// <example>
+    /// <code>
+    /// var users = await database.LoadByPrimaryKeyRangeAsync&lt;User&gt;(100, true, 200, false);
+    /// </code>
+    /// </example>
     public async Task<IList<TEntity>> LoadByPrimaryKeyRangeAsync<TEntity>(
         object? lowerBound,
         bool lowerInclusive,
@@ -402,6 +557,88 @@ public class CloudStorageDatabase(
         return results;
     }
 
+    /// <summary>
+    /// Loads a paged slice of entities whose primary keys are in the provided range.
+    /// </summary>
+    /// <typeparam name="TEntity">Entity type to load.</typeparam>
+    /// <param name="lowerBound">Optional lower bound key value.</param>
+    /// <param name="lowerInclusive"><see langword="true" /> to include the lower bound.</param>
+    /// <param name="upperBound">Optional upper bound key value.</param>
+    /// <param name="upperInclusive"><see langword="true" /> to include the upper bound.</param>
+    /// <param name="skip">Number of matching entities to skip.</param>
+    /// <param name="take">Maximum number of matching entities to load.</param>
+    /// <param name="context">Optional context used for tracking; defaults to the current context.</param>
+    /// <returns>A page of entities whose keys satisfy the requested range after applying skip/take.</returns>
+    public async Task<IList<TEntity>> LoadByPrimaryKeyRangePageAsync<TEntity>(
+        object? lowerBound,
+        bool lowerInclusive,
+        object? upperBound,
+        bool upperInclusive,
+        int skip,
+        int take,
+        DbContext? context = null)
+        where TEntity : class
+    {
+        if (skip < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(skip), skip, "Skip must be greater than or equal to zero.");
+        }
+
+        if (take < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(take), take, "Take must be greater than or equal to zero.");
+        }
+
+        if (take == 0)
+        {
+            return [];
+        }
+
+        var targetContext = context ?? _context;
+        var blobName = _blobPathResolver.GetBlobName(typeof(TEntity));
+        var entityType = Model.FindEntityType(typeof(TEntity));
+        var keyProperties = entityType?.FindPrimaryKey()?.Properties;
+        var keyProperty = keyProperties?.FirstOrDefault();
+
+        if (keyProperty is null)
+        {
+            return [];
+        }
+
+        var keyType = Nullable.GetUnderlyingType(keyProperty.ClrType) ?? keyProperty.ClrType;
+        var typedLower = lowerBound is null ? null : ConvertToKeyType(lowerBound, keyType);
+        var typedUpper = upperBound is null ? null : ConvertToKeyType(upperBound, keyType);
+
+        var pagePaths = await SelectPathsPageAsync(
+            blobName,
+            path =>
+            {
+                var keyText = Path.GetFileNameWithoutExtension(path);
+                if (string.IsNullOrWhiteSpace(keyText)
+                    || !TryParseStorageKey(keyText, keyType, out var keyValue))
+                {
+                    return false;
+                }
+
+                return IsWithinRange(keyValue, typedLower, lowerInclusive, typedUpper, upperInclusive);
+            },
+            skip,
+            take);
+
+        return await LoadEntitiesByPathsAsync<TEntity>(targetContext, pagePaths, keyProperties);
+    }
+
+    /// <summary>
+    /// Loads all entities for the specified blob prefix and attaches them to the current context.
+    /// </summary>
+    /// <typeparam name="TEntity">Entity type to load.</typeparam>
+    /// <param name="containerName">Blob prefix or folder name to enumerate.</param>
+    /// <returns>A list containing all deserialized entities found under the prefix.</returns>
+    /// <example>
+    /// <code>
+    /// var users = await database.ToListAsync&lt;User&gt;("users");
+    /// </code>
+    /// </example>
     public async Task<IList<TEntity>> ToListAsync<TEntity>(string containerName)
         where TEntity : class
     {
@@ -428,12 +665,29 @@ public class CloudStorageDatabase(
         return results;
     }
 
+    /// <summary>
+    /// Compiles a query expression into an executable delegate.
+    /// </summary>
+    /// <typeparam name="TResult">Compiled query result type.</typeparam>
+    /// <param name="query">Query expression to compile.</param>
+    /// <param name="async">Whether query compilation targets async execution.</param>
+    /// <param name="nonNullableReferenceTypeParameters">Set of non-nullable parameter names.</param>
+    /// <returns>A compiled query delegate.</returns>
+    /// <exception cref="NotImplementedException">Always thrown in the current implementation.</exception>
     public Expression<Func<QueryContext, TResult>> CompileQueryExpression<TResult>(Expression query, bool async,
         IReadOnlySet<string> nonNullableReferenceTypeParameters)
     {
         throw new NotImplementedException();
     }
 
+    /// <summary>
+    /// Compiles a query expression into an executable delegate.
+    /// </summary>
+    /// <typeparam name="TResult">Compiled query result type.</typeparam>
+    /// <param name="query">Query expression to compile.</param>
+    /// <param name="async">Whether query compilation targets async execution.</param>
+    /// <returns>A compiled query delegate.</returns>
+    /// <exception cref="NotImplementedException">Always thrown in the current implementation.</exception>
     public Expression<Func<QueryContext, TResult>> CompileQueryExpression<TResult>(Expression query, bool async)
     {
         throw new NotImplementedException();
@@ -525,7 +779,8 @@ public class CloudStorageDatabase(
             return false;
         }
 
-        var enabled = readOnlyEntityType.FindAnnotation(AnnotationsConstants.ETagConcurrencyEnabledAnnotation)?.Value as bool?;
+        var enabled =
+            readOnlyEntityType.FindAnnotation(AnnotationsConstants.ETagConcurrencyEnabledAnnotation)?.Value as bool?;
         if (enabled != true)
         {
             return false;
@@ -619,8 +874,84 @@ public class CloudStorageDatabase(
 
     private static int CompareKeyValues(object left, object right)
     {
-        return left is not IComparable comparable 
-            ? throw new InvalidOperationException("Primary key type must implement IComparable for range filtering.") 
+        return left is not IComparable comparable
+            ? throw new InvalidOperationException("Primary key type must implement IComparable for range filtering.")
             : comparable.CompareTo(right);
+    }
+
+    private async Task<List<string>> SelectPathsPageAsync(
+        string prefix,
+        Func<string, bool> include,
+        int skip,
+        int take,
+        CancellationToken cancellationToken = default)
+    {
+        const int pageSize = 1000;
+        var results = new List<string>(Math.Max(4, take));
+        var remainingSkip = skip;
+        string? continuationToken = null;
+
+        while (results.Count < take)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var page = await _storageProvider.ListPageAsync(prefix, pageSize, continuationToken, cancellationToken);
+
+            if (page.Keys.Count == 0 && !page.HasMore)
+            {
+                break;
+            }
+
+            foreach (var key in page.Keys)
+            {
+                if (!include(key))
+                {
+                    continue;
+                }
+
+                if (remainingSkip > 0)
+                {
+                    remainingSkip--;
+                    continue;
+                }
+
+                results.Add(key);
+                if (results.Count >= take)
+                {
+                    break;
+                }
+            }
+
+            if (!page.HasMore || string.IsNullOrWhiteSpace(page.ContinuationToken))
+            {
+                break;
+            }
+
+            continuationToken = page.ContinuationToken;
+        }
+
+        return results;
+    }
+
+    private async Task<IList<TEntity>> LoadEntitiesByPathsAsync<TEntity>(
+        DbContext targetContext,
+        IReadOnlyList<string> paths,
+        IReadOnlyList<IProperty>? keyProperties = null)
+        where TEntity : class
+    {
+        var results = new List<TEntity>(paths.Count);
+
+        foreach (var path in paths)
+        {
+            var storageObject = await _storageProvider.ReadWithMetadataAsync<TEntity?>(path);
+            if (!storageObject.Exists || storageObject.Value is null)
+            {
+                continue;
+            }
+
+            AttachOrReplaceTrackedEntity(targetContext, storageObject.Value, storageObject.ETag, keyProperties);
+            results.Add(storageObject.Value);
+        }
+
+        return results;
     }
 }

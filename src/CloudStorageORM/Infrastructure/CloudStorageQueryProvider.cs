@@ -1,19 +1,32 @@
+using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Reflection;
 using CloudStorageORM.Interfaces.Infrastructure;
+using CloudStorageORM.Observability;
 using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.Extensions.Logging;
 
 namespace CloudStorageORM.Infrastructure;
 
+/// <summary>
+/// Query provider that executes LINQ expressions against object-storage-backed entities.
+/// </summary>
 public class CloudStorageQueryProvider(
     CloudStorageDatabase database,
-    IBlobPathResolver blobPathResolver)
+    IBlobPathResolver blobPathResolver,
+    ILogger<CloudStorageQueryProvider>? logger = null,
+    bool enableLogging = true,
+    bool enableTracing = true)
     : IAsyncQueryProvider
 {
     private readonly CloudStorageDatabase _database = database ?? throw new ArgumentNullException(nameof(database));
 
     private readonly IBlobPathResolver _blobPathResolver =
         blobPathResolver ?? throw new ArgumentNullException(nameof(blobPathResolver));
+
+    private readonly ILogger<CloudStorageQueryProvider>? _logger = logger;
+    private readonly bool _enableLogging = enableLogging;
+    private readonly bool _enableTracing = enableTracing;
 
     private Task<IList<T>> LoadEntitiesAsync<T>() where T : class
     {
@@ -22,6 +35,7 @@ public class CloudStorageQueryProvider(
         );
     }
 
+    /// <inheritdoc />
     public IQueryable CreateQuery(Expression expression)
     {
         var elementType = expression.Type.GetGenericArguments().First();
@@ -29,21 +43,36 @@ public class CloudStorageQueryProvider(
         return (IQueryable)Activator.CreateInstance(queryableType, this, expression)!;
     }
 
+    /// <inheritdoc />
     public IQueryable<TElement> CreateQuery<TElement>(Expression expression)
     {
         return new CloudStorageQueryable<TElement>(this, expression);
     }
 
+    /// <inheritdoc />
     public object Execute(Expression expression)
     {
         return ExecuteCoreAsync<object>(expression).GetAwaiter().GetResult();
     }
 
+    /// <inheritdoc />
     public TResult Execute<TResult>(Expression expression)
     {
         return ExecuteCoreAsync<TResult>(expression).GetAwaiter().GetResult();
     }
 
+    /// <summary>
+    /// Executes a LINQ expression asynchronously and returns the materialized result.
+    /// </summary>
+    /// <typeparam name="TResult">Expected query result type.</typeparam>
+    /// <param name="expression">Expression tree to execute.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The query result.</returns>
+    /// <example>
+    /// <code>
+    /// var result = await provider.ExecuteAsync&lt;IEnumerable&lt;User&gt;&gt;(query.Expression);
+    /// </code>
+    /// </example>
     public async Task<TResult> ExecuteAsync<TResult>(Expression expression,
         CancellationToken cancellationToken = default)
     {
@@ -71,33 +100,153 @@ public class CloudStorageQueryProvider(
     private async Task<TResult> ExecuteTypedAsync<TEntity, TResult>(Expression expression)
         where TEntity : class
     {
-        if (TryExtractPrimaryKeyConstraint<TEntity>(expression, out var keyConstraint))
-        {
-            switch (keyConstraint)
-            {
-                case { IsEquality: true, EqualityValue: not null }:
-                {
-                    var entity = await _database.TryLoadByPrimaryKeyAsync<TEntity>(keyConstraint.EqualityValue)
-                        .ConfigureAwait(false);
-                    return ConvertSingleLookupResult<TResult, TEntity>(entity);
-                }
-                case { IsEquality: false, HasRangeBound: true }:
-                {
-                    var rangedList = await _database
-                        .LoadByPrimaryKeyRangeAsync<TEntity>(
-                            keyConstraint.LowerBound,
-                            keyConstraint.LowerInclusive,
-                            keyConstraint.UpperBound,
-                            keyConstraint.UpperInclusive)
-                        .ConfigureAwait(false);
+        using var activity = _enableTracing ? CloudStorageOrmActivitySource.StartActivity("Query") : null;
+        var stopwatch = Stopwatch.StartNew();
 
-                    return ExecuteAgainstInMemory<TResult, TEntity>(expression, rangedList);
+        try
+        {
+            if (_enableLogging)
+            {
+                _logger?.LogQueryExecutionStarting(typeof(TEntity).Name);
+            }
+
+            if (TryExecuteSkipTakePushdown<TEntity, TResult>(expression, out var pagedResult))
+            {
+                stopwatch.Stop();
+                return await pagedResult.ConfigureAwait(false);
+            }
+
+            if (TryExtractPrimaryKeyConstraint<TEntity>(expression, out var keyConstraint))
+            {
+                switch (keyConstraint)
+                {
+                    case { IsEquality: true, EqualityValue: not null }:
+                    {
+                        var entity = await _database.TryLoadByPrimaryKeyAsync<TEntity>(keyConstraint.EqualityValue)
+                            .ConfigureAwait(false);
+                        return ConvertSingleLookupResult<TResult, TEntity>(entity);
+                    }
+                    case { IsEquality: false, HasRangeBound: true }:
+                    {
+                        var rangedList = await _database
+                            .LoadByPrimaryKeyRangeAsync<TEntity>(
+                                keyConstraint.LowerBound,
+                                keyConstraint.LowerInclusive,
+                                keyConstraint.UpperBound,
+                                keyConstraint.UpperInclusive)
+                            .ConfigureAwait(false);
+
+                        return ExecuteAgainstInMemory<TResult, TEntity>(expression, rangedList);
+                    }
                 }
             }
+
+            var list = await LoadEntitiesAsync<TEntity>().ConfigureAwait(false);
+            var result = ExecuteAgainstInMemory<TResult, TEntity>(expression, list);
+
+            stopwatch.Stop();
+
+            var resultCount = 0;
+            if (result is System.Collections.IEnumerable enumerable && result is not string)
+            {
+                resultCount = enumerable.Cast<object>().Count();
+            }
+
+            if (_enableLogging)
+            {
+                _logger?.LogQueryExecutionCompleted(typeof(TEntity).Name, resultCount, stopwatch.ElapsedMilliseconds);
+            }
+
+            activity?.SetTag("query.result_count", resultCount);
+
+            return result;
+        }
+        catch (Exception ex)
+        {
+            stopwatch.Stop();
+            if (_enableLogging)
+            {
+                _logger?.LogQueryExecutionFailed(typeof(TEntity).Name, ex, stopwatch.ElapsedMilliseconds);
+            }
+
+            activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
+            throw;
+        }
+    }
+
+    private bool TryExecuteSkipTakePushdown<TEntity, TResult>(Expression expression, out Task<TResult> resultTask)
+        where TEntity : class
+    {
+        resultTask = Task.FromResult(default(TResult)!);
+
+        if (!TryExtractSkipTakeShape(expression, out var shape)
+            || shape.Take is null
+            || shape.Take.Value < 0
+            || shape.Skip < 0
+            || ContainsUnsupportedPaginationOperators(shape.BaseExpression)
+            || !IsEnumerableResult(typeof(TResult)))
+        {
+            return false;
         }
 
-        var list = await LoadEntitiesAsync<TEntity>().ConfigureAwait(false);
-        return ExecuteAgainstInMemory<TResult, TEntity>(expression, list);
+        var hasPredicate = ExtractPrimaryKeyPredicate(shape.BaseExpression) is not null;
+        var hasPrimaryKeyConstraint =
+            TryExtractPrimaryKeyConstraint<TEntity>(shape.BaseExpression, out var keyConstraint);
+
+        if (hasPredicate && !hasPrimaryKeyConstraint)
+        {
+            return false;
+        }
+
+        resultTask =
+            ExecuteSkipTakePushdownAsync<TEntity, TResult>(shape, hasPrimaryKeyConstraint ? keyConstraint : null);
+        return true;
+    }
+
+    private async Task<TResult> ExecuteSkipTakePushdownAsync<TEntity, TResult>(
+        SkipTakeShape shape,
+        PrimaryKeyConstraint? keyConstraint)
+        where TEntity : class
+    {
+        var take = shape.Take ?? 0;
+        if (take == 0)
+        {
+            return ExecuteAgainstInMemory<TResult, TEntity>(shape.BaseExpression, []);
+        }
+
+        IList<TEntity> page;
+
+        switch (keyConstraint)
+        {
+            case { IsEquality: true, EqualityValue: not null }:
+            {
+                var entity = await _database.TryLoadByPrimaryKeyAsync<TEntity>(keyConstraint.Value.EqualityValue!)
+                    .ConfigureAwait(false);
+                var equalityList = entity is null
+                    ? new List<TEntity>()
+                    : new List<TEntity> { entity };
+                page = equalityList.Skip(shape.Skip).Take(take).ToList();
+                break;
+            }
+
+            case { IsEquality: false, HasRangeBound: true }:
+                page = await _database
+                    .LoadByPrimaryKeyRangePageAsync<TEntity>(
+                        keyConstraint.Value.LowerBound,
+                        keyConstraint.Value.LowerInclusive,
+                        keyConstraint.Value.UpperBound,
+                        keyConstraint.Value.UpperInclusive,
+                        shape.Skip,
+                        take)
+                    .ConfigureAwait(false);
+                break;
+
+            default:
+                page = await _database.LoadPageAsync<TEntity>(shape.Skip, take).ConfigureAwait(false);
+                break;
+        }
+
+        return ExecuteAgainstInMemory<TResult, TEntity>(shape.BaseExpression, page);
     }
 
     private TResult ExecuteAgainstInMemory<TResult, TEntity>(Expression expression, IList<TEntity> list)
@@ -110,7 +259,8 @@ public class CloudStorageQueryProvider(
         // For sequence-returning expressions (Where, OrderBy, etc.) use CreateQuery so
         // the EnumerableQuery provider doesn't try to box an IQueryable<T> into a TResult.
         var resultType = typeof(TResult);
-        if (IsEnumerableResult(resultType) || resultType == typeof(object) && typeof(IEnumerable<TEntity>).IsAssignableFrom(rewrittenExpression.Type))
+        if (IsEnumerableResult(resultType) || resultType == typeof(object) &&
+            typeof(IEnumerable<TEntity>).IsAssignableFrom(rewrittenExpression.Type))
         {
             var resultQueryable = inMemoryQueryable.Provider.CreateQuery<TEntity>(rewrittenExpression);
             return (TResult)resultQueryable;
@@ -272,6 +422,74 @@ public class CloudStorageQueryProvider(
         return resultType.IsGenericType ? resultType.GetGenericArguments().First() : resultType;
     }
 
+    private static bool TryExtractSkipTakeShape(Expression expression, out SkipTakeShape shape)
+    {
+        shape = new SkipTakeShape(0, null, expression);
+        var skip = 0;
+        int? take = null;
+        var foundPagination = false;
+        var current = expression;
+
+        while (current is MethodCallExpression methodCall
+               && methodCall.Method.DeclaringType == typeof(Queryable)
+               && methodCall.Arguments.Count >= 2
+               && methodCall.Method.Name is nameof(Queryable.Skip) or nameof(Queryable.Take))
+        {
+            if (!TryEvaluatePaginationCount(methodCall.Arguments[1], out var count))
+            {
+                return false;
+            }
+
+            if (count < 0)
+            {
+                return false;
+            }
+
+            if (methodCall.Method.Name == nameof(Queryable.Skip))
+            {
+                skip += count;
+            }
+            else
+            {
+                take = take.HasValue ? Math.Min(take.Value, count) : count;
+            }
+
+            foundPagination = true;
+            current = methodCall.Arguments[0];
+        }
+
+        if (!foundPagination)
+        {
+            return false;
+        }
+
+        shape = new SkipTakeShape(skip, take, current);
+        return true;
+    }
+
+    private static bool TryEvaluatePaginationCount(Expression expression, out int count)
+    {
+        count = 0;
+
+        try
+        {
+            var boxed = Expression.Convert(expression, typeof(int));
+            count = Expression.Lambda<Func<int>>(boxed).Compile().Invoke();
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private static bool ContainsUnsupportedPaginationOperators(Expression expression)
+    {
+        var visitor = new UnsupportedPaginationOperatorVisitor();
+        visitor.Visit(expression);
+        return visitor.HasUnsupportedOperator;
+    }
+
     private bool TryExtractPrimaryKeyConstraint<TEntity>(Expression expression, out PrimaryKeyConstraint keyConstraint)
         where TEntity : class
     {
@@ -299,23 +517,26 @@ public class CloudStorageQueryProvider(
 
     private static LambdaExpression? ExtractPrimaryKeyPredicate(Expression expression)
     {
-        if (expression is not MethodCallExpression methodCall
-            || methodCall.Method.DeclaringType != typeof(Queryable))
+        while (true)
         {
-            return null;
-        }
+            if (expression is not MethodCallExpression methodCall ||
+                methodCall.Method.DeclaringType != typeof(Queryable))
+            {
+                return null;
+            }
 
-        if (TryExtractPredicateFromMethod(methodCall, out var predicate))
-        {
-            return predicate;
-        }
+            if (TryExtractPredicateFromMethod(methodCall, out var predicate))
+            {
+                return predicate;
+            }
 
-        if (methodCall.Arguments.Count == 0)
-        {
-            return null;
-        }
+            if (methodCall.Arguments.Count == 0)
+            {
+                return null;
+            }
 
-        return ExtractPrimaryKeyPredicate(methodCall.Arguments[0]);
+            expression = methodCall.Arguments[0];
+        }
     }
 
     private static bool TryExtractPredicateFromMethod(MethodCallExpression methodCall, out LambdaExpression? predicate)
@@ -359,23 +580,19 @@ public class CloudStorageQueryProvider(
     {
         keyConstraint = PrimaryKeyConstraint.None;
 
-        if (expression is BinaryExpression { NodeType: ExpressionType.AndAlso } andAlso)
+        if (expression is not BinaryExpression { NodeType: ExpressionType.AndAlso } andAlso)
         {
-            if (!TryExtractPrimaryKeyConstraint(andAlso.Left, primaryKeyName, out var left)
-                || !TryExtractPrimaryKeyConstraint(andAlso.Right, primaryKeyName, out var right))
-            {
-                return false;
-            }
-
-            return TryMergePrimaryKeyConstraints(left, right, out keyConstraint);
+            return expression is BinaryExpression binary
+                   && TryExtractSingleComparisonConstraint(binary, primaryKeyName, out keyConstraint);
         }
 
-        if (expression is not BinaryExpression binary)
+        if (!TryExtractPrimaryKeyConstraint(andAlso.Left, primaryKeyName, out var left)
+            || !TryExtractPrimaryKeyConstraint(andAlso.Right, primaryKeyName, out var right))
         {
             return false;
         }
 
-        return TryExtractSingleComparisonConstraint(binary, primaryKeyName, out keyConstraint);
+        return TryMergePrimaryKeyConstraints(left, right, out keyConstraint);
     }
 
     private static bool TryExtractSingleComparisonConstraint(BinaryExpression binary, string primaryKeyName,
@@ -513,17 +730,12 @@ public class CloudStorageQueryProvider(
         }
 
         var compare = CompareComparable(left.LowerBound, right.LowerBound);
-        if (compare > 0)
+        return compare switch
         {
-            return (left.LowerBound, left.LowerInclusive);
-        }
-
-        if (compare < 0)
-        {
-            return (right.LowerBound, right.LowerInclusive);
-        }
-
-        return (left.LowerBound, left.LowerInclusive && right.LowerInclusive);
+            > 0 => (left.LowerBound, left.LowerInclusive),
+            < 0 => (right.LowerBound, right.LowerInclusive),
+            _ => (left.LowerBound, left.LowerInclusive && right.LowerInclusive)
+        };
     }
 
     private static (object? upperBound, bool upperInclusive) SelectUpperBound(PrimaryKeyConstraint left,
@@ -540,17 +752,12 @@ public class CloudStorageQueryProvider(
         }
 
         var compare = CompareComparable(left.UpperBound, right.UpperBound);
-        if (compare < 0)
+        return compare switch
         {
-            return (left.UpperBound, left.UpperInclusive);
-        }
-
-        if (compare > 0)
-        {
-            return (right.UpperBound, right.UpperInclusive);
-        }
-
-        return (left.UpperBound, left.UpperInclusive && right.UpperInclusive);
+            < 0 => (left.UpperBound, left.UpperInclusive),
+            > 0 => (right.UpperBound, right.UpperInclusive),
+            _ => (left.UpperBound, left.UpperInclusive && right.UpperInclusive)
+        };
     }
 
     private static bool IsEqualityWithinRange(PrimaryKeyConstraint rangeConstraint, object equality)
@@ -568,20 +775,17 @@ public class CloudStorageQueryProvider(
             }
         }
 
-        if (rangeConstraint.UpperBound is not null)
+        if (rangeConstraint.UpperBound is null)
         {
-            var upperMatch = rangeConstraint.UpperInclusive
-                ? EqualityComparer<object>.Default.Equals(equality, rangeConstraint.UpperBound)
-                  || CompareComparable(equality, rangeConstraint.UpperBound) < 0
-                : CompareComparable(equality, rangeConstraint.UpperBound) < 0;
-
-            if (!upperMatch)
-            {
-                return false;
-            }
+            return true;
         }
 
-        return true;
+        var upperMatch = rangeConstraint.UpperInclusive
+            ? EqualityComparer<object>.Default.Equals(equality, rangeConstraint.UpperBound)
+              || CompareComparable(equality, rangeConstraint.UpperBound) < 0
+            : CompareComparable(equality, rangeConstraint.UpperBound) < 0;
+
+        return upperMatch;
     }
 
     private static int CompareComparable(object left, object right)
@@ -692,6 +896,38 @@ public class CloudStorageQueryProvider(
         }
     }
 
+    private sealed class UnsupportedPaginationOperatorVisitor : ExpressionVisitor
+    {
+        public bool HasUnsupportedOperator { get; private set; }
+
+        protected override Expression VisitMethodCall(MethodCallExpression node)
+        {
+            if (HasUnsupportedOperator)
+            {
+                return node;
+            }
+
+            if (node.Method.DeclaringType == typeof(Queryable)
+                && node.Method.Name is nameof(Queryable.OrderBy)
+                    or nameof(Queryable.OrderByDescending)
+                    or nameof(Queryable.ThenBy)
+                    or nameof(Queryable.ThenByDescending)
+                    or nameof(Queryable.Select)
+                    or nameof(Queryable.SelectMany)
+                    or nameof(Queryable.Reverse)
+                    or nameof(Queryable.GroupBy)
+                    or nameof(Queryable.Distinct))
+            {
+                HasUnsupportedOperator = true;
+                return node;
+            }
+
+            return base.VisitMethodCall(node);
+        }
+    }
+
+    private readonly record struct SkipTakeShape(int Skip, int? Take, Expression BaseExpression);
+
     private readonly record struct PrimaryKeyConstraint(
         bool IsEquality,
         object? EqualityValue,
@@ -704,11 +940,24 @@ public class CloudStorageQueryProvider(
         public bool IsNone => !IsEquality && LowerBound is null && UpperBound is null;
         public bool HasRangeBound => LowerBound is not null || UpperBound is not null;
 
+        /// <summary>
+        /// Creates an equality-based primary-key constraint.
+        /// </summary>
+        /// <param name="equalityValue">Primary-key value that must match exactly.</param>
+        /// <returns>A constraint representing primary-key equality.</returns>
         public static PrimaryKeyConstraint ForEquality(object equalityValue)
         {
             return new PrimaryKeyConstraint(true, equalityValue, null, false, null, false);
         }
 
+        /// <summary>
+        /// Creates a range-based primary-key constraint.
+        /// </summary>
+        /// <param name="lowerBound">Optional lower bound value.</param>
+        /// <param name="lowerInclusive"><see langword="true" /> when the lower bound is inclusive.</param>
+        /// <param name="upperBound">Optional upper bound value.</param>
+        /// <param name="upperInclusive"><see langword="true" /> when the upper bound is inclusive.</param>
+        /// <returns>A constraint representing a primary-key range.</returns>
         public static PrimaryKeyConstraint ForRange(object? lowerBound, bool lowerInclusive, object? upperBound,
             bool upperInclusive)
         {

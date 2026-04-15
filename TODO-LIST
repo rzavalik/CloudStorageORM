@@ -1,163 +1,224 @@
-CloudStorageORM - Project ToDo List
+CloudStorageORM - Current Branch Backlog Only
 
-This document contains a detailed and structured list of all tasks needed to create the CloudStorageORM project from scratch to a production-ready, NuGet-published library.
+This file tracks only open work for `main`.
+Historical setup/bootstrap tasks were removed to reduce noise.
 
-⸻
+Normalization notes (2026-04-15):
+- Legacy unchecked items that are already implemented on `main` were normalized and removed from backlog scope (for example: `CloudStorageOptions`, `IStorageProvider`, `CloudStorageDbContext` persistence path, docs for getting started/providers, and Azure/AWS provider tests).
+- Priority order is now explicit: enterprise-grade hardening first, Google Cloud last.
 
-🏁 Project Setup
+---
 
-- [x] Create GitHub repository: CloudStorageORM
-- [x] Add .gitignore for Visual Studio and .NET projects
-- [x] Add initial README.md and LICENSE
-- [x] Initialize local Git repository and push to GitHub
-- [x] Define solution structure (CloudStorageORM.sln) with projects inside a /src folder
+Backlog policy
+- [ ] Keep this file backlog-only: open items only, no historical completed checklist sections.
+- [ ] For each merged behavior change, update docs in the same PR (`README.md`, `docs/CloudStorageORM.md`, `docs/transactions.md`, `docs/observability.md`, provider/testing docs as applicable).
 
-⸻
+---
 
-🏗️ Core Project Structure
-- [x] Create core project: CloudStorageORM (.NET 10 Class Library)
-- [x] Setup default namespace and folder structure
-- [x] Create unit test project: CloudStorageORM.Tests (xUnit)
-- [x] Create sample usage project: CloudStorageORM.SampleApp
-- [ ] Create the following folders:
-	- /Abstractions
-	- /Builders
-	- /Entities
-	- /Repositories
-	- /Services
-	- /StorageProviders
-	- /Configurations
-	- /Exceptions
+P0 - Correctness and recoverability (must complete before new provider expansion)
 
-⸻
+Issue P0-01
+Title: Preserve ETag preconditions in staged transactions
+Scope:
+- Add `ifMatchETag` support to staged operation model and durable manifest (`src/CloudStorageORM/Infrastructure/CloudStorageTransactionManager.cs`).
+- Forward original ETag values when staging save/delete inside transactions (`src/CloudStorageORM/Infrastructure/CloudStorageDatabase.cs`).
+- Replay staged operations with provider conditional calls (`src/CloudStorageORM/Infrastructure/CloudStorageTransactionManager.cs`).
+Acceptance Criteria:
+- [ ] Updates/deletes staged in a transaction honor ETag preconditions during commit replay.
+- [ ] Conflicts surface as `DbUpdateConcurrencyException` in transactional flows.
+- [ ] No regression for non-transactional save/delete behavior.
+Test Checklist:
+- [ ] Add/extend unit tests in `tests/CloudStorageORM.Tests/Infrastructure/CloudStorageTransactionManagerTests.cs`.
+- [ ] Add integration coverage in `tests/CloudStorageORM.IntegrationTests/**` for Azure and AWS stale-ETag commit scenarios.
 
-🛠️ Core Development
+Issue P0-02
+Title: Make commit replay crash-safe and idempotent
+Scope:
+- Add operation-level replay progress markers to manifest state (`src/CloudStorageORM/Infrastructure/CloudStorageTransactionManager.cs`).
+- Ensure recovery resumes deterministic replay after interruption (`src/CloudStorageORM/Infrastructure/CloudStorageTransactionManager.cs`).
+- Document failure-window semantics (`docs/transactions.md`).
+Acceptance Criteria:
+- [ ] Recovery can resume interrupted committed transactions without duplicating side effects.
+- [ ] Re-running recovery over same manifest is idempotent.
+- [ ] Preparing manifests are safely aborted without partial commit confusion.
+Test Checklist:
+- [ ] Add unit tests for interrupted replay and recovery resumption.
+- [ ] Add integration scenario simulating process interruption during commit (`tests/CloudStorageORM.IntegrationTests/**`).
 
-Configuration
-- [ ] Define CloudStorageOptions class with:
-	- Provider
-	- ConnectionString
-	- ContainerName/BucketName
-	- Define CloudProvider enum (Azure, AWS, Google)
+Issue P0-03
+Title: Add transient-fault retry strategy for provider I/O
+Scope:
+- Introduce bounded retry policy with jitter for transient provider failures in persistence/query paths (`src/CloudStorageORM/Infrastructure/CloudStorageDatabase.cs`, `src/CloudStorageORM/Infrastructure/CloudStorageQueryProvider.cs`).
+- Keep provider-specific behavior unchanged; apply retries at shared execution boundary.
+- Document retry configuration and caveats (`docs/configuration.md`, `docs/troubleshooting.md`).
+Acceptance Criteria:
+- [ ] Retry strategy is configurable and disabled/enabled explicitly by options.
+- [ ] Non-transient errors are not retried.
+- [ ] Transient failure paths succeed within configured retry budget when recoverable.
+Test Checklist:
+- [ ] Unit tests for classification and retry limits.
+- [ ] Integration tests against Azurite/LocalStack with induced transient errors where feasible.
 
-Storage Provider Abstractions
-- [ ] Create IStorageProvider interface with methods:
-	- SaveAsync
-	- ReadAsync
-	- DeleteAsync
-	- ListAsync
-	- LockAsync
-	- UnlockAsync
-	- SnapshotAsync
+Issue P0-04
+Title: Complete runtime observability wiring
+Scope:
+- Emit currently missing logs/events across save/query/transaction/recovery paths (`src/CloudStorageORM/Observability/CloudStorageOrmLoggingExtensions.cs`, `src/CloudStorageORM/Infrastructure/CloudStorageDatabase.cs`, `src/CloudStorageORM/Infrastructure/CloudStorageQueryProvider.cs`, `src/CloudStorageORM/Infrastructure/CloudStorageTransactionManager.cs`).
+- Align docs with actual behavior, including `EnableDiagnostics` status (`docs/observability.md`).
+Acceptance Criteria:
+- [ ] Event IDs defined in `CloudStorageOrmEventIds` are emitted by real runtime paths or removed with rationale.
+- [ ] Tracing/logging toggles behave as documented.
+- [ ] Observability docs match actual implementation.
+Test Checklist:
+- [ ] Extend observability unit tests (`tests/CloudStorageORM.Tests/Observability/**`).
+- [ ] Add integration assertions for key transaction and concurrency log events.
 
-Implement Providers
-- [x] Implement AzureBlobStorageProvider
-	- Connect to Azure Blob
-	- Implement Save
-	- Implement Read
-	- Implement Delete
-	- Implement List
-	- Implement lease-based locking
-- [x] Implement AwsS3StorageProvider
-	- Connect to AWS S3
-	- Implement Save
-	- Implement Read
-	- Implement Delete
-	- Implement List
-	- Implement basic locking using metadata
-[ ] Implement GoogleCloudStorageProvider
-	- Connect to Google Storage
-	- Implement Save
-	- Implement Read
-	- Implement Delete
-	- Implement List
-	- Implement basic locking using metadata
+Issue P0-05
+Title: Add transaction/concurrency failure-window integration coverage
+Scope:
+- Add CI-stable integration scenarios for rollback, commit, crash-recovery, and stale-ETag conflicts (`tests/CloudStorageORM.IntegrationTests/**`).
+- Update local run docs for any new prerequisites (`docs/testing-with-azurite.md`, `docs/testing-with-localstack.md`).
+Acceptance Criteria:
+- [ ] CI passes deterministic transaction correctness scenarios on Azure and AWS emulators.
+- [ ] Coverage includes both success and failure windows.
+Test Checklist:
+- [ ] Add dedicated test classes for transaction recovery and cross-writer conflicts.
+- [ ] Validate compatibility with `.github/workflows/ci.yml` execution model.
 
-Repository Abstractions
-- [ ] Create IRepository<TEntity>
-- [ ] AddAsync
-- [ ] UpdateAsync
-- [ ] DeleteAsync
-- [ ] FindAsync
-- [ ] ListAsync
-- [ ] Create IUnitOfWork interface
+---
 
-Implement Repository Pattern
-- [x] Create CloudStorageRepository<TEntity>
-- [ ] Create CloudStorageUnitOfWork
+P1 - Security, auditability, and operational confidence
 
-Entity Framework Integration
-- [x] Create CloudStorageDbContext inheriting DbContext
-- [ ] Override SaveChangesAsync to persist to storage
-- [ ] Override Set to load from storage
+Issue P1-01
+Title: Add transaction manifest integrity metadata and validation
+Scope:
+- Add manifest schema version and integrity checksum/hash fields (`src/CloudStorageORM/Infrastructure/CloudStorageTransactionManager.cs`).
+- Validate integrity during recovery and fail explicitly on corruption.
+- Document operator guidance (`docs/transactions.md`, `docs/troubleshooting.md`).
+Acceptance Criteria:
+- [ ] Corrupted or incompatible manifests fail with explicit actionable errors.
+- [ ] Valid manifests recover normally.
+Test Checklist:
+- [ ] Unit tests for checksum mismatch/version mismatch paths.
 
-Builder Pattern
-- [ ] Create CloudStorageBuilder
-- [ ] Allow configuration of storage provider, options, and registration into DI container
+Issue P1-02
+Title: Introduce optional provider-native temporary lock abstraction
+Scope:
+- Define optional lock contract without forcing provider-specific behavior into unrelated abstractions (`src/CloudStorageORM/Interfaces/StorageProviders/IStorageProvider.cs` or targeted new contract).
+- Implement Azure lease strategy and AWS conditional/object-lock strategy behind opt-in capabilities (`src/CloudStorageORM/Providers/Azure/StorageProviders/AzureBlobStorageProvider.cs`, `src/CloudStorageORM/Providers/Aws/StorageProviders/AwsS3StorageProvider.cs`).
+- Document capabilities and limitations (`docs/concurrency.md`, `docs/providers.md`).
+Acceptance Criteria:
+- [ ] Locking is optional and capability-discoverable.
+- [ ] Failure modes are explicit, not silent fallback.
+Test Checklist:
+- [ ] Unit tests for capability checks and lock lifecycle.
+- [ ] Integration tests for lock contention and timeout behavior.
 
-⸻
+Issue P1-03
+Title: Harden security defaults and diagnostics redaction
+Scope:
+- Redact sensitive option values from debug/info output (`src/CloudStorageORM/Extensions/CloudStorageOrmOptionsExtensionInfo.cs`).
+- Add secure endpoint/config validation guidance and guardrails (`src/CloudStorageORM/Validators/CloudStorageOptionsValidator.cs`, `docs/configuration.md`, `SECURITY.md`).
+Acceptance Criteria:
+- [ ] Secrets are never emitted in provider/EF debug strings.
+- [ ] Validation errors for insecure configuration are explicit and documented.
+Test Checklist:
+- [ ] Unit tests for redaction and validator behavior.
 
-✅ Unit Testing
-- [x] Create unit tests for CloudStorageOptions
-- [ ] Create unit tests for IStorageProvider interface
-- [x] Create unit tests for CloudStorageRepository
-- [x] Create unit tests for CloudStorageDbContext
-- [ ] Mock Azure, AWS, and Google providers
+Issue P1-04
+Title: Add audit trail hooks for mutation lifecycle
+Scope:
+- Introduce pluggable audit sink hooks around create/update/delete/commit/rollback (`src/CloudStorageORM/Infrastructure/CloudStorageDatabase.cs`, `src/CloudStorageORM/Infrastructure/CloudStorageTransactionManager.cs`).
+- Add correlation-id propagation through observability surface (`src/CloudStorageORM/Observability/*`).
+- Document usage (`docs/CloudStorageORM.md`, `docs/observability.md`).
+Acceptance Criteria:
+- [ ] Consumers can capture who/what/when for mutations through extensibility points.
+- [ ] Audit hook failure strategy is explicit and configurable.
+Test Checklist:
+- [ ] Unit tests for hook invocation ordering and payload.
 
-⸻
+Issue P1-05
+Title: Add performance guardrails and telemetry for full scans
+Scope:
+- Emit telemetry when query execution falls back to broad list/materialize behavior (`src/CloudStorageORM/Infrastructure/CloudStorageQueryProvider.cs`).
+- Add query/persistence counters and timings (`src/CloudStorageORM/Infrastructure/CloudStorageDatabase.cs`).
+- Document operational thresholds (`docs/query-patterns.md`, `docs/troubleshooting.md`).
+Acceptance Criteria:
+- [ ] Operators can identify expensive query patterns from logs/traces/metrics.
+- [ ] Guidance exists for mitigating scan-heavy usage.
+Test Checklist:
+- [ ] Unit tests for scan-detection logic.
 
-🧪 Integration Testing
-- [x] Set up integration testing environments
-- [x] Azure Storage Emulator or real storage account
-- [x] AWS S3 Bucket for testing
-- [ ] Google Storage Bucket for testing
-- [ ] Create integration tests:
-- [x] Save and Read objects
-- [ ] Lock and Unlock flows
-- [ ] Snapshot validation
-- [ ] Concurrency handling
+---
 
-⸻
+P2 - Platform maturity and enterprise operations
 
-📃 Documentation
-- [x] Extend README.md
-- [x] Add badges (NuGet, Build, License)
-- [x] Add quickstart examples
-- [ ] Create docs/architecture.md
-- [ ] Explain project layering and Clean Architecture adherence
-- [ ] Create docs/getting-started.md
-- [ ] Step-by-step tutorial to setup and use CloudStorageORM
-- [ ] Create docs/providers.md
-- [ ] Configuration for each storage provider
-- [ ] Required permissions for cloud providers
+Issue P2-01
+Title: Create chaos and recovery test suite
+Scope:
+- Add deterministic chaos scenarios (emulator restart/network interruption/fault injection) to integration tests (`tests/CloudStorageORM.IntegrationTests/**`).
+- Keep CI compatibility and runtime bounds (`.github/workflows/ci.yml`, `docs/ci.md`).
+Acceptance Criteria:
+- [ ] Chaos scenarios are deterministic and non-flaky in CI.
+- [ ] Recovery behavior is validated for committed/preparing manifests.
+Test Checklist:
+- [ ] Add dedicated chaos test project/folder or grouped suite in existing integration tests.
 
-⸻
+Issue P2-02
+Title: Define SLO/SLI targets and validation approach
+Scope:
+- Define measurable SLIs for latency, error rate, recovery time, and concurrency conflict handling (`docs/CloudStorageORM.md`, `docs/observability.md`, `docs/transactions.md`).
+- Map each SLI to test/measurement strategy.
+Acceptance Criteria:
+- [ ] Docs include target values and how to measure them.
+- [ ] CI/local guidance identifies which checks are automated vs manual.
+Test Checklist:
+- [ ] Add docs validation checklist in PR template or contributing process (`CONTRIBUTING.md`).
 
-📦 Publishing
-- [ ] Create nuget.config file if needed
-- [x] Create .csproj package settings (version, description, tags)
-- [x] Configure GitHub Actions CI:
-	- Build project
-	- Run unit tests
-	- Pack NuGet package
-	- Publish NuGet package (manual or automatic)
-	- Publish first beta version on NuGet
+Issue P2-03
+Title: Add health/readiness checks surface
+Scope:
+- Add API/extensions for connectivity and capability checks (container/bucket access, required operations) (`src/CloudStorageORM/Extensions/*`, `src/CloudStorageORM/Interfaces/StorageProviders/*`).
+- Document usage and troubleshooting (`docs/configuration.md`, `docs/troubleshooting.md`).
+Acceptance Criteria:
+- [ ] Consumers can run health/readiness checks without custom provider calls.
+- [ ] Results are explicit and provider-aware.
+Test Checklist:
+- [ ] Unit tests for health check result mapping.
+- [ ] Integration smoke checks for Azure/AWS emulator environments.
 
-⸻
+Issue P2-04
+Title: Move provider resolution to pluggable registration model
+Scope:
+- Refactor provider resolution away from static switch while preserving `UseCloudStorageOrm(...)` patterns (`src/CloudStorageORM/Providers/ProviderFactory.cs`, `src/CloudStorageORM/Extensions/CloudStorageOrmServiceCollectionExtensions.cs`, `src/CloudStorageORM/Extensions/CloudStorageOrmExtensions.cs`).
+- Ensure provider-specific options remain under `CloudStorageOptions.Azure` and `CloudStorageOptions.Aws`.
+Acceptance Criteria:
+- [ ] Provider implementations can be registered/extensible without editing central switch logic.
+- [ ] Existing Azure/AWS behavior remains backward compatible.
+Test Checklist:
+- [ ] Unit tests for provider resolution and registration precedence.
 
-🚀 Launch and Maintenance
-- [ ] Create GitHub Discussions for Q&A and ideas
-- [x] Create GitHub Issues templates:
-	- Bug report template
-	- Feature request template
-	- Create Pull Request templates
-	- Add Code of Conduct and Contributing Guidelines
-	- Monitor GitHub issues and respond to community
-- [x] Plan roadmap for:
-	- Encryption support (optional)
-	- Metadata-based indexing
-	- Cross-provider replication (future idea)
+---
 
-⸻
+Deferred until P0/P1/P2 complete
 
-“Success is the sum of small efforts repeated day in and day out.”
+Issue GCP-01
+Title: Implement Google Cloud Storage provider (deferred)
+Scope:
+- Add provider implementation and validation (`src/CloudStorageORM/Providers/Google/**`, `src/CloudStorageORM/Validators/**`, `src/CloudStorageORM/Providers/ProviderFactory.cs` or new registration model).
+- Add integration fixture/tests and docs (`tests/CloudStorageORM.IntegrationTests/**`, `docs/providers.md`, `README.md`, `docs/CloudStorageORM.md`).
+Acceptance Criteria:
+- [ ] GCP provider reaches parity baseline with Azure/AWS CRUD + concurrency + transaction semantics supported by architecture.
+- [ ] CI strategy documented for local/hosted GCP integration validation.
+Test Checklist:
+- [ ] Unit tests for provider/validator.
+- [ ] Integration tests for save/read/delete/list/concurrency.
+
+---
+
+Execution tracking
+- [ ] Create epic: "Enterprise Readiness".
+- [ ] Milestone A: Transaction correctness and recovery (P0-01..P0-05).
+- [ ] Milestone B: Security, observability, auditability (P1-01..P1-05).
+- [ ] Milestone C: Platform maturity and operations (P2-01..P2-04).
+
+"Success is the sum of small efforts repeated day in and day out."

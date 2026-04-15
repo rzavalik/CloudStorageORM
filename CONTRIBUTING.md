@@ -12,6 +12,7 @@ Before opening a PR, make sure you have:
 - [ ] built with the **.NET 10 SDK**
 - [ ] formatted the solution with `dotnet format`
 - [ ] run the relevant tests
+- [ ] run `./scripts/setup-docfx-material.sh && docfx docfx.json` when changing docs/public API references
 - [ ] updated documentation when changing public behavior, supported platforms, or contributor workflows
 
 ---
@@ -37,14 +38,14 @@ For active development on the current branch, you should have:
 
 ## Branch naming convention
 
-| Type | Prefix | Example |
-| :--- | :--- | :--- |
-| New Feature | `feature/` | `feature/implement-azureprovider` |
-| Bug Fix | `bug/` | `bug/fix-query-evaluation` |
-| Hotfix | `hotfix/` | `hotfix/fix-release-blocker` |
-| Tests | `test/` | `test/add-sampleapp-exit-coverage` |
-| Documentation | `docs/` | `docs/update-net10-guidance` |
-| Refactoring | `refactor/` | `refactor/simplify-query-provider` |
+| Type          | Prefix      | Example                            |
+|:--------------|:------------|:-----------------------------------|
+| New Feature   | `feature/`  | `feature/implement-azureprovider`  |
+| Bug Fix       | `bug/`      | `bug/fix-query-evaluation`         |
+| Hotfix        | `hotfix/`   | `hotfix/fix-release-blocker`       |
+| Tests         | `test/`     | `test/add-sampleapp-exit-coverage` |
+| Documentation | `docs/`     | `docs/update-net10-guidance`       |
+| Refactoring   | `refactor/` | `refactor/simplify-query-provider` |
 
 Examples:
 
@@ -100,6 +101,13 @@ The current branch expects, among other things:
 - `var` usage preferred in the configured style rules
 - standard solution-wide formatting via `dotnet format`
 
+Public API documentation expectations:
+
+- document all public methods/properties with XML comments
+- prefer documenting contracts on public interfaces
+- for implementations of documented interfaces, use `<inheritdoc />` instead of duplicating XML text
+- when no interface exists, document the public member directly on the class
+
 Run:
 
 ```bash
@@ -118,6 +126,12 @@ dotnet format CloudStorageORM.sln --verbosity minimal
 
 This script mirrors CI startup/test behavior and runs Azurite with `--skipApiVersionCheck` for local compatibility.
 
+Integration tests are split by provider:
+
+- `tests/CloudStorageORM.IntegrationTests/CloudStorageORM.IntegrationTests.Azure.csproj`
+- `tests/CloudStorageORM.IntegrationTests/CloudStorageORM.IntegrationTests.AWS.csproj`
+- `tests/CloudStorageORM.IntegrationTests.SampleApp/CloudStorageORM.IntegrationTests.SampleApp.csproj`
+
 ### Integration tests with Azurite
 
 If your change touches Azure provider behavior, sample app behavior, or end-to-end query execution, start Azurite first:
@@ -133,6 +147,12 @@ docker run -d \
   azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0 --skipApiVersionCheck
 ```
 
+Then run Azure integration tests:
+
+```bash
+dotnet test tests/CloudStorageORM.IntegrationTests/CloudStorageORM.IntegrationTests.Azure.csproj --nologo -v minimal
+```
+
 ### Integration tests with LocalStack (AWS)
 
 If your change touches AWS provider behavior, start LocalStack with S3 enabled:
@@ -145,6 +165,20 @@ docker run -d \
   -e SERVICES=s3 \
   -e AWS_DEFAULT_REGION=us-east-1 \
   localstack/localstack:3
+```
+
+Then run AWS integration tests:
+
+```bash
+dotnet test tests/CloudStorageORM.IntegrationTests/CloudStorageORM.IntegrationTests.AWS.csproj --nologo -v minimal
+```
+
+### SampleApp integration tests
+
+If your change touches sample startup/wiring or end-to-end provider flow expectations, run the dedicated SampleApp lane:
+
+```bash
+dotnet test tests/CloudStorageORM.IntegrationTests.SampleApp/CloudStorageORM.IntegrationTests.SampleApp.csproj --nologo -v minimal
 ```
 
 ### Coverage workflow
@@ -178,6 +212,9 @@ The most likely files to update are:
 - `docs/testing-with-azurite.md`
 - `docs/testing-with-localstack.md`
 - `docs/ci.md`
+- `docfx.json`
+- `docs/toc.yml`
+- `docs/index.md`
 - `.github/copilot-instructions.md`
 - `ROADMAP.md`
 
@@ -204,11 +241,20 @@ All changes should go through a PR and pass CI.
 Current CI (`.github/workflows/ci.yml`) runs on:
 
 - pushes to `main`
+- pushes to `feature/docs` (DocFX preview validation branch)
 - pull requests targeting `main`, `feature/**`, `bug/**`, or `hotfix/**`
 
-Release publishing (`.github/workflows/publish.yml`) runs on `v*.*.*` tags (or manual dispatch) and publishes `CloudStorageORM` to NuGet.org and GitHub Packages.
+Release publishing (`.github/workflows/publish.yml`) runs on `v*.*.*` tags (or manual dispatch) and publishes
+`CloudStorageORM` to NuGet.org and GitHub Packages.
 
-CI and publish workflows currently opt JavaScript-based GitHub Actions into the Node.js 24 runtime using `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true`.
+CI and publish workflows currently opt JavaScript-based GitHub Actions into the Node.js 24 runtime using
+`FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true`.
+
+CI runs test lanes in parallel: unit tests, Azure integration tests (Azurite), AWS integration tests (LocalStack),
+and SampleApp integration tests (Azurite + LocalStack), then aggregates TRX and coverage artifacts.
+
+The SampleApp lane waits for emulator readiness (Azurite TCP + LocalStack S3 health) before running tests and prints
+emulator logs automatically when that lane fails.
 
 CI also exports a CycloneDX SBOM artifact (`sbom-cyclonedx`) for each run.
 
@@ -218,4 +264,5 @@ If you change CI behavior, update contributor and testing docs in the same PR.
 
 ## Need help?
 
-Open a [Discussion](https://github.com/rzavalik/CloudStorageORM/discussions) if you have questions, ideas, or design feedback.
+Open a [Discussion](https://github.com/rzavalik/CloudStorageORM/discussions) if you have questions, ideas, or design
+feedback.

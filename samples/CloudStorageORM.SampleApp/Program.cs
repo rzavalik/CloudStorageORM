@@ -12,26 +12,86 @@ using SampleApp.Models;
 
 namespace SampleApp;
 
+/// <summary>
+/// Console sample that demonstrates CloudStorageORM with InMemory, Azure, and AWS providers.
+/// </summary>
 public static class Program
 {
+    /// <summary>
+    /// Shared HTTP client used by local endpoint reachability probes.
+    /// </summary>
     private static readonly HttpClient HttpClient = new() { Timeout = TimeSpan.FromSeconds(2) };
+
+    /// <summary>
+    /// Stable user identifier used to keep sample runs deterministic.
+    /// </summary>
     private const string DeterministicUserId = "sample-user-001";
+
+    /// <summary>
+    /// Environment variable name for the default container or bucket.
+    /// </summary>
     private const string ContainerNameEnvVar = "CLOUDSTORAGEORM_CONTAINER_NAME";
+
+    /// <summary>
+    /// Environment variable name for Azure connection string.
+    /// </summary>
     private const string AzureConnectionStringEnvVar = "CLOUDSTORAGEORM_AZURE_CONNECTION_STRING";
+
+    /// <summary>
+    /// Environment variable name for AWS access key id.
+    /// </summary>
     private const string AwsAccessKeyIdEnvVar = "CLOUDSTORAGEORM_AWS_ACCESS_KEY_ID";
+
+    /// <summary>
+    /// Environment variable name for AWS secret access key.
+    /// </summary>
     private const string AwsSecretAccessKeyEnvVar = "CLOUDSTORAGEORM_AWS_SECRET_ACCESS_KEY";
+
+    /// <summary>
+    /// Environment variable name for AWS region.
+    /// </summary>
     private const string AwsRegionEnvVar = "CLOUDSTORAGEORM_AWS_REGION";
+
+    /// <summary>
+    /// Environment variable name for AWS service URL.
+    /// </summary>
     private const string AwsServiceUrlEnvVar = "CLOUDSTORAGEORM_AWS_SERVICE_URL";
+
+    /// <summary>
+    /// Environment variable name for AWS bucket override.
+    /// </summary>
     private const string AwsBucketEnvVar = "CLOUDSTORAGEORM_AWS_BUCKET";
+
+    /// <summary>
+    /// Environment variable name that controls AWS ForcePathStyle.
+    /// </summary>
     private const string AwsForcePathStyleEnvVar = "CLOUDSTORAGEORM_AWS_FORCE_PATH_STYLE";
 
+    /// <summary>
+    /// Storage backends exercised by this sample.
+    /// </summary>
     private enum StorageType
     {
+        /// <summary>
+        /// EF Core InMemory provider.
+        /// </summary>
         InMemory,
+
+        /// <summary>
+        /// CloudStorageORM with Azure Blob Storage.
+        /// </summary>
         Azure,
+
+        /// <summary>
+        /// CloudStorageORM with AWS S3.
+        /// </summary>
         Aws
     }
 
+    /// <summary>
+    /// Entry point that runs the sample against each supported storage type.
+    /// </summary>
+    /// <param name="args">Command-line arguments (currently unused).</param>
     public static async Task Main(string[] args)
     {
         Console.OutputEncoding = Encoding.UTF8;
@@ -47,6 +107,10 @@ public static class Program
         Console.WriteLine("🏁 SampleApp Finished.");
     }
 
+    /// <summary>
+    /// Executes one end-to-end scenario for a selected storage type.
+    /// </summary>
+    /// <param name="storageType">Provider to run for this pass.</param>
     private static async Task Execute(StorageType storageType)
     {
         try
@@ -113,6 +177,10 @@ public static class Program
         }
     }
 
+    /// <summary>
+    /// Runs CRUD and transaction demonstrations using the provided DbContext.
+    /// </summary>
+    /// <param name="context">Configured DbContext instance.</param>
     private static async Task RunSample(Microsoft.EntityFrameworkCore.DbContext context)
     {
         var repository = context.Set<User>();
@@ -218,6 +286,11 @@ public static class Program
         Console.WriteLine($"🏁 SampleApp Finished for {context.GetType().Name}.");
     }
 
+    /// <summary>
+    /// Demonstrates rollback and commit semantics for CloudStorageORM transactions.
+    /// </summary>
+    /// <param name="context">DbContext used to execute transaction operations.</param>
+    /// <param name="repository">User DbSet used for verification reads.</param>
     private static async Task RunTransactionScenario(Microsoft.EntityFrameworkCore.DbContext context,
         DbSet<User> repository)
     {
@@ -267,6 +340,11 @@ public static class Program
             : "| ❌ Commit verification failed: user was not found.");
     }
 
+    /// <summary>
+    /// Checks whether a configured provider is reachable before running the sample.
+    /// </summary>
+    /// <param name="options">Provider options used for endpoint probing.</param>
+    /// <returns>A tuple indicating availability and a human-readable reason.</returns>
     private static async Task<(bool IsAvailable, string Reason)> IsProviderAvailableAsync(CloudStorageOptions options)
     {
         return options.Provider switch
@@ -277,6 +355,11 @@ public static class Program
         };
     }
 
+    /// <summary>
+    /// Probes local Azurite availability when using emulator-style Azure configuration.
+    /// </summary>
+    /// <param name="options">Cloud storage options containing Azure settings.</param>
+    /// <returns>A tuple indicating availability and probe details.</returns>
     private static async Task<(bool IsAvailable, string Reason)> IsAzureAvailableAsync(CloudStorageOptions options)
     {
         if (!string.Equals(options.Azure.ConnectionString, "UseDevelopmentStorage=true",
@@ -291,6 +374,11 @@ public static class Program
             : (false, "Azurite is not reachable at http://127.0.0.1:10000.");
     }
 
+    /// <summary>
+    /// Probes configured AWS endpoint availability (typically LocalStack in local runs).
+    /// </summary>
+    /// <param name="options">Cloud storage options containing AWS settings.</param>
+    /// <returns>A tuple indicating availability and probe details.</returns>
     private static async Task<(bool IsAvailable, string Reason)> IsAwsAvailableAsync(CloudStorageOptions options)
     {
         var endpoint = options.Aws.ServiceUrl;
@@ -305,6 +393,11 @@ public static class Program
             : (false, $"AWS endpoint is not reachable at {endpoint}.");
     }
 
+    /// <summary>
+    /// Performs a lightweight HTTP GET to determine whether an endpoint is reachable.
+    /// </summary>
+    /// <param name="endpoint">Endpoint URL to probe.</param>
+    /// <returns><see langword="true" /> when the request can be issued; otherwise <see langword="false" />.</returns>
     private static async Task<bool> IsHttpEndpointReachableAsync(string endpoint)
     {
         try
@@ -318,6 +411,13 @@ public static class Program
         }
     }
 
+    /// <summary>
+    /// Finds a user by id using provider-specific fast paths when available.
+    /// </summary>
+    /// <param name="context">Current DbContext.</param>
+    /// <param name="repository">User set used for fallback query paths.</param>
+    /// <param name="userId">User identifier to search for.</param>
+    /// <returns>The matching user, or <see langword="null" /> when not found.</returns>
     private static async Task<User?> FindUserByIdAsync(
         Microsoft.EntityFrameworkCore.DbContext context,
         DbSet<User> repository,
@@ -338,6 +438,12 @@ public static class Program
         return repository.FirstOrDefault(u => u.Id == userId);
     }
 
+    /// <summary>
+    /// Reads a user directly from object storage with metadata to surface the latest ETag.
+    /// </summary>
+    /// <param name="context">Current CloudStorageORM context.</param>
+    /// <param name="userId">User identifier used to build the storage path.</param>
+    /// <returns>The stored user payload, or <see langword="null" /> when not found.</returns>
     private static async Task<User?> ReadStoredUserAsync(Microsoft.EntityFrameworkCore.DbContext context, string userId)
     {
         var storageProvider = context.GetService<IStorageProvider>();
@@ -349,6 +455,11 @@ public static class Program
         return stored.Value;
     }
 
+    /// <summary>
+    /// Builds provider options from environment variables with sample-friendly defaults.
+    /// </summary>
+    /// <param name="provider">Cloud provider to configure.</param>
+    /// <returns>A populated <see cref="CloudStorageOptions" /> instance.</returns>
     private static CloudStorageOptions BuildCloudStorageOptionsFromEnvironment(CloudProvider provider)
     {
         const string defaultContainerName = "sampleapp-container";
@@ -379,6 +490,12 @@ public static class Program
     }
 
 
+    /// <summary>
+    /// Parses a boolean value with a fallback default.
+    /// </summary>
+    /// <param name="value">Raw input string.</param>
+    /// <param name="defaultValue">Value returned when parsing fails.</param>
+    /// <returns>The parsed boolean value or <paramref name="defaultValue" />.</returns>
     private static bool ParseBool(string? value, bool defaultValue)
     {
         return bool.TryParse(value, out var parsed)

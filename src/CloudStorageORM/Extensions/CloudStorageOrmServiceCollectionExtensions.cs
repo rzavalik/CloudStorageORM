@@ -7,8 +7,27 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace CloudStorageORM.Extensions;
 
+/// <summary>
+/// Service collection extensions for registering CloudStorageORM services.
+/// </summary>
 public static class CloudStorageOrmServiceCollectionExtensions
 {
+    /// <summary>
+    /// Registers CloudStorageORM services and the configured storage provider in dependency injection.
+    /// </summary>
+    /// <param name="services">Service collection receiving CloudStorageORM registrations.</param>
+    /// <param name="storageOptions">Configured CloudStorageORM options to validate and register.</param>
+    /// <returns>The same <see cref="IServiceCollection" /> instance for chaining.</returns>
+    /// <example>
+    /// <code>
+    /// services.AddEntityFrameworkCloudStorageOrm(new CloudStorageOptions
+    /// {
+    ///     Provider = CloudStorageORM.Enums.CloudProvider.Azure,
+    ///     ContainerName = "app-data",
+    ///     Azure = { ConnectionString = "UseDevelopmentStorage=true" }
+    /// });
+    /// </code>
+    /// </example>
     public static IServiceCollection AddEntityFrameworkCloudStorageOrm(
         this IServiceCollection services,
         CloudStorageOptions storageOptions)

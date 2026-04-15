@@ -6,6 +6,7 @@
         <Nullable>enable</Nullable>
         <IsPackable>false</IsPackable>
         <LangVersion>14</LangVersion>
+        <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
     </PropertyGroup>
 
     <ItemGroup>
@@ -28,6 +29,12 @@
 
     <ItemGroup>
         <ProjectReference Include="..\..\src\CloudStorageORM\CloudStorageORM.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Compile Include="IntegrationTestSkip.cs"/>
+        <Compile Include="Azure/StorageFixture.cs"/>
+        <Compile Include="Azure/StorageProviders/**/*.cs"/>
     </ItemGroup>
 
     <ItemGroup>

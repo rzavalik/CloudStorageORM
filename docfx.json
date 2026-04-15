@@ -1,0 +1,61 @@
+{
+  "$schema": "https://raw.githubusercontent.com/dotnet/docfx/main/schemas/docfx.schema.json",
+  "metadata": [
+    {
+      "src": [
+        {
+          "files": [
+            "src/CloudStorageORM/CloudStorageORM.csproj"
+          ],
+          "cwd": "."
+        }
+      ],
+      "dest": "api"
+    }
+  ],
+  "build": {
+    "content": [
+      {
+        "files": [
+          "**/*.md",
+          "**/toc.yml"
+        ],
+        "src": "docs"
+      },
+      {
+        "files": [
+          "README.md",
+          "ROADMAP.md",
+          "CONTRIBUTING.md",
+          "SECURITY.md"
+        ]
+      },
+      {
+        "files": [
+          "api/**.yml"
+        ]
+      }
+    ],
+    "resource": [
+      {
+        "files": [
+          "LICENSE"
+        ]
+      }
+    ],
+    "dest": "_site",
+    "globalMetadata": {
+      "_appName": "CloudStorageORM",
+      "_appTitle": "CloudStorageORM",
+      "_enableSearch": true
+    },
+    "postProcessors": [
+      "ExtractSearchIndex"
+    ],
+    "template": [
+      "default",
+      "modern",
+      "templates/material"
+    ]
+  }
+}

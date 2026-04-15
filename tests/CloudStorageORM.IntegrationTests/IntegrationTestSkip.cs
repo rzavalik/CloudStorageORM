@@ -1,6 +1,6 @@
 using Xunit.Sdk;
 
-namespace CloudStorageORM.IntegrationTests.Azure;
+namespace CloudStorageORM.IntegrationTests;
 
 internal static class IntegrationTestSkip
 {

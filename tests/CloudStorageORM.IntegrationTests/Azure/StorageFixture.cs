@@ -4,12 +4,14 @@ namespace CloudStorageORM.IntegrationTests.Azure;
 
 public class StorageFixture : IAsyncLifetime
 {
+    private const string DevelopmentStorageConnectionString = "UseDevelopmentStorage=true";
+
     private static readonly HttpClient HttpClient = new()
     {
         Timeout = TimeSpan.FromSeconds(2)
     };
 
-    public string ConnectionString { get; } = "UseDevelopmentStorage=true";
+    public string ConnectionString { get; } = DevelopmentStorageConnectionString;
     public string ContainerName { get; } = "test-container";
     public string? SkipReason { get; private set; }
     public bool IsAvailable => SkipReason is null;
@@ -22,10 +24,8 @@ public class StorageFixture : IAsyncLifetime
             return;
         }
 
-        var blobServiceClient = new BlobServiceClient(ConnectionString);
-
+        var blobServiceClient = new BlobServiceClient(ConnectionString, CreateBlobClientOptions(ConnectionString));
         var containerClient = blobServiceClient.GetBlobContainerClient(ContainerName);
-
         await containerClient.CreateIfNotExistsAsync();
     }
 
@@ -50,5 +50,13 @@ public class StorageFixture : IAsyncLifetime
         {
             return false;
         }
+    }
+
+    private static BlobClientOptions CreateBlobClientOptions(string connectionString)
+    {
+        return string.Equals(connectionString, DevelopmentStorageConnectionString, StringComparison.OrdinalIgnoreCase)
+            // Keep emulator compatibility when SDK default service versions move forward.
+            ? new BlobClientOptions(BlobClientOptions.ServiceVersion.V2021_12_02)
+            : new BlobClientOptions();
     }
 }

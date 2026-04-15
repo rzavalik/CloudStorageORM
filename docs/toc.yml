@@ -1,0 +1,44 @@
+- name: Home
+  href: index.md
+- name: 📖 Guide
+  items:
+    - name: Getting started
+      href: getting-started.md
+    - name: Configuration
+      href: configuration.md
+    - name: Library overview
+      href: CloudStorageORM.md
+- name: 🚀 Development
+  items:
+    - name: Query patterns
+      href: query-patterns.md
+    - name: Transactions
+      href: transactions.md
+    - name: Concurrency
+      href: concurrency.md
+- name: 🔧 Advanced
+  items:
+    - name: Observability
+      href: observability.md
+    - name: Providers
+      href: providers.md
+    - name: Migration guide
+      href: migration.md
+    - name: Troubleshooting
+      href: troubleshooting.md
+- name: 🧪 Testing & CI
+  items:
+    - name: Azure (Azurite)
+      href: testing-with-azurite.md
+    - name: AWS (LocalStack)
+      href: testing-with-localstack.md
+    - name: CI/CD
+      href: ci.md
+- name: 🎯 Resources
+  items:
+    - name: Sample app
+      href: sampleapp.md
+    - name: Comparison with Other Frameworks
+      href: comparison.md
+    - name: API reference
+      href: api-reference.md

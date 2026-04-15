@@ -1,7 +1,7 @@
 using CloudStorageORM.Providers.Azure.StorageProviders;
 using Shouldly;
 
-namespace CloudStorageORM.IntegrationTests.Azure.StorageProviders;
+namespace CloudStorageORM.IntegrationTests.Azure.Azure.StorageProviders;
 
 public class AzureBlobStorageProviderTests(StorageFixture fixture) : IClassFixture<StorageFixture>
 {

@@ -1,6 +1,7 @@
+using CloudStorageORM.IntegrationTests.Aws;
 using Shouldly;
 
-namespace CloudStorageORM.IntegrationTests.Azure.Aws.StorageProviders;
+namespace CloudStorageORM.IntegrationTests.AWS.Aws.StorageProviders;
 
 public class AwsS3StorageProviderTests(LocalStackFixture fixture) : IClassFixture<LocalStackFixture>
 {

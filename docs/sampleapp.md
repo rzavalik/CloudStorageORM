@@ -35,11 +35,11 @@ This is important because the goal of the sample is not just CRUD; it is demonst
 
 ## Current sample structure
 
-| File | Purpose |
-| :--- | :--- |
-| `samples/CloudStorageORM.SampleApp/Program.cs` | Drives the three runs and prints the console output |
-| `samples/CloudStorageORM.SampleApp/DbContext/MyAppDbContext.cs` | Defines the InMemory and CloudStorageORM contexts |
-| `samples/CloudStorageORM.SampleApp/Models/User.cs` | Sample entity persisted to storage |
+| File                                                            | Purpose                                             |
+|:----------------------------------------------------------------|:----------------------------------------------------|
+| `samples/CloudStorageORM.SampleApp/Program.cs`                  | Drives the three runs and prints the console output |
+| `samples/CloudStorageORM.SampleApp/DbContext/MyAppDbContext.cs` | Defines the InMemory and CloudStorageORM contexts   |
+| `samples/CloudStorageORM.SampleApp/Models/User.cs`              | Sample entity persisted to storage                  |
 
 ---
 
@@ -117,11 +117,12 @@ The sample currently uses environment-based configuration with defaults:
 
 - Azure connection string: `UseDevelopmentStorage=true`
 - Azure container: `sampleapp-container`
-- AWS endpoint: `http://localhost:4566`
+- AWS endpoint: `http://127.0.0.1:4566`
 - AWS region: `us-east-1`
 - AWS credentials: `test` / `test`
 
-You can override values with env vars (for example `CLOUDSTORAGEORM_AZURE_CONNECTION_STRING`, `CLOUDSTORAGEORM_AWS_SERVICE_URL`, `CLOUDSTORAGEORM_AWS_BUCKET`).
+You can override values with env vars (for example `CLOUDSTORAGEORM_AZURE_CONNECTION_STRING`,
+`CLOUDSTORAGEORM_AWS_SERVICE_URL`, `CLOUDSTORAGEORM_AWS_BUCKET`).
 
 ---
 
@@ -129,8 +130,8 @@ You can override values with env vars (for example `CLOUDSTORAGEORM_AZURE_CONNEC
 
 This sample is also covered by an integration test:
 
-- `tests/CloudStorageORM.IntegrationTests/ProgramExitTests.cs`
-- `tests/CloudStorageORM.IntegrationTests/Aws/ProgramExitAwsTests.cs`
+- `tests/CloudStorageORM.IntegrationTests.SampleApp/ProgramExitAzureSampleAppTests.cs`
+- `tests/CloudStorageORM.IntegrationTests.SampleApp/ProgramExitAwsSampleAppTests.cs`
 
 Those tests launch the sample through `dotnet run` and verify it exits with code `0` and prints `SampleApp Finished`.
 
@@ -138,7 +139,8 @@ Those tests launch the sample through `dotnet run` and verify it exits with code
 
 ## Why this sample matters
 
-The sample is the clearest executable proof, on the current branch, that CloudStorageORM is intended to be consumed like an EF provider rather than through a completely separate repository API.
+The sample is the clearest executable proof, on the current branch, that CloudStorageORM is intended to be consumed like
+an EF provider rather than through a completely separate repository API.
 It also serves as a guardrail for query execution changes, provider behavior, and end-to-end startup wiring.
 
 ---
@@ -149,5 +151,3 @@ It also serves as a guardrail for query execution changes, provider behavior, an
 - [Library documentation](./CloudStorageORM.md)
 - [Testing with Azurite](./testing-with-azurite.md)
 - [Testing with LocalStack](./testing-with-localstack.md)
-
-
