@@ -2,11 +2,11 @@
 <html>
   <head>
     <meta charset="utf-8">
-      <title>Class CloudStorageOptions | CloudStorageORM </title>
+      <title>Class CloudStorageOrmActivitySource | CloudStorageORM </title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="title" content="Class CloudStorageOptions | CloudStorageORM ">
+      <meta name="title" content="Class CloudStorageOrmActivitySource | CloudStorageORM ">
       
-      
+      <meta name="description" content="Central ActivitySource for CloudStorageORM distributed tracing. Provides a singleton instance for all tracing operations.">
       <link rel="icon" href="../favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -16,7 +16,7 @@
       <meta name="docfx:rel" content="../">
       
       
-      <meta name="docfx:docurl" content="https://github.com/rzavalik/CloudStorageORM/new/feature/docs/apiSpec/new?filename=CloudStorageORM_Options_CloudStorageOptions.md&amp;value=---%0Auid%3A%20CloudStorageORM.Options.CloudStorageOptions%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">
+      <meta name="docfx:docurl" content="https://github.com/rzavalik/CloudStorageORM/new/feature/docs/apiSpec/new?filename=CloudStorageORM_Observability_CloudStorageOrmActivitySource.md&amp;value=---%0Auid%3A%20CloudStorageORM.Observability.CloudStorageOrmActivitySource%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">
       <meta name="loc:inThisArticle" content="In this article">
       <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
       <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
@@ -84,24 +84,26 @@
           <nav id="breadcrumb"></nav>
         </div>
 
-        <article data-uid="CloudStorageORM.Options.CloudStorageOptions">
+        <article data-uid="CloudStorageORM.Observability.CloudStorageOrmActivitySource">
 
 
 
-  <h1 id="CloudStorageORM_Options_CloudStorageOptions" data-uid="CloudStorageORM.Options.CloudStorageOptions" class="text-break">
-Class CloudStorageOptions  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/feature/docs/src/CloudStorageORM/Options/CloudStorageOptions.cs/#L6"><i class="bi bi-code-slash"></i></a>
+  <h1 id="CloudStorageORM_Observability_CloudStorageOrmActivitySource" data-uid="CloudStorageORM.Observability.CloudStorageOrmActivitySource" class="text-break">
+Class CloudStorageOrmActivitySource  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/feature/docs/src/CloudStorageORM/Observability/CloudStorageOrmActivitySource.cs/#L9"><i class="bi bi-code-slash"></i></a>
   </h1>
 
   <div class="facts text-secondary">
-    <dl><dt>Namespace</dt><dd><a class="xref" href="CloudStorageORM.html">CloudStorageORM</a>.<a class="xref" href="CloudStorageORM.Options.html">Options</a></dd></dl>
+    <dl><dt>Namespace</dt><dd><a class="xref" href="CloudStorageORM.html">CloudStorageORM</a>.<a class="xref" href="CloudStorageORM.Observability.html">Observability</a></dd></dl>
   <dl><dt>Assembly</dt><dd>CloudStorageORM.dll</dd></dl>
   </div>
 
-  <div class="markdown summary"></div>
+  <div class="markdown summary"><p>Central ActivitySource for CloudStorageORM distributed tracing.
+Provides a singleton instance for all tracing operations.</p>
+</div>
   <div class="markdown conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public class CloudStorageOptions</code></pre>
+    <pre><code class="lang-csharp hljs">public static class CloudStorageOrmActivitySource</code></pre>
   </div>
 
 
@@ -111,7 +113,7 @@ Class CloudStorageOptions  <a class="header-action link-secondary" title="View s
     <dt>Inheritance</dt>
     <dd>
       <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
-      <div><span class="xref">CloudStorageOptions</span></div>
+      <div><span class="xref">CloudStorageOrmActivitySource</span></div>
     </dd>
   </dl>
 
@@ -152,18 +154,19 @@ Class CloudStorageOptions  <a class="header-action link-secondary" title="View s
 </h2>
 
 
-  <a id="CloudStorageORM_Options_CloudStorageOptions_Aws_" data-uid="CloudStorageORM.Options.CloudStorageOptions.Aws*"></a>
+  <a id="CloudStorageORM_Observability_CloudStorageOrmActivitySource_Instance_" data-uid="CloudStorageORM.Observability.CloudStorageOrmActivitySource.Instance*"></a>
 
-  <h3 id="CloudStorageORM_Options_CloudStorageOptions_Aws" data-uid="CloudStorageORM.Options.CloudStorageOptions.Aws">
-  Aws
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/feature/docs/src/CloudStorageORM/Options/CloudStorageOptions.cs/#L11"><i class="bi bi-code-slash"></i></a>
+  <h3 id="CloudStorageORM_Observability_CloudStorageOrmActivitySource_Instance" data-uid="CloudStorageORM.Observability.CloudStorageOrmActivitySource.Instance">
+  Instance
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/feature/docs/src/CloudStorageORM/Observability/CloudStorageOrmActivitySource.cs/#L16"><i class="bi bi-code-slash"></i></a>
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Gets the ActivitySource instance for CloudStorageORM.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public CloudStorageAwsOptions Aws { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">public static ActivitySource Instance { get; }</code></pre>
   </div>
 
 
@@ -172,7 +175,7 @@ Class CloudStorageOptions  <a class="header-action link-secondary" title="View s
 
   <h4 class="section">Property Value</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="CloudStorageORM.Options.CloudStorageAwsOptions.html">CloudStorageAwsOptions</a></dt>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.diagnostics.activitysource">ActivitySource</a></dt>
     <dd></dd>
   </dl>
 
@@ -183,122 +186,44 @@ Class CloudStorageOptions  <a class="header-action link-secondary" title="View s
 
 
 
-  <a id="CloudStorageORM_Options_CloudStorageOptions_Azure_" data-uid="CloudStorageORM.Options.CloudStorageOptions.Azure*"></a>
+  <h2 class="section" id="methods">Methods
+</h2>
 
-  <h3 id="CloudStorageORM_Options_CloudStorageOptions_Azure" data-uid="CloudStorageORM.Options.CloudStorageOptions.Azure">
-  Azure
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/feature/docs/src/CloudStorageORM/Options/CloudStorageOptions.cs/#L10"><i class="bi bi-code-slash"></i></a>
+
+  <a id="CloudStorageORM_Observability_CloudStorageOrmActivitySource_StartActivity_" data-uid="CloudStorageORM.Observability.CloudStorageOrmActivitySource.StartActivity*"></a>
+
+  <h3 id="CloudStorageORM_Observability_CloudStorageOrmActivitySource_StartActivity_System_String_System_Diagnostics_ActivityKind_" data-uid="CloudStorageORM.Observability.CloudStorageOrmActivitySource.StartActivity(System.String,System.Diagnostics.ActivityKind)">
+  StartActivity(string, ActivityKind)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/feature/docs/src/CloudStorageORM/Observability/CloudStorageOrmActivitySource.cs/#L29"><i class="bi bi-code-slash"></i></a>
   </h3>
 
-  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 summary"><p>Gets or creates an Activity with the specified operation name.</p>
+</div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public CloudStorageAzureOptions Azure { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">public static Activity? StartActivity(string operationName, ActivityKind kind = ActivityKind.Internal)</code></pre>
   </div>
 
-
-
-
-
-  <h4 class="section">Property Value</h4>
+  <h4 class="section">Parameters</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="CloudStorageORM.Options.CloudStorageAzureOptions.html">CloudStorageAzureOptions</a></dt>
-    <dd></dd>
+    <dt><code>operationName</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd><p>Name of the operation (e.g., &quot;SaveChanges&quot;, &quot;Query&quot;).</p>
+</dd>
+    <dt><code>kind</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.diagnostics.activitykind">ActivityKind</a></dt>
+    <dd><p>Activity kind (default: Internal).</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.diagnostics.activity">Activity</a></dt>
+    <dd><p>An Activity if enabled, null otherwise.</p>
+</dd>
   </dl>
 
 
 
-
-
-
-
-
-  <a id="CloudStorageORM_Options_CloudStorageOptions_ContainerName_" data-uid="CloudStorageORM.Options.CloudStorageOptions.ContainerName*"></a>
-
-  <h3 id="CloudStorageORM_Options_CloudStorageOptions_ContainerName" data-uid="CloudStorageORM.Options.CloudStorageOptions.ContainerName">
-  ContainerName
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/feature/docs/src/CloudStorageORM/Options/CloudStorageOptions.cs/#L9"><i class="bi bi-code-slash"></i></a>
-  </h3>
-
-  <div class="markdown level1 summary"></div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public string ContainerName { get; set; }</code></pre>
-  </div>
-
-
-
-
-
-  <h4 class="section">Property Value</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-  <a id="CloudStorageORM_Options_CloudStorageOptions_Observability_" data-uid="CloudStorageORM.Options.CloudStorageOptions.Observability*"></a>
-
-  <h3 id="CloudStorageORM_Options_CloudStorageOptions_Observability" data-uid="CloudStorageORM.Options.CloudStorageOptions.Observability">
-  Observability
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/feature/docs/src/CloudStorageORM/Options/CloudStorageOptions.cs/#L12"><i class="bi bi-code-slash"></i></a>
-  </h3>
-
-  <div class="markdown level1 summary"></div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public CloudStorageOrmObservabilityOptions Observability { get; set; }</code></pre>
-  </div>
-
-
-
-
-
-  <h4 class="section">Property Value</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="CloudStorageORM.Observability.CloudStorageOrmObservabilityOptions.html">CloudStorageOrmObservabilityOptions</a></dt>
-    <dd></dd>
-  </dl>
-
-
-
-
-
-
-
-
-  <a id="CloudStorageORM_Options_CloudStorageOptions_Provider_" data-uid="CloudStorageORM.Options.CloudStorageOptions.Provider*"></a>
-
-  <h3 id="CloudStorageORM_Options_CloudStorageOptions_Provider" data-uid="CloudStorageORM.Options.CloudStorageOptions.Provider">
-  Provider
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/feature/docs/src/CloudStorageORM/Options/CloudStorageOptions.cs/#L8"><i class="bi bi-code-slash"></i></a>
-  </h3>
-
-  <div class="markdown level1 summary"></div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public CloudProvider Provider { get; set; }</code></pre>
-  </div>
-
-
-
-
-
-  <h4 class="section">Property Value</h4>
-  <dl class="parameters">
-    <dt><a class="xref" href="CloudStorageORM.Enums.CloudProvider.html">CloudProvider</a></dt>
-    <dd></dd>
-  </dl>
 
 
 
@@ -311,7 +236,7 @@ Class CloudStorageOptions  <a class="header-action link-secondary" title="View s
 </article>
 
         <div class="contribution d-print-none">
-          <a href="https://github.com/rzavalik/CloudStorageORM/blob/feature/docs/src/CloudStorageORM/Options/CloudStorageOptions.cs/#L6" class="edit-link">Edit this page</a>
+          <a href="https://github.com/rzavalik/CloudStorageORM/blob/feature/docs/src/CloudStorageORM/Observability/CloudStorageOrmActivitySource.cs/#L9" class="edit-link">Edit this page</a>
         </div>
 
 

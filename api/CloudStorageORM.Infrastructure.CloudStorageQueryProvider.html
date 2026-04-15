@@ -89,7 +89,7 @@
 
 
   <h1 id="CloudStorageORM_Infrastructure_CloudStorageQueryProvider" data-uid="CloudStorageORM.Infrastructure.CloudStorageQueryProvider" class="text-break">
-Class CloudStorageQueryProvider  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/feature/docs/src/CloudStorageORM/Infrastructure/CloudStorageQueryProvider.cs/#L11"><i class="bi bi-code-slash"></i></a>
+Class CloudStorageQueryProvider  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/feature/docs/src/CloudStorageORM/Infrastructure/CloudStorageQueryProvider.cs/#L14"><i class="bi bi-code-slash"></i></a>
   </h1>
 
   <div class="facts text-secondary">
@@ -162,9 +162,9 @@ Class CloudStorageQueryProvider  <a class="header-action link-secondary" title="
 
   <a id="CloudStorageORM_Infrastructure_CloudStorageQueryProvider__ctor_" data-uid="CloudStorageORM.Infrastructure.CloudStorageQueryProvider.#ctor*"></a>
 
-  <h3 id="CloudStorageORM_Infrastructure_CloudStorageQueryProvider__ctor_CloudStorageORM_Infrastructure_CloudStorageDatabase_CloudStorageORM_Interfaces_Infrastructure_IBlobPathResolver_" data-uid="CloudStorageORM.Infrastructure.CloudStorageQueryProvider.#ctor(CloudStorageORM.Infrastructure.CloudStorageDatabase,CloudStorageORM.Interfaces.Infrastructure.IBlobPathResolver)">
-  CloudStorageQueryProvider(CloudStorageDatabase, IBlobPathResolver)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/feature/docs/src/CloudStorageORM/Infrastructure/CloudStorageQueryProvider.cs/#L11"><i class="bi bi-code-slash"></i></a>
+  <h3 id="CloudStorageORM_Infrastructure_CloudStorageQueryProvider__ctor_CloudStorageORM_Infrastructure_CloudStorageDatabase_CloudStorageORM_Interfaces_Infrastructure_IBlobPathResolver_Microsoft_Extensions_Logging_ILogger_CloudStorageORM_Infrastructure_CloudStorageQueryProvider__System_Boolean_System_Boolean_" data-uid="CloudStorageORM.Infrastructure.CloudStorageQueryProvider.#ctor(CloudStorageORM.Infrastructure.CloudStorageDatabase,CloudStorageORM.Interfaces.Infrastructure.IBlobPathResolver,Microsoft.Extensions.Logging.ILogger{CloudStorageORM.Infrastructure.CloudStorageQueryProvider},System.Boolean,System.Boolean)">
+  CloudStorageQueryProvider(CloudStorageDatabase, IBlobPathResolver, ILogger&lt;CloudStorageQueryProvider&gt;?, bool, bool)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/feature/docs/src/CloudStorageORM/Infrastructure/CloudStorageQueryProvider.cs/#L14"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Query provider that executes LINQ expressions against object-storage-backed entities.</p>
@@ -172,7 +172,7 @@ Class CloudStorageQueryProvider  <a class="header-action link-secondary" title="
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public CloudStorageQueryProvider(CloudStorageDatabase database, IBlobPathResolver blobPathResolver)</code></pre>
+    <pre><code class="lang-csharp hljs">public CloudStorageQueryProvider(CloudStorageDatabase database, IBlobPathResolver blobPathResolver, ILogger&lt;CloudStorageQueryProvider&gt;? logger = null, bool enableLogging = true, bool enableTracing = true)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
@@ -180,6 +180,12 @@ Class CloudStorageQueryProvider  <a class="header-action link-secondary" title="
     <dt><code>database</code> <a class="xref" href="CloudStorageORM.Infrastructure.CloudStorageDatabase.html">CloudStorageDatabase</a></dt>
     <dd></dd>
     <dt><code>blobPathResolver</code> <a class="xref" href="CloudStorageORM.Interfaces.Infrastructure.IBlobPathResolver.html">IBlobPathResolver</a></dt>
+    <dd></dd>
+    <dt><code>logger</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/microsoft.extensions.logging.ilogger-1">ILogger</a>&lt;<a class="xref" href="CloudStorageORM.Infrastructure.CloudStorageQueryProvider.html">CloudStorageQueryProvider</a>&gt;</dt>
+    <dd></dd>
+    <dt><code>enableLogging</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+    <dt><code>enableTracing</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
     <dd></dd>
   </dl>
 
@@ -202,7 +208,7 @@ Class CloudStorageQueryProvider  <a class="header-action link-secondary" title="
 
   <h3 id="CloudStorageORM_Infrastructure_CloudStorageQueryProvider_CreateQuery_System_Linq_Expressions_Expression_" data-uid="CloudStorageORM.Infrastructure.CloudStorageQueryProvider.CreateQuery(System.Linq.Expressions.Expression)">
   CreateQuery(Expression)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/feature/docs/src/CloudStorageORM/Infrastructure/CloudStorageQueryProvider.cs/#L29"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/feature/docs/src/CloudStorageORM/Infrastructure/CloudStorageQueryProvider.cs/#L39"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Constructs an <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.linq.iqueryable">IQueryable</a> object that can evaluate the query represented by a specified expression tree.</p>
@@ -241,7 +247,7 @@ Class CloudStorageQueryProvider  <a class="header-action link-secondary" title="
 
   <h3 id="CloudStorageORM_Infrastructure_CloudStorageQueryProvider_CreateQuery__1_System_Linq_Expressions_Expression_" data-uid="CloudStorageORM.Infrastructure.CloudStorageQueryProvider.CreateQuery``1(System.Linq.Expressions.Expression)">
   CreateQuery&lt;TElement&gt;(Expression)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/feature/docs/src/CloudStorageORM/Infrastructure/CloudStorageQueryProvider.cs/#L37"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/feature/docs/src/CloudStorageORM/Infrastructure/CloudStorageQueryProvider.cs/#L47"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Constructs an <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.linq.iqueryable-1">IQueryable&lt;T&gt;</a> object that can evaluate the query represented by a specified expression tree.</p>
@@ -286,7 +292,7 @@ Class CloudStorageQueryProvider  <a class="header-action link-secondary" title="
 
   <h3 id="CloudStorageORM_Infrastructure_CloudStorageQueryProvider_Execute_System_Linq_Expressions_Expression_" data-uid="CloudStorageORM.Infrastructure.CloudStorageQueryProvider.Execute(System.Linq.Expressions.Expression)">
   Execute(Expression)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/feature/docs/src/CloudStorageORM/Infrastructure/CloudStorageQueryProvider.cs/#L43"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/feature/docs/src/CloudStorageORM/Infrastructure/CloudStorageQueryProvider.cs/#L53"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Executes the query represented by a specified expression tree.</p>
@@ -325,7 +331,7 @@ Class CloudStorageQueryProvider  <a class="header-action link-secondary" title="
 
   <h3 id="CloudStorageORM_Infrastructure_CloudStorageQueryProvider_ExecuteAsync__1_System_Linq_Expressions_Expression_System_Threading_CancellationToken_" data-uid="CloudStorageORM.Infrastructure.CloudStorageQueryProvider.ExecuteAsync``1(System.Linq.Expressions.Expression,System.Threading.CancellationToken)">
   ExecuteAsync&lt;TResult&gt;(Expression, CancellationToken)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/feature/docs/src/CloudStorageORM/Infrastructure/CloudStorageQueryProvider.cs/#L66"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/feature/docs/src/CloudStorageORM/Infrastructure/CloudStorageQueryProvider.cs/#L76"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Executes a LINQ expression asynchronously and returns the materialized result.</p>
@@ -376,7 +382,7 @@ Class CloudStorageQueryProvider  <a class="header-action link-secondary" title="
 
   <h3 id="CloudStorageORM_Infrastructure_CloudStorageQueryProvider_Execute__1_System_Linq_Expressions_Expression_" data-uid="CloudStorageORM.Infrastructure.CloudStorageQueryProvider.Execute``1(System.Linq.Expressions.Expression)">
   Execute&lt;TResult&gt;(Expression)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/feature/docs/src/CloudStorageORM/Infrastructure/CloudStorageQueryProvider.cs/#L49"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/feature/docs/src/CloudStorageORM/Infrastructure/CloudStorageQueryProvider.cs/#L59"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Executes the strongly-typed query represented by a specified expression tree.</p>
@@ -421,7 +427,7 @@ Class CloudStorageQueryProvider  <a class="header-action link-secondary" title="
 </article>
 
         <div class="contribution d-print-none">
-          <a href="https://github.com/rzavalik/CloudStorageORM/blob/feature/docs/src/CloudStorageORM/Infrastructure/CloudStorageQueryProvider.cs/#L11" class="edit-link">Edit this page</a>
+          <a href="https://github.com/rzavalik/CloudStorageORM/blob/feature/docs/src/CloudStorageORM/Infrastructure/CloudStorageQueryProvider.cs/#L14" class="edit-link">Edit this page</a>
         </div>
 
 

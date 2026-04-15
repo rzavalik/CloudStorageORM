@@ -174,6 +174,7 @@ await db.SaveChangesAsync();
 <li>The base context namespace is now <code>CloudStorageORM.Contexts</code>.</li>
 <li>Configuration uses composition on <code>CloudStorageOptions</code>: common fields stay on the root, while provider-specific
 fields are under <code>storage.Azure</code> and <code>storage.Aws</code>.</li>
+<li>Observability is optional and configured under <code>storage.Observability</code> (logging, tracing, and diagnostics toggles).</li>
 <li><code>CloudStorageOptions.ConnectionString</code> was removed; use <code>storage.Azure.ConnectionString</code> for Azure configuration.</li>
 <li>Primary-key query predicates now support direct range-aware loading for <code>&gt;</code>, <code>&gt;=</code>, <code>&lt;</code>, and <code>&lt;=</code> in addition to
 equality-based lookups.</li>
@@ -200,12 +201,42 @@ conditional/object-lock strategies) to improve concurrent-writer coordination.</
 <li><code>IDatabaseCreator</code> behavior is still minimal right now: schema-style database lifecycle methods are not fully
 implemented because object storage does not map 1:1 to relational database creation semantics.</li>
 </ul>
+<h3 id="optional-observability-configuration">Optional observability configuration</h3>
+<pre><code class="lang-csharp">services.AddDbContext&lt;AppDbContext&gt;(options =&gt;
+{
+    options.UseCloudStorageOrm(storage =&gt;
+    {
+        storage.Provider = CloudProvider.Azure;
+        storage.ContainerName = &quot;sampleapp-container&quot;;
+        storage.Azure.ConnectionString = &quot;UseDevelopmentStorage=true&quot;;
+
+        // Keep defaults (all true) or disable selectively.
+        storage.Observability.EnableLogging = true;
+        storage.Observability.EnableTracing = true;
+        storage.Observability.EnableDiagnostics = true;
+    });
+});
+</code></pre>
+<p>What each toggle does on the current branch:</p>
+<ul>
+<li><code>EnableLogging</code>: enables CloudStorageORM log events through <code>ILogger</code>.</li>
+<li><code>EnableTracing</code>: enables CloudStorageORM <code>ActivitySource</code> spans (<code>CloudStorageORM</code>).</li>
+<li><code>EnableDiagnostics</code>: currently represented in options/debug info; custom <code>DiagnosticListener</code> events are not yet
+emitted.</li>
+</ul>
+<p>If you only need tracing:</p>
+<pre><code class="lang-csharp">storage.Observability.EnableLogging = false;
+storage.Observability.EnableTracing = true;
+storage.Observability.EnableDiagnostics = false;
+</code></pre>
+<p>For full details and consumption examples, see <a href="observability.html">docs/observability.md</a>.</p>
 <hr>
 <h2 id="-running-tests-locally">🧪 Running tests locally</h2>
 <h3 id="ci-parity-local-run-recommended">CI-parity local run (recommended)</h3>
 <pre><code class="lang-bash">./scripts/run-local-ci-tests.sh
 </code></pre>
-<p>This script mirrors CI by starting Azurite and LocalStack, then running restore, build, and tests with TRX and coverage collection.</p>
+<p>This script mirrors CI by starting Azurite and LocalStack, then running restore, build, and tests with TRX and coverage
+collection.</p>
 <h3 id="start-azurite-azure-integration">Start Azurite (Azure integration)</h3>
 <pre><code class="lang-bash">docker rm -f azurite || true
 docker run -d \
@@ -266,6 +297,7 @@ dotnet tool run reportgenerator \
 <h2 id="-documentation">📚 Documentation</h2>
 <ul>
 <li><a href="CloudStorageORM.html">Library documentation</a></li>
+<li><a href="observability.html">Observability guide</a></li>
 <li><a href="https://rzavalik.github.io/CloudStorageORM/api/">API reference (DocFX)</a></li>
 <li><a href="api-reference.html">API reference landing page</a></li>
 <li><a href="sampleapp.html">Sample app guide</a></li>

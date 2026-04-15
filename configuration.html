@@ -155,6 +155,25 @@ storage.Aws.ServiceUrl = Environment.GetEnvironmentVariable(&quot;AWS_SERVICE_UR
 </tr>
 </tbody>
 </table>
+<h2 id="observability-configuration-optional">Observability configuration (optional)</h2>
+<p>CloudStorageORM can emit structured logs, tracing spans, and diagnostics hooks. All are enabled by default and can be
+controlled under <code>CloudStorageOptions.Observability</code>.</p>
+<p>Current behavior on <code>main</code>:</p>
+<ul>
+<li><code>EnableLogging</code> controls CloudStorageORM <code>ILogger</code> events.</li>
+<li><code>EnableTracing</code> controls CloudStorageORM <code>ActivitySource</code> span creation.</li>
+<li><code>EnableDiagnostics</code> is part of options/debug info; custom runtime <code>DiagnosticListener</code> events are not emitted yet.</li>
+</ul>
+<pre><code class="lang-csharp">storage.Observability.EnableLogging = true;
+storage.Observability.EnableTracing = true;
+storage.Observability.EnableDiagnostics = true;
+
+// Optional custom names (reserved for future custom-source wiring)
+storage.Observability.ActivitySourceName = &quot;CloudStorageORM&quot;;
+storage.Observability.DiagnosticListenerName = &quot;CloudStorageORM&quot;;
+</code></pre>
+<p>If your application does not consume these signals, you can disable them individually.</p>
+<p>See <a href="observability.html">Observability guide</a> for practical usage profiles and consumer examples.</p>
 <h2 id="model-configuration">Model configuration</h2>
 <h3 id="primary-keys">Primary keys</h3>
 <p>Entities must define an explicit primary key:</p>

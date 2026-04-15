@@ -162,9 +162,10 @@ The provider surface is designed so that <strong>Google Cloud Storage</strong> c
 <p>Use this when configuring a context with <code>AddDbContext(...)</code>.</p>
 <p>Configuration model on the current branch:</p>
 <ul>
-<li>common fields: <code>CloudStorageOptions.Provider</code>, <code>CloudStorageOptions.ContainerName</code></li>
+<li>Common fields: <code>CloudStorageOptions.Provider</code>, <code>CloudStorageOptions.ContainerName</code></li>
 <li>Azure fields: <code>CloudStorageOptions.Azure.ConnectionString</code></li>
 <li>AWS fields: <code>CloudStorageOptions.Aws.AccessKeyId</code>, <code>SecretAccessKey</code>, <code>Region</code>, <code>ServiceUrl</code>, <code>ForcePathStyle</code></li>
+<li>Observability fields: <code>CloudStorageOptions.Observability.EnableLogging</code>, <code>EnableTracing</code>, <code>EnableDiagnostics</code></li>
 <li><code>CloudStorageOptions.ConnectionString</code> at the root level is no longer used</li>
 </ul>
 <h3 id="cloudstorageormcontextscloudstoragedbcontext"><code>CloudStorageORM.Contexts.CloudStorageDbContext</code></h3>
@@ -198,6 +199,21 @@ The provider surface is designed so that <strong>Google Cloud Storage</strong> c
 <li><code>CloudProvider.Aws</code> → <code>AwsS3StorageProvider</code></li>
 <li>any other provider → <code>NotSupportedException</code></li>
 </ul>
+<h3 id="observability-internals">Observability internals</h3>
+<p>CloudStorageORM observability is configured through <code>CloudStorageOptions.Observability</code>:</p>
+<ul>
+<li><code>EnableLogging</code> gates logging inside persistence and query paths.</li>
+<li><code>EnableTracing</code> gates <code>ActivitySource</code> spans emitted by internal operations.</li>
+<li><code>EnableDiagnostics</code> is currently surfaced as configuration/debug metadata and reserved for future custom diagnostics
+events.</li>
+</ul>
+<p>Related types:</p>
+<ul>
+<li><code>CloudStorageORM.Observability.CloudStorageOrmActivitySource</code></li>
+<li><code>CloudStorageORM.Observability.CloudStorageOrmEventIds</code></li>
+<li><code>CloudStorageORM.Observability.CloudStorageOrmLoggingExtensions</code></li>
+</ul>
+<p>For end-user setup examples, see <a href="observability.html">Observability guide</a>.</p>
 <hr>
 <h2 id="query-and-persistence-behavior">Query and persistence behavior</h2>
 <p>The current branch supports EF-style usage such as:</p>

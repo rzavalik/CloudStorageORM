@@ -536,15 +536,15 @@ references:
   commentId: T:CloudStorageORM.Infrastructure.CloudStorageDatabase
   fullName: CloudStorageORM.Infrastructure.CloudStorageDatabase
   nameWithType: CloudStorageDatabase
-- uid: CloudStorageORM.Infrastructure.CloudStorageDatabase.#ctor(Microsoft.EntityFrameworkCore.Metadata.IModel,Microsoft.EntityFrameworkCore.Storage.IDatabaseCreator,Microsoft.EntityFrameworkCore.Storage.IExecutionStrategyFactory,CloudStorageORM.Interfaces.StorageProviders.IStorageProvider,Microsoft.EntityFrameworkCore.Infrastructure.ICurrentDbContext,CloudStorageORM.Interfaces.Infrastructure.IBlobPathResolver,Microsoft.EntityFrameworkCore.Storage.IDbContextTransactionManager)
-  name: CloudStorageDatabase(IModel, IDatabaseCreator, IExecutionStrategyFactory, IStorageProvider, ICurrentDbContext, IBlobPathResolver, IDbContextTransactionManager)
-  href: api/CloudStorageORM.Infrastructure.CloudStorageDatabase.html#CloudStorageORM_Infrastructure_CloudStorageDatabase__ctor_Microsoft_EntityFrameworkCore_Metadata_IModel_Microsoft_EntityFrameworkCore_Storage_IDatabaseCreator_Microsoft_EntityFrameworkCore_Storage_IExecutionStrategyFactory_CloudStorageORM_Interfaces_StorageProviders_IStorageProvider_Microsoft_EntityFrameworkCore_Infrastructure_ICurrentDbContext_CloudStorageORM_Interfaces_Infrastructure_IBlobPathResolver_Microsoft_EntityFrameworkCore_Storage_IDbContextTransactionManager_
-  commentId: M:CloudStorageORM.Infrastructure.CloudStorageDatabase.#ctor(Microsoft.EntityFrameworkCore.Metadata.IModel,Microsoft.EntityFrameworkCore.Storage.IDatabaseCreator,Microsoft.EntityFrameworkCore.Storage.IExecutionStrategyFactory,CloudStorageORM.Interfaces.StorageProviders.IStorageProvider,Microsoft.EntityFrameworkCore.Infrastructure.ICurrentDbContext,CloudStorageORM.Interfaces.Infrastructure.IBlobPathResolver,Microsoft.EntityFrameworkCore.Storage.IDbContextTransactionManager)
-  name.vb: New(IModel, IDatabaseCreator, IExecutionStrategyFactory, IStorageProvider, ICurrentDbContext, IBlobPathResolver, IDbContextTransactionManager)
-  fullName: CloudStorageORM.Infrastructure.CloudStorageDatabase.CloudStorageDatabase(Microsoft.EntityFrameworkCore.Metadata.IModel, Microsoft.EntityFrameworkCore.Storage.IDatabaseCreator, Microsoft.EntityFrameworkCore.Storage.IExecutionStrategyFactory, CloudStorageORM.Interfaces.StorageProviders.IStorageProvider, Microsoft.EntityFrameworkCore.Infrastructure.ICurrentDbContext, CloudStorageORM.Interfaces.Infrastructure.IBlobPathResolver, Microsoft.EntityFrameworkCore.Storage.IDbContextTransactionManager)
-  fullName.vb: CloudStorageORM.Infrastructure.CloudStorageDatabase.New(Microsoft.EntityFrameworkCore.Metadata.IModel, Microsoft.EntityFrameworkCore.Storage.IDatabaseCreator, Microsoft.EntityFrameworkCore.Storage.IExecutionStrategyFactory, CloudStorageORM.Interfaces.StorageProviders.IStorageProvider, Microsoft.EntityFrameworkCore.Infrastructure.ICurrentDbContext, CloudStorageORM.Interfaces.Infrastructure.IBlobPathResolver, Microsoft.EntityFrameworkCore.Storage.IDbContextTransactionManager)
-  nameWithType: CloudStorageDatabase.CloudStorageDatabase(IModel, IDatabaseCreator, IExecutionStrategyFactory, IStorageProvider, ICurrentDbContext, IBlobPathResolver, IDbContextTransactionManager)
-  nameWithType.vb: CloudStorageDatabase.New(IModel, IDatabaseCreator, IExecutionStrategyFactory, IStorageProvider, ICurrentDbContext, IBlobPathResolver, IDbContextTransactionManager)
+- uid: CloudStorageORM.Infrastructure.CloudStorageDatabase.#ctor(Microsoft.EntityFrameworkCore.Metadata.IModel,Microsoft.EntityFrameworkCore.Storage.IDatabaseCreator,Microsoft.EntityFrameworkCore.Storage.IExecutionStrategyFactory,CloudStorageORM.Interfaces.StorageProviders.IStorageProvider,Microsoft.EntityFrameworkCore.Infrastructure.ICurrentDbContext,CloudStorageORM.Interfaces.Infrastructure.IBlobPathResolver,Microsoft.EntityFrameworkCore.Storage.IDbContextTransactionManager,CloudStorageORM.Options.CloudStorageOptions,Microsoft.Extensions.Logging.ILoggerFactory,Microsoft.Extensions.Logging.ILogger{CloudStorageORM.Infrastructure.CloudStorageDatabase})
+  name: CloudStorageDatabase(IModel, IDatabaseCreator, IExecutionStrategyFactory, IStorageProvider, ICurrentDbContext, IBlobPathResolver, IDbContextTransactionManager, CloudStorageOptions?, ILoggerFactory?, ILogger<CloudStorageDatabase>?)
+  href: api/CloudStorageORM.Infrastructure.CloudStorageDatabase.html#CloudStorageORM_Infrastructure_CloudStorageDatabase__ctor_Microsoft_EntityFrameworkCore_Metadata_IModel_Microsoft_EntityFrameworkCore_Storage_IDatabaseCreator_Microsoft_EntityFrameworkCore_Storage_IExecutionStrategyFactory_CloudStorageORM_Interfaces_StorageProviders_IStorageProvider_Microsoft_EntityFrameworkCore_Infrastructure_ICurrentDbContext_CloudStorageORM_Interfaces_Infrastructure_IBlobPathResolver_Microsoft_EntityFrameworkCore_Storage_IDbContextTransactionManager_CloudStorageORM_Options_CloudStorageOptions_Microsoft_Extensions_Logging_ILoggerFactory_Microsoft_Extensions_Logging_ILogger_CloudStorageORM_Infrastructure_CloudStorageDatabase__
+  commentId: M:CloudStorageORM.Infrastructure.CloudStorageDatabase.#ctor(Microsoft.EntityFrameworkCore.Metadata.IModel,Microsoft.EntityFrameworkCore.Storage.IDatabaseCreator,Microsoft.EntityFrameworkCore.Storage.IExecutionStrategyFactory,CloudStorageORM.Interfaces.StorageProviders.IStorageProvider,Microsoft.EntityFrameworkCore.Infrastructure.ICurrentDbContext,CloudStorageORM.Interfaces.Infrastructure.IBlobPathResolver,Microsoft.EntityFrameworkCore.Storage.IDbContextTransactionManager,CloudStorageORM.Options.CloudStorageOptions,Microsoft.Extensions.Logging.ILoggerFactory,Microsoft.Extensions.Logging.ILogger{CloudStorageORM.Infrastructure.CloudStorageDatabase})
+  name.vb: New(IModel, IDatabaseCreator, IExecutionStrategyFactory, IStorageProvider, ICurrentDbContext, IBlobPathResolver, IDbContextTransactionManager, CloudStorageOptions, ILoggerFactory, ILogger(Of CloudStorageDatabase))
+  fullName: CloudStorageORM.Infrastructure.CloudStorageDatabase.CloudStorageDatabase(Microsoft.EntityFrameworkCore.Metadata.IModel, Microsoft.EntityFrameworkCore.Storage.IDatabaseCreator, Microsoft.EntityFrameworkCore.Storage.IExecutionStrategyFactory, CloudStorageORM.Interfaces.StorageProviders.IStorageProvider, Microsoft.EntityFrameworkCore.Infrastructure.ICurrentDbContext, CloudStorageORM.Interfaces.Infrastructure.IBlobPathResolver, Microsoft.EntityFrameworkCore.Storage.IDbContextTransactionManager, CloudStorageORM.Options.CloudStorageOptions?, Microsoft.Extensions.Logging.ILoggerFactory?, Microsoft.Extensions.Logging.ILogger<CloudStorageORM.Infrastructure.CloudStorageDatabase>?)
+  fullName.vb: CloudStorageORM.Infrastructure.CloudStorageDatabase.New(Microsoft.EntityFrameworkCore.Metadata.IModel, Microsoft.EntityFrameworkCore.Storage.IDatabaseCreator, Microsoft.EntityFrameworkCore.Storage.IExecutionStrategyFactory, CloudStorageORM.Interfaces.StorageProviders.IStorageProvider, Microsoft.EntityFrameworkCore.Infrastructure.ICurrentDbContext, CloudStorageORM.Interfaces.Infrastructure.IBlobPathResolver, Microsoft.EntityFrameworkCore.Storage.IDbContextTransactionManager, CloudStorageORM.Options.CloudStorageOptions, Microsoft.Extensions.Logging.ILoggerFactory, Microsoft.Extensions.Logging.ILogger(Of CloudStorageORM.Infrastructure.CloudStorageDatabase))
+  nameWithType: CloudStorageDatabase.CloudStorageDatabase(IModel, IDatabaseCreator, IExecutionStrategyFactory, IStorageProvider, ICurrentDbContext, IBlobPathResolver, IDbContextTransactionManager, CloudStorageOptions?, ILoggerFactory?, ILogger<CloudStorageDatabase>?)
+  nameWithType.vb: CloudStorageDatabase.New(IModel, IDatabaseCreator, IExecutionStrategyFactory, IStorageProvider, ICurrentDbContext, IBlobPathResolver, IDbContextTransactionManager, CloudStorageOptions, ILoggerFactory, ILogger(Of CloudStorageDatabase))
 - uid: CloudStorageORM.Infrastructure.CloudStorageDatabase.#ctor*
   name: CloudStorageDatabase
   href: api/CloudStorageORM.Infrastructure.CloudStorageDatabase.html#CloudStorageORM_Infrastructure_CloudStorageDatabase__ctor_
@@ -555,6 +555,13 @@ references:
   fullName.vb: CloudStorageORM.Infrastructure.CloudStorageDatabase.New
   nameWithType: CloudStorageDatabase.CloudStorageDatabase
   nameWithType.vb: CloudStorageDatabase.New
+- uid: CloudStorageORM.Infrastructure.CloudStorageDatabase.CompileQuery*
+  name: CompileQuery
+  href: api/CloudStorageORM.Infrastructure.CloudStorageDatabase.html#CloudStorageORM_Infrastructure_CloudStorageDatabase_CompileQuery_
+  commentId: Overload:CloudStorageORM.Infrastructure.CloudStorageDatabase.CompileQuery
+  isSpec: "True"
+  fullName: CloudStorageORM.Infrastructure.CloudStorageDatabase.CompileQuery
+  nameWithType: CloudStorageDatabase.CompileQuery
 - uid: CloudStorageORM.Infrastructure.CloudStorageDatabase.CompileQueryExpression*
   name: CompileQueryExpression
   href: api/CloudStorageORM.Infrastructure.CloudStorageDatabase.html#CloudStorageORM_Infrastructure_CloudStorageDatabase_CompileQueryExpression_
@@ -580,6 +587,15 @@ references:
   fullName.vb: CloudStorageORM.Infrastructure.CloudStorageDatabase.CompileQueryExpression(Of TResult)(System.Linq.Expressions.Expression, Boolean, System.Collections.Generic.IReadOnlySet(Of String))
   nameWithType: CloudStorageDatabase.CompileQueryExpression<TResult>(Expression, bool, IReadOnlySet<string>)
   nameWithType.vb: CloudStorageDatabase.CompileQueryExpression(Of TResult)(Expression, Boolean, IReadOnlySet(Of String))
+- uid: CloudStorageORM.Infrastructure.CloudStorageDatabase.CompileQuery``1(System.Linq.Expressions.Expression,System.Boolean)
+  name: CompileQuery<TResult>(Expression, bool)
+  href: api/CloudStorageORM.Infrastructure.CloudStorageDatabase.html#CloudStorageORM_Infrastructure_CloudStorageDatabase_CompileQuery__1_System_Linq_Expressions_Expression_System_Boolean_
+  commentId: M:CloudStorageORM.Infrastructure.CloudStorageDatabase.CompileQuery``1(System.Linq.Expressions.Expression,System.Boolean)
+  name.vb: CompileQuery(Of TResult)(Expression, Boolean)
+  fullName: CloudStorageORM.Infrastructure.CloudStorageDatabase.CompileQuery<TResult>(System.Linq.Expressions.Expression, bool)
+  fullName.vb: CloudStorageORM.Infrastructure.CloudStorageDatabase.CompileQuery(Of TResult)(System.Linq.Expressions.Expression, Boolean)
+  nameWithType: CloudStorageDatabase.CompileQuery<TResult>(Expression, bool)
+  nameWithType.vb: CloudStorageDatabase.CompileQuery(Of TResult)(Expression, Boolean)
 - uid: CloudStorageORM.Infrastructure.CloudStorageDatabase.EnsureCreatedAsync(System.Threading.CancellationToken)
   name: EnsureCreatedAsync(CancellationToken)
   href: api/CloudStorageORM.Infrastructure.CloudStorageDatabase.html#CloudStorageORM_Infrastructure_CloudStorageDatabase_EnsureCreatedAsync_System_Threading_CancellationToken_
@@ -1455,15 +1471,15 @@ references:
   commentId: T:CloudStorageORM.Infrastructure.CloudStorageQueryProvider
   fullName: CloudStorageORM.Infrastructure.CloudStorageQueryProvider
   nameWithType: CloudStorageQueryProvider
-- uid: CloudStorageORM.Infrastructure.CloudStorageQueryProvider.#ctor(CloudStorageORM.Infrastructure.CloudStorageDatabase,CloudStorageORM.Interfaces.Infrastructure.IBlobPathResolver)
-  name: CloudStorageQueryProvider(CloudStorageDatabase, IBlobPathResolver)
-  href: api/CloudStorageORM.Infrastructure.CloudStorageQueryProvider.html#CloudStorageORM_Infrastructure_CloudStorageQueryProvider__ctor_CloudStorageORM_Infrastructure_CloudStorageDatabase_CloudStorageORM_Interfaces_Infrastructure_IBlobPathResolver_
-  commentId: M:CloudStorageORM.Infrastructure.CloudStorageQueryProvider.#ctor(CloudStorageORM.Infrastructure.CloudStorageDatabase,CloudStorageORM.Interfaces.Infrastructure.IBlobPathResolver)
-  name.vb: New(CloudStorageDatabase, IBlobPathResolver)
-  fullName: CloudStorageORM.Infrastructure.CloudStorageQueryProvider.CloudStorageQueryProvider(CloudStorageORM.Infrastructure.CloudStorageDatabase, CloudStorageORM.Interfaces.Infrastructure.IBlobPathResolver)
-  fullName.vb: CloudStorageORM.Infrastructure.CloudStorageQueryProvider.New(CloudStorageORM.Infrastructure.CloudStorageDatabase, CloudStorageORM.Interfaces.Infrastructure.IBlobPathResolver)
-  nameWithType: CloudStorageQueryProvider.CloudStorageQueryProvider(CloudStorageDatabase, IBlobPathResolver)
-  nameWithType.vb: CloudStorageQueryProvider.New(CloudStorageDatabase, IBlobPathResolver)
+- uid: CloudStorageORM.Infrastructure.CloudStorageQueryProvider.#ctor(CloudStorageORM.Infrastructure.CloudStorageDatabase,CloudStorageORM.Interfaces.Infrastructure.IBlobPathResolver,Microsoft.Extensions.Logging.ILogger{CloudStorageORM.Infrastructure.CloudStorageQueryProvider},System.Boolean,System.Boolean)
+  name: CloudStorageQueryProvider(CloudStorageDatabase, IBlobPathResolver, ILogger<CloudStorageQueryProvider>?, bool, bool)
+  href: api/CloudStorageORM.Infrastructure.CloudStorageQueryProvider.html#CloudStorageORM_Infrastructure_CloudStorageQueryProvider__ctor_CloudStorageORM_Infrastructure_CloudStorageDatabase_CloudStorageORM_Interfaces_Infrastructure_IBlobPathResolver_Microsoft_Extensions_Logging_ILogger_CloudStorageORM_Infrastructure_CloudStorageQueryProvider__System_Boolean_System_Boolean_
+  commentId: M:CloudStorageORM.Infrastructure.CloudStorageQueryProvider.#ctor(CloudStorageORM.Infrastructure.CloudStorageDatabase,CloudStorageORM.Interfaces.Infrastructure.IBlobPathResolver,Microsoft.Extensions.Logging.ILogger{CloudStorageORM.Infrastructure.CloudStorageQueryProvider},System.Boolean,System.Boolean)
+  name.vb: New(CloudStorageDatabase, IBlobPathResolver, ILogger(Of CloudStorageQueryProvider), Boolean, Boolean)
+  fullName: CloudStorageORM.Infrastructure.CloudStorageQueryProvider.CloudStorageQueryProvider(CloudStorageORM.Infrastructure.CloudStorageDatabase, CloudStorageORM.Interfaces.Infrastructure.IBlobPathResolver, Microsoft.Extensions.Logging.ILogger<CloudStorageORM.Infrastructure.CloudStorageQueryProvider>?, bool, bool)
+  fullName.vb: CloudStorageORM.Infrastructure.CloudStorageQueryProvider.New(CloudStorageORM.Infrastructure.CloudStorageDatabase, CloudStorageORM.Interfaces.Infrastructure.IBlobPathResolver, Microsoft.Extensions.Logging.ILogger(Of CloudStorageORM.Infrastructure.CloudStorageQueryProvider), Boolean, Boolean)
+  nameWithType: CloudStorageQueryProvider.CloudStorageQueryProvider(CloudStorageDatabase, IBlobPathResolver, ILogger<CloudStorageQueryProvider>?, bool, bool)
+  nameWithType.vb: CloudStorageQueryProvider.New(CloudStorageDatabase, IBlobPathResolver, ILogger(Of CloudStorageQueryProvider), Boolean, Boolean)
 - uid: CloudStorageORM.Infrastructure.CloudStorageQueryProvider.#ctor*
   name: CloudStorageQueryProvider
   href: api/CloudStorageORM.Infrastructure.CloudStorageQueryProvider.html#CloudStorageORM_Infrastructure_CloudStorageQueryProvider__ctor_
@@ -2395,6 +2411,276 @@ references:
   isSpec: "True"
   fullName: CloudStorageORM.Interfaces.Validators.IBlobValidator.IsBlobNameValid
   nameWithType: IBlobValidator.IsBlobNameValid
+- uid: CloudStorageORM.Observability
+  name: CloudStorageORM.Observability
+  href: api/CloudStorageORM.Observability.html
+  commentId: N:CloudStorageORM.Observability
+  fullName: CloudStorageORM.Observability
+  nameWithType: CloudStorageORM.Observability
+- uid: CloudStorageORM.Observability.CloudStorageOrmActivitySource
+  name: CloudStorageOrmActivitySource
+  href: api/CloudStorageORM.Observability.CloudStorageOrmActivitySource.html
+  commentId: T:CloudStorageORM.Observability.CloudStorageOrmActivitySource
+  fullName: CloudStorageORM.Observability.CloudStorageOrmActivitySource
+  nameWithType: CloudStorageOrmActivitySource
+- uid: CloudStorageORM.Observability.CloudStorageOrmActivitySource.Instance
+  name: Instance
+  href: api/CloudStorageORM.Observability.CloudStorageOrmActivitySource.html#CloudStorageORM_Observability_CloudStorageOrmActivitySource_Instance
+  commentId: P:CloudStorageORM.Observability.CloudStorageOrmActivitySource.Instance
+  fullName: CloudStorageORM.Observability.CloudStorageOrmActivitySource.Instance
+  nameWithType: CloudStorageOrmActivitySource.Instance
+- uid: CloudStorageORM.Observability.CloudStorageOrmActivitySource.Instance*
+  name: Instance
+  href: api/CloudStorageORM.Observability.CloudStorageOrmActivitySource.html#CloudStorageORM_Observability_CloudStorageOrmActivitySource_Instance_
+  commentId: Overload:CloudStorageORM.Observability.CloudStorageOrmActivitySource.Instance
+  isSpec: "True"
+  fullName: CloudStorageORM.Observability.CloudStorageOrmActivitySource.Instance
+  nameWithType: CloudStorageOrmActivitySource.Instance
+- uid: CloudStorageORM.Observability.CloudStorageOrmActivitySource.StartActivity(System.String,System.Diagnostics.ActivityKind)
+  name: StartActivity(string, ActivityKind)
+  href: api/CloudStorageORM.Observability.CloudStorageOrmActivitySource.html#CloudStorageORM_Observability_CloudStorageOrmActivitySource_StartActivity_System_String_System_Diagnostics_ActivityKind_
+  commentId: M:CloudStorageORM.Observability.CloudStorageOrmActivitySource.StartActivity(System.String,System.Diagnostics.ActivityKind)
+  name.vb: StartActivity(String, ActivityKind)
+  fullName: CloudStorageORM.Observability.CloudStorageOrmActivitySource.StartActivity(string, System.Diagnostics.ActivityKind)
+  fullName.vb: CloudStorageORM.Observability.CloudStorageOrmActivitySource.StartActivity(String, System.Diagnostics.ActivityKind)
+  nameWithType: CloudStorageOrmActivitySource.StartActivity(string, ActivityKind)
+  nameWithType.vb: CloudStorageOrmActivitySource.StartActivity(String, ActivityKind)
+- uid: CloudStorageORM.Observability.CloudStorageOrmActivitySource.StartActivity*
+  name: StartActivity
+  href: api/CloudStorageORM.Observability.CloudStorageOrmActivitySource.html#CloudStorageORM_Observability_CloudStorageOrmActivitySource_StartActivity_
+  commentId: Overload:CloudStorageORM.Observability.CloudStorageOrmActivitySource.StartActivity
+  isSpec: "True"
+  fullName: CloudStorageORM.Observability.CloudStorageOrmActivitySource.StartActivity
+  nameWithType: CloudStorageOrmActivitySource.StartActivity
+- uid: CloudStorageORM.Observability.CloudStorageOrmEventIds
+  name: CloudStorageOrmEventIds
+  href: api/CloudStorageORM.Observability.CloudStorageOrmEventIds.html
+  commentId: T:CloudStorageORM.Observability.CloudStorageOrmEventIds
+  fullName: CloudStorageORM.Observability.CloudStorageOrmEventIds
+  nameWithType: CloudStorageOrmEventIds
+- uid: CloudStorageORM.Observability.CloudStorageOrmEventIds.BlobDeletionCompleted
+  name: BlobDeletionCompleted
+  href: api/CloudStorageORM.Observability.CloudStorageOrmEventIds.html#CloudStorageORM_Observability_CloudStorageOrmEventIds_BlobDeletionCompleted
+  commentId: F:CloudStorageORM.Observability.CloudStorageOrmEventIds.BlobDeletionCompleted
+  fullName: CloudStorageORM.Observability.CloudStorageOrmEventIds.BlobDeletionCompleted
+  nameWithType: CloudStorageOrmEventIds.BlobDeletionCompleted
+- uid: CloudStorageORM.Observability.CloudStorageOrmEventIds.BlobDeletionStarting
+  name: BlobDeletionStarting
+  href: api/CloudStorageORM.Observability.CloudStorageOrmEventIds.html#CloudStorageORM_Observability_CloudStorageOrmEventIds_BlobDeletionStarting
+  commentId: F:CloudStorageORM.Observability.CloudStorageOrmEventIds.BlobDeletionStarting
+  fullName: CloudStorageORM.Observability.CloudStorageOrmEventIds.BlobDeletionStarting
+  nameWithType: CloudStorageOrmEventIds.BlobDeletionStarting
+- uid: CloudStorageORM.Observability.CloudStorageOrmEventIds.BlobDownloadCompleted
+  name: BlobDownloadCompleted
+  href: api/CloudStorageORM.Observability.CloudStorageOrmEventIds.html#CloudStorageORM_Observability_CloudStorageOrmEventIds_BlobDownloadCompleted
+  commentId: F:CloudStorageORM.Observability.CloudStorageOrmEventIds.BlobDownloadCompleted
+  fullName: CloudStorageORM.Observability.CloudStorageOrmEventIds.BlobDownloadCompleted
+  nameWithType: CloudStorageOrmEventIds.BlobDownloadCompleted
+- uid: CloudStorageORM.Observability.CloudStorageOrmEventIds.BlobDownloadStarting
+  name: BlobDownloadStarting
+  href: api/CloudStorageORM.Observability.CloudStorageOrmEventIds.html#CloudStorageORM_Observability_CloudStorageOrmEventIds_BlobDownloadStarting
+  commentId: F:CloudStorageORM.Observability.CloudStorageOrmEventIds.BlobDownloadStarting
+  fullName: CloudStorageORM.Observability.CloudStorageOrmEventIds.BlobDownloadStarting
+  nameWithType: CloudStorageOrmEventIds.BlobDownloadStarting
+- uid: CloudStorageORM.Observability.CloudStorageOrmEventIds.BlobUploadCompleted
+  name: BlobUploadCompleted
+  href: api/CloudStorageORM.Observability.CloudStorageOrmEventIds.html#CloudStorageORM_Observability_CloudStorageOrmEventIds_BlobUploadCompleted
+  commentId: F:CloudStorageORM.Observability.CloudStorageOrmEventIds.BlobUploadCompleted
+  fullName: CloudStorageORM.Observability.CloudStorageOrmEventIds.BlobUploadCompleted
+  nameWithType: CloudStorageOrmEventIds.BlobUploadCompleted
+- uid: CloudStorageORM.Observability.CloudStorageOrmEventIds.BlobUploadStarting
+  name: BlobUploadStarting
+  href: api/CloudStorageORM.Observability.CloudStorageOrmEventIds.html#CloudStorageORM_Observability_CloudStorageOrmEventIds_BlobUploadStarting
+  commentId: F:CloudStorageORM.Observability.CloudStorageOrmEventIds.BlobUploadStarting
+  fullName: CloudStorageORM.Observability.CloudStorageOrmEventIds.BlobUploadStarting
+  nameWithType: CloudStorageOrmEventIds.BlobUploadStarting
+- uid: CloudStorageORM.Observability.CloudStorageOrmEventIds.ConcurrencyConflict
+  name: ConcurrencyConflict
+  href: api/CloudStorageORM.Observability.CloudStorageOrmEventIds.html#CloudStorageORM_Observability_CloudStorageOrmEventIds_ConcurrencyConflict
+  commentId: F:CloudStorageORM.Observability.CloudStorageOrmEventIds.ConcurrencyConflict
+  fullName: CloudStorageORM.Observability.CloudStorageOrmEventIds.ConcurrencyConflict
+  nameWithType: CloudStorageOrmEventIds.ConcurrencyConflict
+- uid: CloudStorageORM.Observability.CloudStorageOrmEventIds.ConfigurationInitialized
+  name: ConfigurationInitialized
+  href: api/CloudStorageORM.Observability.CloudStorageOrmEventIds.html#CloudStorageORM_Observability_CloudStorageOrmEventIds_ConfigurationInitialized
+  commentId: F:CloudStorageORM.Observability.CloudStorageOrmEventIds.ConfigurationInitialized
+  fullName: CloudStorageORM.Observability.CloudStorageOrmEventIds.ConfigurationInitialized
+  nameWithType: CloudStorageOrmEventIds.ConfigurationInitialized
+- uid: CloudStorageORM.Observability.CloudStorageOrmEventIds.EntitySaved
+  name: EntitySaved
+  href: api/CloudStorageORM.Observability.CloudStorageOrmEventIds.html#CloudStorageORM_Observability_CloudStorageOrmEventIds_EntitySaved
+  commentId: F:CloudStorageORM.Observability.CloudStorageOrmEventIds.EntitySaved
+  fullName: CloudStorageORM.Observability.CloudStorageOrmEventIds.EntitySaved
+  nameWithType: CloudStorageOrmEventIds.EntitySaved
+- uid: CloudStorageORM.Observability.CloudStorageOrmEventIds.QueryExecutionCompleted
+  name: QueryExecutionCompleted
+  href: api/CloudStorageORM.Observability.CloudStorageOrmEventIds.html#CloudStorageORM_Observability_CloudStorageOrmEventIds_QueryExecutionCompleted
+  commentId: F:CloudStorageORM.Observability.CloudStorageOrmEventIds.QueryExecutionCompleted
+  fullName: CloudStorageORM.Observability.CloudStorageOrmEventIds.QueryExecutionCompleted
+  nameWithType: CloudStorageOrmEventIds.QueryExecutionCompleted
+- uid: CloudStorageORM.Observability.CloudStorageOrmEventIds.QueryExecutionFailed
+  name: QueryExecutionFailed
+  href: api/CloudStorageORM.Observability.CloudStorageOrmEventIds.html#CloudStorageORM_Observability_CloudStorageOrmEventIds_QueryExecutionFailed
+  commentId: F:CloudStorageORM.Observability.CloudStorageOrmEventIds.QueryExecutionFailed
+  fullName: CloudStorageORM.Observability.CloudStorageOrmEventIds.QueryExecutionFailed
+  nameWithType: CloudStorageOrmEventIds.QueryExecutionFailed
+- uid: CloudStorageORM.Observability.CloudStorageOrmEventIds.QueryExecutionStarting
+  name: QueryExecutionStarting
+  href: api/CloudStorageORM.Observability.CloudStorageOrmEventIds.html#CloudStorageORM_Observability_CloudStorageOrmEventIds_QueryExecutionStarting
+  commentId: F:CloudStorageORM.Observability.CloudStorageOrmEventIds.QueryExecutionStarting
+  fullName: CloudStorageORM.Observability.CloudStorageOrmEventIds.QueryExecutionStarting
+  nameWithType: CloudStorageOrmEventIds.QueryExecutionStarting
+- uid: CloudStorageORM.Observability.CloudStorageOrmEventIds.SaveChangesCompleted
+  name: SaveChangesCompleted
+  href: api/CloudStorageORM.Observability.CloudStorageOrmEventIds.html#CloudStorageORM_Observability_CloudStorageOrmEventIds_SaveChangesCompleted
+  commentId: F:CloudStorageORM.Observability.CloudStorageOrmEventIds.SaveChangesCompleted
+  fullName: CloudStorageORM.Observability.CloudStorageOrmEventIds.SaveChangesCompleted
+  nameWithType: CloudStorageOrmEventIds.SaveChangesCompleted
+- uid: CloudStorageORM.Observability.CloudStorageOrmEventIds.SaveChangesFailed
+  name: SaveChangesFailed
+  href: api/CloudStorageORM.Observability.CloudStorageOrmEventIds.html#CloudStorageORM_Observability_CloudStorageOrmEventIds_SaveChangesFailed
+  commentId: F:CloudStorageORM.Observability.CloudStorageOrmEventIds.SaveChangesFailed
+  fullName: CloudStorageORM.Observability.CloudStorageOrmEventIds.SaveChangesFailed
+  nameWithType: CloudStorageOrmEventIds.SaveChangesFailed
+- uid: CloudStorageORM.Observability.CloudStorageOrmEventIds.SaveChangesStarting
+  name: SaveChangesStarting
+  href: api/CloudStorageORM.Observability.CloudStorageOrmEventIds.html#CloudStorageORM_Observability_CloudStorageOrmEventIds_SaveChangesStarting
+  commentId: F:CloudStorageORM.Observability.CloudStorageOrmEventIds.SaveChangesStarting
+  fullName: CloudStorageORM.Observability.CloudStorageOrmEventIds.SaveChangesStarting
+  nameWithType: CloudStorageOrmEventIds.SaveChangesStarting
+- uid: CloudStorageORM.Observability.CloudStorageOrmEventIds.TransactionBeginning
+  name: TransactionBeginning
+  href: api/CloudStorageORM.Observability.CloudStorageOrmEventIds.html#CloudStorageORM_Observability_CloudStorageOrmEventIds_TransactionBeginning
+  commentId: F:CloudStorageORM.Observability.CloudStorageOrmEventIds.TransactionBeginning
+  fullName: CloudStorageORM.Observability.CloudStorageOrmEventIds.TransactionBeginning
+  nameWithType: CloudStorageOrmEventIds.TransactionBeginning
+- uid: CloudStorageORM.Observability.CloudStorageOrmEventIds.TransactionCommitted
+  name: TransactionCommitted
+  href: api/CloudStorageORM.Observability.CloudStorageOrmEventIds.html#CloudStorageORM_Observability_CloudStorageOrmEventIds_TransactionCommitted
+  commentId: F:CloudStorageORM.Observability.CloudStorageOrmEventIds.TransactionCommitted
+  fullName: CloudStorageORM.Observability.CloudStorageOrmEventIds.TransactionCommitted
+  nameWithType: CloudStorageOrmEventIds.TransactionCommitted
+- uid: CloudStorageORM.Observability.CloudStorageOrmEventIds.TransactionRolledBack
+  name: TransactionRolledBack
+  href: api/CloudStorageORM.Observability.CloudStorageOrmEventIds.html#CloudStorageORM_Observability_CloudStorageOrmEventIds_TransactionRolledBack
+  commentId: F:CloudStorageORM.Observability.CloudStorageOrmEventIds.TransactionRolledBack
+  fullName: CloudStorageORM.Observability.CloudStorageOrmEventIds.TransactionRolledBack
+  nameWithType: CloudStorageOrmEventIds.TransactionRolledBack
+- uid: CloudStorageORM.Observability.CloudStorageOrmEventIds.ValidationCompleted
+  name: ValidationCompleted
+  href: api/CloudStorageORM.Observability.CloudStorageOrmEventIds.html#CloudStorageORM_Observability_CloudStorageOrmEventIds_ValidationCompleted
+  commentId: F:CloudStorageORM.Observability.CloudStorageOrmEventIds.ValidationCompleted
+  fullName: CloudStorageORM.Observability.CloudStorageOrmEventIds.ValidationCompleted
+  nameWithType: CloudStorageOrmEventIds.ValidationCompleted
+- uid: CloudStorageORM.Observability.CloudStorageOrmEventIds.ValidationFailed
+  name: ValidationFailed
+  href: api/CloudStorageORM.Observability.CloudStorageOrmEventIds.html#CloudStorageORM_Observability_CloudStorageOrmEventIds_ValidationFailed
+  commentId: F:CloudStorageORM.Observability.CloudStorageOrmEventIds.ValidationFailed
+  fullName: CloudStorageORM.Observability.CloudStorageOrmEventIds.ValidationFailed
+  nameWithType: CloudStorageOrmEventIds.ValidationFailed
+- uid: CloudStorageORM.Observability.CloudStorageOrmEventIds.ValidationStarting
+  name: ValidationStarting
+  href: api/CloudStorageORM.Observability.CloudStorageOrmEventIds.html#CloudStorageORM_Observability_CloudStorageOrmEventIds_ValidationStarting
+  commentId: F:CloudStorageORM.Observability.CloudStorageOrmEventIds.ValidationStarting
+  fullName: CloudStorageORM.Observability.CloudStorageOrmEventIds.ValidationStarting
+  nameWithType: CloudStorageOrmEventIds.ValidationStarting
+- uid: CloudStorageORM.Observability.CloudStorageOrmObservabilityOptions
+  name: CloudStorageOrmObservabilityOptions
+  href: api/CloudStorageORM.Observability.CloudStorageOrmObservabilityOptions.html
+  commentId: T:CloudStorageORM.Observability.CloudStorageOrmObservabilityOptions
+  fullName: CloudStorageORM.Observability.CloudStorageOrmObservabilityOptions
+  nameWithType: CloudStorageOrmObservabilityOptions
+- uid: CloudStorageORM.Observability.CloudStorageOrmObservabilityOptions.ActivitySourceName
+  name: ActivitySourceName
+  href: api/CloudStorageORM.Observability.CloudStorageOrmObservabilityOptions.html#CloudStorageORM_Observability_CloudStorageOrmObservabilityOptions_ActivitySourceName
+  commentId: P:CloudStorageORM.Observability.CloudStorageOrmObservabilityOptions.ActivitySourceName
+  fullName: CloudStorageORM.Observability.CloudStorageOrmObservabilityOptions.ActivitySourceName
+  nameWithType: CloudStorageOrmObservabilityOptions.ActivitySourceName
+- uid: CloudStorageORM.Observability.CloudStorageOrmObservabilityOptions.ActivitySourceName*
+  name: ActivitySourceName
+  href: api/CloudStorageORM.Observability.CloudStorageOrmObservabilityOptions.html#CloudStorageORM_Observability_CloudStorageOrmObservabilityOptions_ActivitySourceName_
+  commentId: Overload:CloudStorageORM.Observability.CloudStorageOrmObservabilityOptions.ActivitySourceName
+  isSpec: "True"
+  fullName: CloudStorageORM.Observability.CloudStorageOrmObservabilityOptions.ActivitySourceName
+  nameWithType: CloudStorageOrmObservabilityOptions.ActivitySourceName
+- uid: CloudStorageORM.Observability.CloudStorageOrmObservabilityOptions.DiagnosticListenerName
+  name: DiagnosticListenerName
+  href: api/CloudStorageORM.Observability.CloudStorageOrmObservabilityOptions.html#CloudStorageORM_Observability_CloudStorageOrmObservabilityOptions_DiagnosticListenerName
+  commentId: P:CloudStorageORM.Observability.CloudStorageOrmObservabilityOptions.DiagnosticListenerName
+  fullName: CloudStorageORM.Observability.CloudStorageOrmObservabilityOptions.DiagnosticListenerName
+  nameWithType: CloudStorageOrmObservabilityOptions.DiagnosticListenerName
+- uid: CloudStorageORM.Observability.CloudStorageOrmObservabilityOptions.DiagnosticListenerName*
+  name: DiagnosticListenerName
+  href: api/CloudStorageORM.Observability.CloudStorageOrmObservabilityOptions.html#CloudStorageORM_Observability_CloudStorageOrmObservabilityOptions_DiagnosticListenerName_
+  commentId: Overload:CloudStorageORM.Observability.CloudStorageOrmObservabilityOptions.DiagnosticListenerName
+  isSpec: "True"
+  fullName: CloudStorageORM.Observability.CloudStorageOrmObservabilityOptions.DiagnosticListenerName
+  nameWithType: CloudStorageOrmObservabilityOptions.DiagnosticListenerName
+- uid: CloudStorageORM.Observability.CloudStorageOrmObservabilityOptions.EnableDiagnostics
+  name: EnableDiagnostics
+  href: api/CloudStorageORM.Observability.CloudStorageOrmObservabilityOptions.html#CloudStorageORM_Observability_CloudStorageOrmObservabilityOptions_EnableDiagnostics
+  commentId: P:CloudStorageORM.Observability.CloudStorageOrmObservabilityOptions.EnableDiagnostics
+  fullName: CloudStorageORM.Observability.CloudStorageOrmObservabilityOptions.EnableDiagnostics
+  nameWithType: CloudStorageOrmObservabilityOptions.EnableDiagnostics
+- uid: CloudStorageORM.Observability.CloudStorageOrmObservabilityOptions.EnableDiagnostics*
+  name: EnableDiagnostics
+  href: api/CloudStorageORM.Observability.CloudStorageOrmObservabilityOptions.html#CloudStorageORM_Observability_CloudStorageOrmObservabilityOptions_EnableDiagnostics_
+  commentId: Overload:CloudStorageORM.Observability.CloudStorageOrmObservabilityOptions.EnableDiagnostics
+  isSpec: "True"
+  fullName: CloudStorageORM.Observability.CloudStorageOrmObservabilityOptions.EnableDiagnostics
+  nameWithType: CloudStorageOrmObservabilityOptions.EnableDiagnostics
+- uid: CloudStorageORM.Observability.CloudStorageOrmObservabilityOptions.EnableLogging
+  name: EnableLogging
+  href: api/CloudStorageORM.Observability.CloudStorageOrmObservabilityOptions.html#CloudStorageORM_Observability_CloudStorageOrmObservabilityOptions_EnableLogging
+  commentId: P:CloudStorageORM.Observability.CloudStorageOrmObservabilityOptions.EnableLogging
+  fullName: CloudStorageORM.Observability.CloudStorageOrmObservabilityOptions.EnableLogging
+  nameWithType: CloudStorageOrmObservabilityOptions.EnableLogging
+- uid: CloudStorageORM.Observability.CloudStorageOrmObservabilityOptions.EnableLogging*
+  name: EnableLogging
+  href: api/CloudStorageORM.Observability.CloudStorageOrmObservabilityOptions.html#CloudStorageORM_Observability_CloudStorageOrmObservabilityOptions_EnableLogging_
+  commentId: Overload:CloudStorageORM.Observability.CloudStorageOrmObservabilityOptions.EnableLogging
+  isSpec: "True"
+  fullName: CloudStorageORM.Observability.CloudStorageOrmObservabilityOptions.EnableLogging
+  nameWithType: CloudStorageOrmObservabilityOptions.EnableLogging
+- uid: CloudStorageORM.Observability.CloudStorageOrmObservabilityOptions.EnableTracing
+  name: EnableTracing
+  href: api/CloudStorageORM.Observability.CloudStorageOrmObservabilityOptions.html#CloudStorageORM_Observability_CloudStorageOrmObservabilityOptions_EnableTracing
+  commentId: P:CloudStorageORM.Observability.CloudStorageOrmObservabilityOptions.EnableTracing
+  fullName: CloudStorageORM.Observability.CloudStorageOrmObservabilityOptions.EnableTracing
+  nameWithType: CloudStorageOrmObservabilityOptions.EnableTracing
+- uid: CloudStorageORM.Observability.CloudStorageOrmObservabilityOptions.EnableTracing*
+  name: EnableTracing
+  href: api/CloudStorageORM.Observability.CloudStorageOrmObservabilityOptions.html#CloudStorageORM_Observability_CloudStorageOrmObservabilityOptions_EnableTracing_
+  commentId: Overload:CloudStorageORM.Observability.CloudStorageOrmObservabilityOptions.EnableTracing
+  isSpec: "True"
+  fullName: CloudStorageORM.Observability.CloudStorageOrmObservabilityOptions.EnableTracing
+  nameWithType: CloudStorageOrmObservabilityOptions.EnableTracing
+- uid: CloudStorageORM.Observability.CloudStorageOrmObservabilityOptions.GetActivitySourceName
+  name: GetActivitySourceName()
+  href: api/CloudStorageORM.Observability.CloudStorageOrmObservabilityOptions.html#CloudStorageORM_Observability_CloudStorageOrmObservabilityOptions_GetActivitySourceName
+  commentId: M:CloudStorageORM.Observability.CloudStorageOrmObservabilityOptions.GetActivitySourceName
+  fullName: CloudStorageORM.Observability.CloudStorageOrmObservabilityOptions.GetActivitySourceName()
+  nameWithType: CloudStorageOrmObservabilityOptions.GetActivitySourceName()
+- uid: CloudStorageORM.Observability.CloudStorageOrmObservabilityOptions.GetActivitySourceName*
+  name: GetActivitySourceName
+  href: api/CloudStorageORM.Observability.CloudStorageOrmObservabilityOptions.html#CloudStorageORM_Observability_CloudStorageOrmObservabilityOptions_GetActivitySourceName_
+  commentId: Overload:CloudStorageORM.Observability.CloudStorageOrmObservabilityOptions.GetActivitySourceName
+  isSpec: "True"
+  fullName: CloudStorageORM.Observability.CloudStorageOrmObservabilityOptions.GetActivitySourceName
+  nameWithType: CloudStorageOrmObservabilityOptions.GetActivitySourceName
+- uid: CloudStorageORM.Observability.CloudStorageOrmObservabilityOptions.GetDiagnosticListenerName
+  name: GetDiagnosticListenerName()
+  href: api/CloudStorageORM.Observability.CloudStorageOrmObservabilityOptions.html#CloudStorageORM_Observability_CloudStorageOrmObservabilityOptions_GetDiagnosticListenerName
+  commentId: M:CloudStorageORM.Observability.CloudStorageOrmObservabilityOptions.GetDiagnosticListenerName
+  fullName: CloudStorageORM.Observability.CloudStorageOrmObservabilityOptions.GetDiagnosticListenerName()
+  nameWithType: CloudStorageOrmObservabilityOptions.GetDiagnosticListenerName()
+- uid: CloudStorageORM.Observability.CloudStorageOrmObservabilityOptions.GetDiagnosticListenerName*
+  name: GetDiagnosticListenerName
+  href: api/CloudStorageORM.Observability.CloudStorageOrmObservabilityOptions.html#CloudStorageORM_Observability_CloudStorageOrmObservabilityOptions_GetDiagnosticListenerName_
+  commentId: Overload:CloudStorageORM.Observability.CloudStorageOrmObservabilityOptions.GetDiagnosticListenerName
+  isSpec: "True"
+  fullName: CloudStorageORM.Observability.CloudStorageOrmObservabilityOptions.GetDiagnosticListenerName
+  nameWithType: CloudStorageOrmObservabilityOptions.GetDiagnosticListenerName
 - uid: CloudStorageORM.Options
   name: CloudStorageORM.Options
   href: api/CloudStorageORM.Options.html
@@ -2536,6 +2822,19 @@ references:
   isSpec: "True"
   fullName: CloudStorageORM.Options.CloudStorageOptions.ContainerName
   nameWithType: CloudStorageOptions.ContainerName
+- uid: CloudStorageORM.Options.CloudStorageOptions.Observability
+  name: Observability
+  href: api/CloudStorageORM.Options.CloudStorageOptions.html#CloudStorageORM_Options_CloudStorageOptions_Observability
+  commentId: P:CloudStorageORM.Options.CloudStorageOptions.Observability
+  fullName: CloudStorageORM.Options.CloudStorageOptions.Observability
+  nameWithType: CloudStorageOptions.Observability
+- uid: CloudStorageORM.Options.CloudStorageOptions.Observability*
+  name: Observability
+  href: api/CloudStorageORM.Options.CloudStorageOptions.html#CloudStorageORM_Options_CloudStorageOptions_Observability_
+  commentId: Overload:CloudStorageORM.Options.CloudStorageOptions.Observability
+  isSpec: "True"
+  fullName: CloudStorageORM.Options.CloudStorageOptions.Observability
+  nameWithType: CloudStorageOptions.Observability
 - uid: CloudStorageORM.Options.CloudStorageOptions.Provider
   name: Provider
   href: api/CloudStorageORM.Options.CloudStorageOptions.html#CloudStorageORM_Options_CloudStorageOptions_Provider

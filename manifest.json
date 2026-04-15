@@ -678,6 +678,62 @@
     },
     {
       "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Observability.CloudStorageOrmActivitySource.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Observability.CloudStorageOrmActivitySource.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Observability.CloudStorageOrmActivitySource",
+      "Summary": "<p sourcefile=\"api/CloudStorageORM.Observability.CloudStorageOrmActivitySource.yml\" sourcestartlinenumber=\"1\">Central ActivitySource for CloudStorageORM distributed tracing.\nProvides a singleton instance for all tracing operations.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Observability.CloudStorageOrmEventIds.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Observability.CloudStorageOrmEventIds.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Observability.CloudStorageOrmEventIds",
+      "Summary": "<p sourcefile=\"api/CloudStorageORM.Observability.CloudStorageOrmEventIds.yml\" sourcestartlinenumber=\"1\">Event IDs for CloudStorageORM logging and diagnostics.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Observability.CloudStorageOrmObservabilityOptions.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Observability.CloudStorageOrmObservabilityOptions.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Observability.CloudStorageOrmObservabilityOptions",
+      "Summary": "<p sourcefile=\"api/CloudStorageORM.Observability.CloudStorageOrmObservabilityOptions.yml\" sourcestartlinenumber=\"1\">Configuration options for CloudStorageORM observability features including logging, tracing, and diagnostics.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Observability.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Observability.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Observability",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
       "source_relative_path": "api/CloudStorageORM.Options.CloudStorageAwsOptions.yml",
       "output": {
         ".html": {
@@ -1093,6 +1149,16 @@
       "output": {
         ".html": {
           "relative_path": "migration.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "docs/observability.md",
+      "output": {
+        ".html": {
+          "relative_path": "observability.html"
         }
       },
       "version": ""
