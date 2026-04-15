@@ -39,6 +39,9 @@ public class CloudStorageQueryProviderTests
         storageProviderMock
             .Setup(x => x.ListAsync(blobName))
             .ReturnsAsync(seed.Select(u => $"{blobName}/{u.Id}.json").ToList());
+        SetupPagedListing(
+            storageProviderMock,
+            seed.Select(u => $"{blobName}/{u.Id}.json").ToList());
 
         // ReadAsync returns the correct entity for each path.
         foreach (var user in seed)
@@ -72,6 +75,9 @@ public class CloudStorageQueryProviderTests
         storageProviderMock
             .Setup(x => x.ListAsync(blobName))
             .ReturnsAsync(seed.Select(u => $"{blobName}/{u.Id}.json").ToList());
+        SetupPagedListing(
+            storageProviderMock,
+            seed.Select(u => $"{blobName}/{u.Id}.json").ToList());
 
         foreach (var user in seed)
         {
@@ -461,6 +467,241 @@ public class CloudStorageQueryProviderTests
     }
 
     [Fact]
+    public void Take_UsesPagedListingAndReadsOnlyRequestedEntities()
+    {
+        var seed = new List<QueryTestUser>
+        {
+            new() { Id = UserId1, Name = "Alice" },
+            new() { Id = UserId2, Name = "Bob" }
+        };
+
+        var (provider, storageMock) = BuildProvider(seed);
+        var pathResolver = new BlobPathResolver(storageMock.Object);
+        var blobName = pathResolver.GetBlobName(typeof(QueryTestUser));
+        var queryable = new CloudStorageQueryable<QueryTestUser>(provider);
+
+        var results = ((IQueryable<QueryTestUser>)queryable).Take(1).ToList();
+
+        results.Count.ShouldBe(1);
+        results[0].Id.ShouldBe(UserId1);
+        storageMock.Verify(x => x.ListPageAsync(blobName, It.IsAny<int>(), null, It.IsAny<CancellationToken>()),
+            Times.Once);
+        storageMock.Verify(x => x.ListAsync(It.IsAny<string>()), Times.Never);
+        storageMock.Verify(x => x.ReadWithMetadataAsync<QueryTestUser?>(It.IsAny<string>()), Times.Once);
+    }
+
+    [Fact]
+    public void SkipTake_WithPrimaryKeyRange_UsesPagedRangeLoading()
+    {
+        var seed = new List<RangeQueryTestUser>
+        {
+            new() { Id = 1, Name = "A" },
+            new() { Id = 2, Name = "B" },
+            new() { Id = 3, Name = "C" }
+        };
+
+        var (provider, storageMock) = BuildRangeProvider(seed);
+        var pathResolver = new BlobPathResolver(storageMock.Object);
+        var blobName = pathResolver.GetBlobName(typeof(RangeQueryTestUser));
+        var queryable = new CloudStorageQueryable<RangeQueryTestUser>(provider);
+
+        var results = ((IQueryable<RangeQueryTestUser>)queryable)
+            .Where(u => u.Id >= 1)
+            .Skip(1)
+            .Take(1)
+            .ToList();
+
+        results.Count.ShouldBe(1);
+        results[0].Id.ShouldBe(2);
+        storageMock.Verify(x => x.ListPageAsync(blobName, It.IsAny<int>(), null, It.IsAny<CancellationToken>()),
+            Times.Once);
+        storageMock.Verify(
+            x => x.ReadWithMetadataAsync<RangeQueryTestUser?>(It.Is<string>(p => p == $"{blobName}/1.json")),
+            Times.Never);
+        storageMock.Verify(
+            x => x.ReadWithMetadataAsync<RangeQueryTestUser?>(It.Is<string>(p => p == $"{blobName}/2.json")),
+            Times.Once);
+    }
+
+    [Fact]
+    public void SkipTake_WithNonPrimaryKeyPredicate_FallsBackToFullLoad()
+    {
+        var seed = new List<QueryTestUser>
+        {
+            new() { Id = UserId1, Name = "Alice" },
+            new() { Id = UserId2, Name = "Bob" }
+        };
+
+        var (provider, storageMock) = BuildProvider(seed);
+        var queryable = new CloudStorageQueryable<QueryTestUser>(provider);
+
+        var results = ((IQueryable<QueryTestUser>)queryable)
+            .Where(u => u.Name.Contains("o"))
+            .Skip(0)
+            .Take(1)
+            .ToList();
+
+        results.Count.ShouldBe(1);
+        results[0].Id.ShouldBe(UserId2);
+        storageMock.Verify(x => x.ListAsync(It.IsAny<string>()), Times.Once);
+    }
+
+    [Fact]
+    public void SkipTake_WithPrimaryKeyEquality_UsesDirectLookup()
+    {
+        var seed = new List<QueryTestUser>
+        {
+            new() { Id = UserId1, Name = "Alice" }
+        };
+
+        var (provider, storageMock) = BuildProvider(seed);
+        var pathResolver = new BlobPathResolver(storageMock.Object);
+        var blobName = pathResolver.GetBlobName(typeof(QueryTestUser));
+        var queryable = new CloudStorageQueryable<QueryTestUser>(provider);
+
+        var results = ((IQueryable<QueryTestUser>)queryable)
+            .Where(u => u.Id == UserId1)
+            .Skip(0)
+            .Take(1)
+            .ToList();
+
+        results.Count.ShouldBe(1);
+        results[0].Id.ShouldBe(UserId1);
+        storageMock.Verify(x => x.ReadWithMetadataAsync<QueryTestUser>($"{blobName}/{UserId1}.json"), Times.Once);
+        storageMock.Verify(x => x.ListAsync(It.IsAny<string>()), Times.Never);
+        storageMock.Verify(
+            x => x.ListPageAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<string?>(),
+                It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public void SkipWithoutTake_FallsBackToFullLoad()
+    {
+        var seed = new List<QueryTestUser>
+        {
+            new() { Id = UserId1, Name = "Alice" },
+            new() { Id = UserId2, Name = "Bob" }
+        };
+
+        var (provider, storageMock) = BuildProvider(seed);
+        var queryable = new CloudStorageQueryable<QueryTestUser>(provider);
+
+        var results = ((IQueryable<QueryTestUser>)queryable).Skip(1).ToList();
+
+        results.Count.ShouldBe(1);
+        results[0].Id.ShouldBe(UserId2);
+        storageMock.Verify(x => x.ListAsync(It.IsAny<string>()), Times.Once);
+        storageMock.Verify(
+            x => x.ListPageAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<string?>(),
+                It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public void TakeZero_ReturnsEmptyWithoutListing()
+    {
+        var seed = new List<QueryTestUser>
+        {
+            new() { Id = UserId1, Name = "Alice" }
+        };
+
+        var (provider, storageMock) = BuildProvider(seed);
+        var queryable = new CloudStorageQueryable<QueryTestUser>(provider);
+
+        var results = ((IQueryable<QueryTestUser>)queryable).Take(0).ToList();
+
+        results.ShouldBeEmpty();
+        storageMock.Verify(x => x.ListAsync(It.IsAny<string>()), Times.Never);
+        storageMock.Verify(
+            x => x.ListPageAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<string?>(),
+                It.IsAny<CancellationToken>()), Times.Never);
+        storageMock.Verify(x => x.ReadWithMetadataAsync<QueryTestUser?>(It.IsAny<string>()), Times.Never);
+    }
+
+    [Fact]
+    public void SkipTake_WithNegativeTake_FallsBackToFullLoad()
+    {
+        var seed = new List<QueryTestUser>
+        {
+            new() { Id = UserId1, Name = "Alice" },
+            new() { Id = UserId2, Name = "Bob" }
+        };
+
+        var (provider, storageMock) = BuildProvider(seed);
+        var queryable = new CloudStorageQueryable<QueryTestUser>(provider);
+
+        var results = ((IQueryable<QueryTestUser>)queryable).Skip(0).Take(-1).ToList();
+
+        results.ShouldNotBeNull();
+        storageMock.Verify(x => x.ListAsync(It.IsAny<string>()), Times.Once);
+        storageMock.Verify(
+            x => x.ListPageAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<string?>(),
+                It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Theory]
+    [InlineData("select")]
+    [InlineData("selectmany")]
+    [InlineData("reverse")]
+    [InlineData("distinct")]
+    public void SkipTake_WithUnsupportedOperators_FallsBackToFullLoad(string mode)
+    {
+        var seed = new List<QueryTestUser>
+        {
+            new() { Id = UserId1, Name = "Alice" },
+            new() { Id = UserId2, Name = "Bob" }
+        };
+
+        var (provider, storageMock) = BuildProvider(seed);
+        var queryable = new CloudStorageQueryable<QueryTestUser>(provider);
+
+        switch (mode)
+        {
+            case "select":
+                _ = ((IQueryable<QueryTestUser>)queryable).Select(x => x).Skip(0).Take(1).ToList();
+                break;
+            case "selectmany":
+                _ = ((IQueryable<QueryTestUser>)queryable)
+                    .SelectMany(x => new[] { x })
+                    .Skip(0)
+                    .Take(1)
+                    .ToList();
+                break;
+            case "reverse":
+                _ = ((IQueryable<QueryTestUser>)queryable).Reverse().Skip(0).Take(1).ToList();
+                break;
+            case "distinct":
+                _ = queryable.Distinct().Skip(0).Take(1).ToList();
+                break;
+        }
+
+        storageMock.Verify(x => x.ListAsync(It.IsAny<string>()), Times.Once);
+        storageMock.Verify(
+            x => x.ListPageAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<string?>(),
+                It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public void SkipTakeCount_ScalarResult_DoesNotUsePushdown()
+    {
+        var seed = new List<QueryTestUser>
+        {
+            new() { Id = UserId1, Name = "Alice" },
+            new() { Id = UserId2, Name = "Bob" }
+        };
+
+        var (provider, storageMock) = BuildProvider(seed);
+        var queryable = new CloudStorageQueryable<QueryTestUser>(provider);
+
+        var count = ((IQueryable<QueryTestUser>)queryable).Skip(1).Take(1).Count();
+
+        count.ShouldBe(2);
+        storageMock.Verify(x => x.ListAsync(It.IsAny<string>()), Times.Once);
+        storageMock.Verify(
+            x => x.ListPageAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<string?>(),
+                It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
     public async Task GetAsyncEnumerator_ReturnsAllItems()
     {
         var seed = new List<QueryTestUser>
@@ -527,6 +768,27 @@ public class CloudStorageQueryProviderTests
             .ReturnsAsync(new StorageObject<QueryTestUser>(null, null, false));
         mock.Setup(x => x.ReadWithMetadataAsync<QueryTestUser?>(It.Is<string>(p => p == path)))
             .ReturnsAsync(new StorageObject<QueryTestUser?>(null, null, false));
+    }
+
+    private static void SetupPagedListing(Mock<IStorageProvider> storageProviderMock,
+        IReadOnlyList<string> orderedPaths)
+    {
+        storageProviderMock
+            .Setup(x => x.ListPageAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<string?>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync((string _, int pageSize, string? continuationToken, CancellationToken _) =>
+            {
+                var start = 0;
+                if (!string.IsNullOrWhiteSpace(continuationToken))
+                {
+                    _ = int.TryParse(continuationToken, out start);
+                }
+
+                var keys = orderedPaths.Skip(start).Take(pageSize).ToList();
+                var nextIndex = start + keys.Count;
+                var hasMore = nextIndex < orderedPaths.Count;
+                return new StorageListPage(keys, hasMore ? nextIndex.ToString() : null, hasMore);
+            });
     }
 }
 

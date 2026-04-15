@@ -233,19 +233,40 @@ public class AwsS3StorageProvider : IStorageProvider
 
         do
         {
-            var response = await _s3Client.ListObjectsV2Async(new ListObjectsV2Request
-            {
-                BucketName = _bucketName,
-                Prefix = folderPath,
-                ContinuationToken = continuationToken
-            });
-
-            var objects = response.S3Objects ?? [];
-            result.AddRange(objects.Select(x => x.Key));
-            continuationToken = response.IsTruncated == true ? response.NextContinuationToken : null;
+            var page = await ListPageAsync(folderPath, pageSize: 1000, continuationToken, CancellationToken.None);
+            result.AddRange(page.Keys);
+            continuationToken = page.HasMore ? page.ContinuationToken : null;
         } while (!string.IsNullOrEmpty(continuationToken));
 
         return result;
+    }
+
+    /// <inheritdoc />
+    public async Task<StorageListPage> ListPageAsync(
+        string folderPath,
+        int pageSize,
+        string? continuationToken,
+        CancellationToken cancellationToken = default)
+    {
+        if (pageSize <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(pageSize), pageSize, "Page size must be greater than zero.");
+        }
+
+        await EnsureBucketExistsAsync();
+
+        var response = await _s3Client.ListObjectsV2Async(new ListObjectsV2Request
+        {
+            BucketName = _bucketName,
+            Prefix = folderPath,
+            MaxKeys = pageSize,
+            ContinuationToken = continuationToken
+        }, cancellationToken);
+
+        var objects = response.S3Objects ?? [];
+        var keys = objects.Select(x => x.Key).ToList();
+        var nextToken = response.IsTruncated == true ? response.NextContinuationToken : null;
+        return new StorageListPage(keys, nextToken, !string.IsNullOrWhiteSpace(nextToken));
     }
 
     /// <inheritdoc />

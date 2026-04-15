@@ -52,11 +52,18 @@ while IFS= read -r project; do
   projects+=("$project")
 done < <(find . -type f -iname "*.Tests.csproj" | sort)
 
-# Keep local runs aligned with CI while including the integration test project if present.
-integration_project="./tests/CloudStorageORM.IntegrationTests/CloudStorageORM.IntegrationTests.Azure.csproj"
-if [[ -f "$integration_project" ]]; then
-  projects+=("$integration_project")
-fi
+# Keep local runs aligned with CI while including provider-specific integration projects.
+integration_projects=(
+  "./tests/CloudStorageORM.IntegrationTests/CloudStorageORM.IntegrationTests.Azure.csproj"
+  "./tests/CloudStorageORM.IntegrationTests/CloudStorageORM.IntegrationTests.AWS.csproj"
+  "./tests/CloudStorageORM.IntegrationTests.SampleApp/CloudStorageORM.IntegrationTests.SampleApp.csproj"
+)
+
+for integration_project in "${integration_projects[@]}"; do
+  if [[ -f "$integration_project" ]]; then
+    projects+=("$integration_project")
+  fi
+done
 
 echo "Running test projects..."
 for proj in "${projects[@]}"; do

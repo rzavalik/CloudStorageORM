@@ -376,6 +376,36 @@ public class CloudStorageTransactionManagerDurabilityTests
             }
         }
 
+        public Task<StorageListPage> ListPageAsync(
+            string folderPath,
+            int pageSize,
+            string? continuationToken,
+            CancellationToken cancellationToken = default)
+        {
+            ArgumentOutOfRangeException.ThrowIfNegativeOrZero(pageSize);
+
+            lock (_sync)
+            {
+                var ordered = _store.Keys
+                    .Where(k => k.StartsWith(folderPath, StringComparison.Ordinal))
+                    .OrderBy(k => k, StringComparer.Ordinal)
+                    .ToList();
+
+                var start = 0;
+                if (!string.IsNullOrWhiteSpace(continuationToken)
+                    && int.TryParse(continuationToken, out var parsedStart)
+                    && parsedStart >= 0)
+                {
+                    start = parsedStart;
+                }
+
+                var keys = ordered.Skip(start).Take(pageSize).ToList();
+                var nextIndex = start + keys.Count;
+                var hasMore = nextIndex < ordered.Count;
+                return Task.FromResult(new StorageListPage(keys, hasMore ? nextIndex.ToString() : null, hasMore));
+            }
+        }
+
         public string SanitizeBlobName(string rawName) => rawName;
 
         public Task SaveRawJsonAsync(string path, string json)

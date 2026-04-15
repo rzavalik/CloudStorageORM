@@ -48,12 +48,8 @@ These defaults are used by tests/sample if variables are not set:
 ## Run AWS integration tests only
 
 ```bash
-dotnet test tests/CloudStorageORM.IntegrationTests/CloudStorageORM.IntegrationTests.Azure.csproj \
-  --filter "FullyQualifiedName~Aws" \
-  --nologo -v minimal
+dotnet test tests/CloudStorageORM.IntegrationTests/CloudStorageORM.IntegrationTests.AWS.csproj --nologo -v minimal
 ```
-
-Note: there is a single integration test project file (`CloudStorageORM.IntegrationTests.Azure.csproj`) that contains both Azure and AWS integration tests.
 
 If LocalStack is unavailable, AWS integration scenarios are skipped by fixture guards.
 
@@ -103,6 +99,8 @@ export CLOUDSTORAGEORM_AWS_FORCE_PATH_STYLE=true
 ## Related files
 
 - `src/CloudStorageORM/Providers/Aws/StorageProviders/AwsS3StorageProvider.cs`
+- `tests/CloudStorageORM.IntegrationTests/CloudStorageORM.IntegrationTests.AWS.csproj`
+- `tests/CloudStorageORM.IntegrationTests.SampleApp/CloudStorageORM.IntegrationTests.SampleApp.csproj`
 - `tests/CloudStorageORM.IntegrationTests/Aws/LocalStackFixture.cs`
 - `tests/CloudStorageORM.IntegrationTests/Aws/StorageProviders/AwsS3StorageProviderTests.cs`
-- `tests/CloudStorageORM.IntegrationTests/Aws/ProgramExitAwsTests.cs`
+- `tests/CloudStorageORM.IntegrationTests.SampleApp/ProgramExitAwsSampleAppTests.cs`

@@ -48,7 +48,10 @@ public class CloudStorageDatabase(
         transactionManager ?? throw new ArgumentNullException(nameof(transactionManager));
 
     private readonly ILogger<CloudStorageDatabase>? _logger = logger;
-    private readonly ILogger<CloudStorageQueryProvider>? _queryLogger = loggerFactory?.CreateLogger<CloudStorageQueryProvider>();
+
+    private readonly ILogger<CloudStorageQueryProvider>? _queryLogger =
+        loggerFactory?.CreateLogger<CloudStorageQueryProvider>();
+
     private readonly bool _enableLogging = cloudStorageOptions?.Observability.EnableLogging ?? true;
     private readonly bool _enableTracing = cloudStorageOptions?.Observability.EnableTracing ?? true;
 
@@ -436,6 +439,38 @@ public class CloudStorageDatabase(
     }
 
     /// <summary>
+    /// Loads a paged slice of entities for the requested type using provider-native key listing.
+    /// </summary>
+    /// <typeparam name="TEntity">Entity type to load.</typeparam>
+    /// <param name="skip">Number of matching entities to skip.</param>
+    /// <param name="take">Maximum number of matching entities to load.</param>
+    /// <param name="context">Optional context used for tracking; defaults to the current context.</param>
+    /// <returns>A page of entities after applying skip/take.</returns>
+    public async Task<IList<TEntity>> LoadPageAsync<TEntity>(int skip, int take, DbContext? context = null)
+        where TEntity : class
+    {
+        if (skip < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(skip), skip, "Skip must be greater than or equal to zero.");
+        }
+
+        switch (take)
+        {
+            case < 0:
+                throw new ArgumentOutOfRangeException(nameof(take), take,
+                    "Take must be greater than or equal to zero.");
+
+            case 0:
+                return [];
+        }
+
+        var targetContext = context ?? _context;
+        var blobName = _blobPathResolver.GetBlobName(typeof(TEntity));
+        var pagePaths = await SelectPathsPageAsync(blobName, _ => true, skip, take);
+        return await LoadEntitiesByPathsAsync<TEntity>(targetContext, pagePaths);
+    }
+
+    /// <summary>
     /// Loads a single entity by primary-key value from object storage and attaches it to the context.
     /// </summary>
     /// <typeparam name="TEntity">Entity type to load.</typeparam>
@@ -520,6 +555,77 @@ public class CloudStorageDatabase(
         }
 
         return results;
+    }
+
+    /// <summary>
+    /// Loads a paged slice of entities whose primary keys are in the provided range.
+    /// </summary>
+    /// <typeparam name="TEntity">Entity type to load.</typeparam>
+    /// <param name="lowerBound">Optional lower bound key value.</param>
+    /// <param name="lowerInclusive"><see langword="true" /> to include the lower bound.</param>
+    /// <param name="upperBound">Optional upper bound key value.</param>
+    /// <param name="upperInclusive"><see langword="true" /> to include the upper bound.</param>
+    /// <param name="skip">Number of matching entities to skip.</param>
+    /// <param name="take">Maximum number of matching entities to load.</param>
+    /// <param name="context">Optional context used for tracking; defaults to the current context.</param>
+    /// <returns>A page of entities whose keys satisfy the requested range after applying skip/take.</returns>
+    public async Task<IList<TEntity>> LoadByPrimaryKeyRangePageAsync<TEntity>(
+        object? lowerBound,
+        bool lowerInclusive,
+        object? upperBound,
+        bool upperInclusive,
+        int skip,
+        int take,
+        DbContext? context = null)
+        where TEntity : class
+    {
+        if (skip < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(skip), skip, "Skip must be greater than or equal to zero.");
+        }
+
+        if (take < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(take), take, "Take must be greater than or equal to zero.");
+        }
+
+        if (take == 0)
+        {
+            return [];
+        }
+
+        var targetContext = context ?? _context;
+        var blobName = _blobPathResolver.GetBlobName(typeof(TEntity));
+        var entityType = Model.FindEntityType(typeof(TEntity));
+        var keyProperties = entityType?.FindPrimaryKey()?.Properties;
+        var keyProperty = keyProperties?.FirstOrDefault();
+
+        if (keyProperty is null)
+        {
+            return [];
+        }
+
+        var keyType = Nullable.GetUnderlyingType(keyProperty.ClrType) ?? keyProperty.ClrType;
+        var typedLower = lowerBound is null ? null : ConvertToKeyType(lowerBound, keyType);
+        var typedUpper = upperBound is null ? null : ConvertToKeyType(upperBound, keyType);
+
+        var pagePaths = await SelectPathsPageAsync(
+            blobName,
+            path =>
+            {
+                var keyText = Path.GetFileNameWithoutExtension(path);
+                if (string.IsNullOrWhiteSpace(keyText)
+                    || !TryParseStorageKey(keyText, keyType, out var keyValue))
+                {
+                    return false;
+                }
+
+                return IsWithinRange(keyValue, typedLower, lowerInclusive, typedUpper, upperInclusive);
+            },
+            skip,
+            take);
+
+        return await LoadEntitiesByPathsAsync<TEntity>(targetContext, pagePaths, keyProperties);
     }
 
     /// <summary>
@@ -771,5 +877,81 @@ public class CloudStorageDatabase(
         return left is not IComparable comparable
             ? throw new InvalidOperationException("Primary key type must implement IComparable for range filtering.")
             : comparable.CompareTo(right);
+    }
+
+    private async Task<List<string>> SelectPathsPageAsync(
+        string prefix,
+        Func<string, bool> include,
+        int skip,
+        int take,
+        CancellationToken cancellationToken = default)
+    {
+        const int pageSize = 1000;
+        var results = new List<string>(Math.Max(4, take));
+        var remainingSkip = skip;
+        string? continuationToken = null;
+
+        while (results.Count < take)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var page = await _storageProvider.ListPageAsync(prefix, pageSize, continuationToken, cancellationToken);
+
+            if (page.Keys.Count == 0 && !page.HasMore)
+            {
+                break;
+            }
+
+            foreach (var key in page.Keys)
+            {
+                if (!include(key))
+                {
+                    continue;
+                }
+
+                if (remainingSkip > 0)
+                {
+                    remainingSkip--;
+                    continue;
+                }
+
+                results.Add(key);
+                if (results.Count >= take)
+                {
+                    break;
+                }
+            }
+
+            if (!page.HasMore || string.IsNullOrWhiteSpace(page.ContinuationToken))
+            {
+                break;
+            }
+
+            continuationToken = page.ContinuationToken;
+        }
+
+        return results;
+    }
+
+    private async Task<IList<TEntity>> LoadEntitiesByPathsAsync<TEntity>(
+        DbContext targetContext,
+        IReadOnlyList<string> paths,
+        IReadOnlyList<IProperty>? keyProperties = null)
+        where TEntity : class
+    {
+        var results = new List<TEntity>(paths.Count);
+
+        foreach (var path in paths)
+        {
+            var storageObject = await _storageProvider.ReadWithMetadataAsync<TEntity?>(path);
+            if (!storageObject.Exists || storageObject.Value is null)
+            {
+                continue;
+            }
+
+            AttachOrReplaceTrackedEntity(targetContext, storageObject.Value, storageObject.ETag, keyProperties);
+            results.Add(storageObject.Value);
+        }
+
+        return results;
     }
 }

@@ -1,13 +1,16 @@
 using System.Diagnostics;
+using CloudStorageORM.IntegrationTests.Azure;
 using Shouldly;
 
-namespace CloudStorageORM.IntegrationTests.Azure.Aws;
+namespace CloudStorageORM.IntegrationTests.SampleApp;
 
-public class ProgramExitAwsTests(LocalStackFixture fixture) : IClassFixture<LocalStackFixture>
+public class ProgramExitAzureSampleAppTests(StorageFixture fixture)
+    : IClassFixture<StorageFixture>
 {
     [Fact]
     public async Task SampleApp_ShouldExitWithCodeZero_AndRunAllProviders()
     {
+        fixture.ShouldNotBeNull();
         fixture.EnsureAvailableOrSkip();
 
         var repoRoot = FindRepoRoot();
@@ -27,12 +30,8 @@ public class ProgramExitAwsTests(LocalStackFixture fixture) : IClassFixture<Loca
         process.StartInfo.ArgumentList.Add("-c");
         process.StartInfo.ArgumentList.Add("Debug");
 
-        process.StartInfo.Environment["CLOUDSTORAGEORM_AWS_ACCESS_KEY_ID"] = fixture.AccessKeyId;
-        process.StartInfo.Environment["CLOUDSTORAGEORM_AWS_SECRET_ACCESS_KEY"] = fixture.SecretAccessKey;
-        process.StartInfo.Environment["CLOUDSTORAGEORM_AWS_REGION"] = fixture.Region;
-        process.StartInfo.Environment["CLOUDSTORAGEORM_AWS_SERVICE_URL"] = fixture.ServiceUrl;
-        process.StartInfo.Environment["CLOUDSTORAGEORM_AWS_BUCKET"] = fixture.BucketName;
-        process.StartInfo.Environment["CLOUDSTORAGEORM_AWS_FORCE_PATH_STYLE"] = "true";
+        process.StartInfo.Environment["CLOUDSTORAGEORM_AZURE_CONNECTION_STRING"] = fixture.ConnectionString;
+        process.StartInfo.Environment["CLOUDSTORAGEORM_CONTAINER_NAME"] = fixture.ContainerName;
 
         process.Start();
 
@@ -63,14 +62,11 @@ public class ProgramExitAwsTests(LocalStackFixture fixture) : IClassFixture<Loca
         var stdout = await stdoutTask;
         var stderr = await stderrTask;
 
-        process.ExitCode.ShouldBe(0,
-            $"SampleApp should exit cleanly with AWS provider.\nSTDOUT:\n{stdout}\nSTDERR:\n{stderr}");
+        process.ExitCode.ShouldBe(0, $"SampleApp should exit cleanly.\nSTDOUT:\n{stdout}\nSTDERR:\n{stderr}");
         stdout.ShouldContain("SampleApp Finished");
         stdout.ShouldContain("Running using EF InMemory Provider");
         stdout.ShouldContain("Running using EF Azure Provider");
         stdout.ShouldContain("Running using EF Aws Provider");
-        stdout.ShouldContain("Cloud provider: Azure");
-        stdout.ShouldContain("Cloud provider: Aws");
         stdout.ShouldContain("Clearing users before run");
         stdout.ShouldContain("sample-user-001");
         stdout.ShouldContain("Rollback verification passed");

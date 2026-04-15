@@ -187,16 +187,45 @@ public class AzureBlobStorageProvider : IStorageProvider
     public async Task<List<string>> ListAsync(string folderPath)
     {
         var result = new List<string>();
-        await foreach (var blobItem in _containerClient.GetBlobsAsync(
-                           BlobTraits.None,
-                           BlobStates.None,
-                           folderPath,
-                           CancellationToken.None))
+        string? continuationToken = null;
+
+        do
         {
-            result.Add(blobItem.Name);
-        }
+            var page = await ListPageAsync(folderPath, pageSize: 1000, continuationToken, CancellationToken.None);
+            result.AddRange(page.Keys);
+            continuationToken = page.HasMore ? page.ContinuationToken : null;
+        } while (!string.IsNullOrWhiteSpace(continuationToken));
 
         return result;
+    }
+
+    /// <inheritdoc />
+    public async Task<StorageListPage> ListPageAsync(
+        string folderPath,
+        int pageSize,
+        string? continuationToken,
+        CancellationToken cancellationToken = default)
+    {
+        if (pageSize <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(pageSize), pageSize, "Page size must be greater than zero.");
+        }
+
+        await foreach (var page in _containerClient
+                           .GetBlobsAsync(
+                               BlobTraits.None,
+                               BlobStates.None,
+                               folderPath,
+                               cancellationToken)
+                           .AsPages(continuationToken, pageSizeHint: pageSize)
+                           .WithCancellation(cancellationToken))
+        {
+            var keys = page.Values.Select(x => x.Name).ToList();
+            var nextToken = string.IsNullOrWhiteSpace(page.ContinuationToken) ? null : page.ContinuationToken;
+            return new StorageListPage(keys, nextToken, !string.IsNullOrWhiteSpace(nextToken));
+        }
+
+        return new StorageListPage([], null, false);
     }
 
     /// <inheritdoc />

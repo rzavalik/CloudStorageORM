@@ -211,6 +211,92 @@ public class AwsS3StorageProviderTests
         result.ShouldContain("users/id-2.json");
     }
 
+    [Fact]
+    public async Task ListPageAsync_ShouldReturnObjectKeysAndContinuation()
+    {
+        var s3Mock = new Mock<IAmazonS3>();
+        ListObjectsV2Request? captured = null;
+        s3Mock.Setup(x => x.ListObjectsV2Async(It.IsAny<ListObjectsV2Request>(), It.IsAny<CancellationToken>()))
+            .Callback<ListObjectsV2Request, CancellationToken>((request, _) => captured = request)
+            .ReturnsAsync(new ListObjectsV2Response
+            {
+                IsTruncated = true,
+                NextContinuationToken = "next-token",
+                S3Objects =
+                [
+                    new S3Object { Key = "users/id-1.json" }
+                ]
+            });
+
+        var sut = CreateSut(s3Mock);
+
+        var result = await sut.ListPageAsync("users/", 1, "start-token");
+
+        captured.ShouldNotBeNull();
+        captured.MaxKeys.ShouldBe(1);
+        captured.ContinuationToken.ShouldBe("start-token");
+        result.Keys.Count.ShouldBe(1);
+        result.Keys[0].ShouldBe("users/id-1.json");
+        result.HasMore.ShouldBeTrue();
+        result.ContinuationToken.ShouldBe("next-token");
+    }
+
+    [Fact]
+    public async Task ListPageAsync_WithInvalidPageSize_Throws()
+    {
+        var sut = CreateSut(new Mock<IAmazonS3>());
+
+        await Should.ThrowAsync<ArgumentOutOfRangeException>(() => sut.ListPageAsync("users/", 0, null));
+    }
+
+    [Fact]
+    public async Task ListPageAsync_WithNullS3Objects_ReturnsEmptyKeys()
+    {
+        var s3Mock = new Mock<IAmazonS3>();
+        s3Mock.Setup(x => x.ListObjectsV2Async(It.IsAny<ListObjectsV2Request>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ListObjectsV2Response
+            {
+                IsTruncated = false,
+                S3Objects = null
+            });
+
+        var sut = CreateSut(s3Mock);
+        var result = await sut.ListPageAsync("users/", 2, null);
+
+        result.Keys.ShouldBeEmpty();
+        result.HasMore.ShouldBeFalse();
+        result.ContinuationToken.ShouldBeNull();
+    }
+
+    [Fact]
+    public async Task ListAsync_WithContinuation_AggregatesAllPages()
+    {
+        var s3Mock = new Mock<IAmazonS3>();
+        s3Mock.SetupSequence(x => x.ListObjectsV2Async(It.IsAny<ListObjectsV2Request>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ListObjectsV2Response
+            {
+                IsTruncated = true,
+                NextContinuationToken = "next-page",
+                S3Objects = [new S3Object { Key = "users/p1.json" }]
+            })
+            .ReturnsAsync(new ListObjectsV2Response
+            {
+                IsTruncated = false,
+                NextContinuationToken = null,
+                S3Objects = [new S3Object { Key = "users/p2.json" }]
+            });
+
+        var sut = CreateSut(s3Mock);
+        var result = await sut.ListAsync("users/");
+
+        result.Count.ShouldBe(2);
+        result.ShouldContain("users/p1.json");
+        result.ShouldContain("users/p2.json");
+        s3Mock.Verify(x => x.ListObjectsV2Async(
+            It.Is<ListObjectsV2Request>(r => r.ContinuationToken == "next-page"),
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
 
     [Fact]
     public async Task DeleteContainerAsync_WhenBucketDoesNotExist_ShouldNotThrow()

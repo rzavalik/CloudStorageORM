@@ -129,8 +129,8 @@ You can override values with env vars (for example `CLOUDSTORAGEORM_AZURE_CONNEC
 
 This sample is also covered by an integration test:
 
-- `tests/CloudStorageORM.IntegrationTests/ProgramExitTests.cs`
-- `tests/CloudStorageORM.IntegrationTests/Aws/ProgramExitAwsTests.cs`
+- `tests/CloudStorageORM.IntegrationTests.SampleApp/ProgramExitAzureSampleAppTests.cs`
+- `tests/CloudStorageORM.IntegrationTests.SampleApp/ProgramExitAwsSampleAppTests.cs`
 
 Those tests launch the sample through `dotnet run` and verify it exits with code `0` and prints `SampleApp Finished`.
 

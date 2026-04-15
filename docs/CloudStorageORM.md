@@ -26,20 +26,21 @@ The current branch is focused on:
 
 ## Current project structure
 
-| Path                                     | Purpose                                                                                  |
-|:-----------------------------------------|:-----------------------------------------------------------------------------------------|
-| `src/CloudStorageORM/Contexts`           | Base `CloudStorageDbContext` used by consuming applications                              |
-| `src/CloudStorageORM/Extensions`         | EF and DI extension methods such as `UseCloudStorageOrm(...)`                            |
-| `src/CloudStorageORM/Infrastructure`     | Query pipeline, database abstractions, type mapping, and EF integration internals        |
-| `src/CloudStorageORM/Interfaces`         | Contracts for storage providers, validators, repositories, and infrastructure helpers    |
-| `src/CloudStorageORM/Options`            | `CloudStorageOptions` configuration model                                                |
-| `src/CloudStorageORM/Providers/Azure`    | Azure Blob Storage provider and validator implementation                                 |
-| `src/CloudStorageORM/Providers/Aws`      | AWS S3 provider and validator implementation                                             |
-| `src/CloudStorageORM/Repositories`       | Repository and queryable helpers                                                         |
-| `src/CloudStorageORM/Validators`         | Model and blob validation rules                                                          |
-| `samples/CloudStorageORM.SampleApp`      | Console sample that runs the same flow against InMemory and CloudStorageORM              |
-| `tests/CloudStorageORM.Tests`            | Unit tests                                                                               |
-| `tests/CloudStorageORM.IntegrationTests` | Azurite- and LocalStack-backed integration tests, including sample app process execution |
+| Path                                               | Purpose                                                                               |
+|:---------------------------------------------------|:--------------------------------------------------------------------------------------|
+| `src/CloudStorageORM/Contexts`                     | Base `CloudStorageDbContext` used by consuming applications                           |
+| `src/CloudStorageORM/Extensions`                   | EF and DI extension methods such as `UseCloudStorageOrm(...)`                         |
+| `src/CloudStorageORM/Infrastructure`               | Query pipeline, database abstractions, type mapping, and EF integration internals     |
+| `src/CloudStorageORM/Interfaces`                   | Contracts for storage providers, validators, repositories, and infrastructure helpers |
+| `src/CloudStorageORM/Options`                      | `CloudStorageOptions` configuration model                                             |
+| `src/CloudStorageORM/Providers/Azure`              | Azure Blob Storage provider and validator implementation                              |
+| `src/CloudStorageORM/Providers/Aws`                | AWS S3 provider and validator implementation                                          |
+| `src/CloudStorageORM/Repositories`                 | Repository and queryable helpers                                                      |
+| `src/CloudStorageORM/Validators`                   | Model and blob validation rules                                                       |
+| `samples/CloudStorageORM.SampleApp`                | Console sample that runs the same flow against InMemory and CloudStorageORM           |
+| `tests/CloudStorageORM.Tests`                      | Unit tests                                                                            |
+| `tests/CloudStorageORM.IntegrationTests`           | Provider integration tests split by Azure and AWS                                     |
+| `tests/CloudStorageORM.IntegrationTests.SampleApp` | Sample app process integration tests                                                  |
 
 ---
 
@@ -203,7 +204,12 @@ These items are important for anyone consuming the current `main` branch:
 The repository currently includes:
 
 - unit tests in `tests/CloudStorageORM.Tests`
-- Azurite- and LocalStack-backed integration tests in `tests/CloudStorageORM.IntegrationTests`
+- Azurite-backed Azure integration tests in
+  `tests/CloudStorageORM.IntegrationTests/CloudStorageORM.IntegrationTests.Azure.csproj`
+- LocalStack-backed AWS integration tests in
+  `tests/CloudStorageORM.IntegrationTests/CloudStorageORM.IntegrationTests.AWS.csproj`
+- Sample app integration tests in
+  `tests/CloudStorageORM.IntegrationTests.SampleApp/CloudStorageORM.IntegrationTests.SampleApp.csproj`
 - coverage collection through `coverlet.collector` / `coverlet.msbuild`
 - HTML report generation through the local tool manifest in `dotnet-tools.json`
 
@@ -221,8 +227,8 @@ dotnet tool run reportgenerator -reports:"tests/**/TestResults/*/coverage.cobert
 ## Sample app relationship
 
 The sample app is not just a demo now; it is also part of the regression safety net.
-The integration tests `tests/CloudStorageORM.IntegrationTests/ProgramExitTests.cs` and
-`tests/CloudStorageORM.IntegrationTests/Aws/ProgramExitAwsTests.cs` execute:
+The integration tests `tests/CloudStorageORM.IntegrationTests.SampleApp/ProgramExitAzureSampleAppTests.cs` and
+`tests/CloudStorageORM.IntegrationTests.SampleApp/ProgramExitAwsSampleAppTests.cs` execute:
 
 ```bash
 dotnet run --project samples/CloudStorageORM.SampleApp/SampleApp.csproj

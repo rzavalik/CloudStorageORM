@@ -15,12 +15,12 @@ on:
       - hotfix/**
     paths-ignore:
       - _site/**
-      
+
 permissions:
   checks: write
   pull-requests: write
   contents: read
-  
+
 jobs:
   changes:
     name: Detect Change Scope
@@ -28,187 +28,370 @@ jobs:
     outputs:
       docs_only: ${{ steps.resolve.outputs.docs_only }}
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v5
+      - name: Checkout repository
+        uses: actions/checkout@v5
 
-    - name: Detect PR file paths
-      if: github.event_name == 'pull_request'
-      id: filter
-      uses: dorny/paths-filter@v3
-      with:
-        filters: |
-          docs:
-            - 'docs/**'
-            - 'docfx.json'
-            - 'README.md'
-            - 'CONTRIBUTING.md'
-            - 'ROADMAP.md'
-            - 'CODE_OF_CONDUCT.md'
-            - 'SECURITY.md'
-            - '.github/PULL_REQUEST_TEMPLATE.md'
-            - '.github/ISSUE_TEMPLATE/**'
-            - '.github/copilot-instructions.md'
-          non_docs:
-            - '**'
-            - '!_site/**'
-            - '!docs/**'
-            - '!docfx.json'
-            - '!README.md'
-            - '!CONTRIBUTING.md'
-            - '!ROADMAP.md'
-            - '!CODE_OF_CONDUCT.md'
-            - '!SECURITY.md'
-            - '!.github/PULL_REQUEST_TEMPLATE.md'
-            - '!.github/ISSUE_TEMPLATE/**'
-            - '!.github/copilot-instructions.md'
+      - name: Detect PR file paths
+        if: github.event_name == 'pull_request'
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            docs:
+              - 'docs/**'
+              - 'docfx.json'
+              - 'README.md'
+              - 'CONTRIBUTING.md'
+              - 'ROADMAP.md'
+              - 'CODE_OF_CONDUCT.md'
+              - 'SECURITY.md'
+              - '.github/PULL_REQUEST_TEMPLATE.md'
+              - '.github/ISSUE_TEMPLATE/**'
+              - '.github/copilot-instructions.md'
+            non_docs:
+              - '**'
+              - '!_site/**'
+              - '!docs/**'
+              - '!docfx.json'
+              - '!README.md'
+              - '!CONTRIBUTING.md'
+              - '!ROADMAP.md'
+              - '!CODE_OF_CONDUCT.md'
+              - '!SECURITY.md'
+              - '!.github/PULL_REQUEST_TEMPLATE.md'
+              - '!.github/ISSUE_TEMPLATE/**'
+              - '!.github/copilot-instructions.md'
 
-    - name: Resolve docs-only mode
-      id: resolve
-      shell: bash
-      run: |
-        if [[ "${{ github.event_name }}" != "pull_request" ]]; then
-          echo "docs_only=false" >> "$GITHUB_OUTPUT"
-          exit 0
-        fi
+      - name: Resolve docs-only mode
+        id: resolve
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" != "pull_request" ]]; then
+            echo "docs_only=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          
+          docs_changed="${{ steps.filter.outputs.docs }}"
+          non_docs_changed="${{ steps.filter.outputs.non_docs }}"
+          
+          if [[ "$docs_changed" == "true" && "$non_docs_changed" != "true" ]]; then
+            echo "docs_only=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "docs_only=false" >> "$GITHUB_OUTPUT"
+          fi
 
-        docs_changed="${{ steps.filter.outputs.docs }}"
-        non_docs_changed="${{ steps.filter.outputs.non_docs }}"
-
-        if [[ "$docs_changed" == "true" && "$non_docs_changed" != "true" ]]; then
-          echo "docs_only=true" >> "$GITHUB_OUTPUT"
-        else
-          echo "docs_only=false" >> "$GITHUB_OUTPUT"
-        fi
-
-  build-and-test:
-    name: Build, Test, and Coverage
+  build-and-unit:
+    name: Build and Unit Tests
     needs: changes
     if: github.event_name != 'pull_request' || needs.changes.outputs.docs_only != 'true'
     runs-on: ubuntu-latest
     env:
-      # Opt in early to the GitHub Actions Node.js 24 runtime.
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v5
+      - name: Checkout repository
+        uses: actions/checkout@v5
 
-    - name: Cache NuGet packages
-      uses: actions/cache@v4
-      with:
-        path: ~/.nuget/packages
-        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
-        restore-keys: |
-          ${{ runner.os }}-nuget-
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
 
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v5
-      with:
-        dotnet-version: 10.0.x
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
 
-    - name: Install dependencies
-      run: dotnet restore CloudStorageORM.sln
+      - name: Install dependencies
+        run: dotnet restore CloudStorageORM.sln
 
-    - name: Build
-      run: dotnet build CloudStorageORM.sln --no-restore --configuration Release --verbosity normal
+      - name: Build
+        run: dotnet build CloudStorageORM.sln --no-restore --configuration Release --verbosity normal
 
-    - name: Generate SBOM (CycloneDX JSON)
-      run: |
-        mkdir -p TestResults/SBOM
-        docker run --rm \
-          -v "${PWD}:/workspace" \
-          -w /workspace \
-          anchore/syft:latest \
-          dir:/workspace \
-          -o cyclonedx-json=TestResults/SBOM/cloudstorageorm.sbom.cdx.json
+      - name: Generate SBOM (CycloneDX JSON)
+        run: |
+          mkdir -p TestResults/SBOM
+          docker run --rm \
+            -v "${PWD}:/workspace" \
+            -w /workspace \
+            anchore/syft:latest \
+            dir:/workspace \
+            -o cyclonedx-json=TestResults/SBOM/cloudstorageorm.sbom.cdx.json
 
-    - name: Run Azurite Emulator
-      run: |
-        docker run -d -p 10000:10000 -p 10001:10001 -p 10002:10002 --name azurite mcr.microsoft.com/azure-storage/azurite
+      - name: Run Unit Tests
+        run: |
+          mkdir -p TestResults/Coverage
+          for proj in $(find . -type f -iname "*.Tests.csproj" ! -path "./tests/CloudStorageORM.IntegrationTests/*"); do
+            name=$(basename "$proj" .csproj)
+            dotnet test "$proj" --configuration Release \
+              --logger "trx;LogFileName=${name}.trx" \
+              --collect:"XPlat Code Coverage"
+            find . -name "${name}.trx" -exec cp {} TestResults/ \;
+            find . -name "coverage.cobertura.xml" -exec cp {} TestResults/Coverage/${name}.xml \;
+          done
 
-    - name: Run LocalStack Emulator (S3)
-      run: |
-        docker run -d -p 4566:4566 \
-          -e SERVICES=s3 \
-          -e AWS_DEFAULT_REGION=us-east-1 \
-          --name localstack \
-          localstack/localstack:3
+      - name: Upload Unit TRX Test Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-unit
+          path: TestResults/*.trx
 
-    - name: Wait for storage emulators to be ready
-      run: |
-        sleep 8
+      - name: Upload Unit Coverage XML Files
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-xml-unit
+          path: TestResults/Coverage/*.xml
 
-    - name: Run Unit Tests - All Unit Tests
-      env:
-        CLOUDSTORAGEORM_AWS_SERVICE_URL: http://127.0.0.1:4566
-        CLOUDSTORAGEORM_AWS_ACCESS_KEY_ID: test
-        CLOUDSTORAGEORM_AWS_SECRET_ACCESS_KEY: test
-        CLOUDSTORAGEORM_AWS_REGION: us-east-1
-        CLOUDSTORAGEORM_AWS_BUCKET: cloudstorageorm-integration-tests
-      run: |
-        mkdir -p TestResults/Coverage
-        for proj in $(find . -type f -iname "*.Tests.csproj"); do
-          name=$(basename "$proj" .csproj)
-          dotnet test "$proj" --configuration Release \
-            --logger "trx;LogFileName=${name}.trx" \
+      - name: Upload SBOM Artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-cyclonedx
+          path: TestResults/SBOM/*.json
+
+  integration-azure:
+    name: Integration Tests (Azure)
+    needs: changes
+    if: github.event_name != 'pull_request' || needs.changes.outputs.docs_only != 'true'
+    runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore Azure integration project
+        run: dotnet restore tests/CloudStorageORM.IntegrationTests/CloudStorageORM.IntegrationTests.Azure.csproj
+
+      - name: Run Azurite Emulator
+        run: |
+          docker run -d -p 10000:10000 -p 10001:10001 -p 10002:10002 --name azurite mcr.microsoft.com/azure-storage/azurite
+
+      - name: Wait for Azurite
+        run: sleep 8
+
+      - name: Run Azure integration tests
+        run: |
+          mkdir -p TestResults/Coverage
+          dotnet test tests/CloudStorageORM.IntegrationTests/CloudStorageORM.IntegrationTests.Azure.csproj \
+            --configuration Release \
+            --logger "trx;LogFileName=CloudStorageORM.IntegrationTests.Azure.trx" \
             --collect:"XPlat Code Coverage"
-          find . -name "${name}.trx" -exec cp {} TestResults/ \;
-          find . -name "coverage.cobertura.xml" -exec cp {} TestResults/Coverage/${name}.xml \;
-        done
+          find . -name "CloudStorageORM.IntegrationTests.Azure.trx" -exec cp {} TestResults/ \;
+          find . -name "coverage.cobertura.xml" -exec cp {} TestResults/Coverage/CloudStorageORM.IntegrationTests.Azure.xml \;
 
-    - name: Upload TRX Test Results
-      uses: actions/upload-artifact@v4
-      with:
-        name: test-results
-        path: TestResults/*.trx
+      - name: Upload Azure TRX Test Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-azure
+          path: TestResults/*.trx
 
-    - name: Upload Coverage XML Files
-      uses: actions/upload-artifact@v4
-      with:
-        name: coverage-xml
-        path: TestResults/Coverage/*.xml
+      - name: Upload Azure Coverage XML Files
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-xml-azure
+          path: TestResults/Coverage/*.xml
 
-    - name: Upload SBOM Artifact
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: sbom-cyclonedx
-        path: TestResults/SBOM/*.json
+      - name: Cleanup Azurite Container
+        if: always()
+        run: docker rm -f azurite || true
 
-    - name: Generate HTML Coverage Report
-      uses: danielpalme/ReportGenerator-GitHub-Action@v5
-      with:
-        reports: TestResults/Coverage/*.xml
-        targetdir: TestResults/CoverageReport
-        reporttypes: HtmlInline_AzurePipelines;Cobertura
+  integration-aws:
+    name: Integration Tests (AWS)
+    needs: changes
+    if: github.event_name != 'pull_request' || needs.changes.outputs.docs_only != 'true'
+    runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+      CLOUDSTORAGEORM_AWS_SERVICE_URL: http://127.0.0.1:4566
+      CLOUDSTORAGEORM_AWS_ACCESS_KEY_ID: test
+      CLOUDSTORAGEORM_AWS_SECRET_ACCESS_KEY: test
+      CLOUDSTORAGEORM_AWS_REGION: us-east-1
+      CLOUDSTORAGEORM_AWS_BUCKET: cloudstorageorm-integration-tests
 
-    - name: Upload HTML Coverage Report
-      uses: actions/upload-artifact@v4
-      with:
-        name: coverage-html
-        path: TestResults/CoverageReport
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
 
-    - name: Publish Test Report as PR Comment
-      uses: dorny/test-reporter@v1
-      if: github.event_name == 'pull_request'
-      with:
-        name: Tests Report
-        path: TestResults/*.trx
-        reporter: dotnet-trx
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
 
-    - name: Publish Test Results to GitHub Actions UI
-      uses: EnricoMi/publish-unit-test-result-action@v2
-      if: always()
-      with:
-        files: TestResults/*.trx
+      - name: Restore AWS integration project
+        run: dotnet restore tests/CloudStorageORM.IntegrationTests/CloudStorageORM.IntegrationTests.AWS.csproj
 
-    - name: Cleanup Azurite Container
-      if: always()
-      run: docker rm -f azurite || true
+      - name: Run LocalStack Emulator (S3)
+        run: |
+          docker run -d -p 4566:4566 \
+            -e SERVICES=s3 \
+            -e AWS_DEFAULT_REGION=us-east-1 \
+            --name localstack \
+            localstack/localstack:3
 
-    - name: Cleanup LocalStack Container
-      if: always()
-      run: docker rm -f localstack || true
+      - name: Wait for LocalStack
+        run: sleep 8
+
+      - name: Run AWS integration tests
+        run: |
+          mkdir -p TestResults/Coverage
+          dotnet test tests/CloudStorageORM.IntegrationTests/CloudStorageORM.IntegrationTests.AWS.csproj \
+            --configuration Release \
+            --logger "trx;LogFileName=CloudStorageORM.IntegrationTests.AWS.trx" \
+            --collect:"XPlat Code Coverage"
+          find . -name "CloudStorageORM.IntegrationTests.AWS.trx" -exec cp {} TestResults/ \;
+          find . -name "coverage.cobertura.xml" -exec cp {} TestResults/Coverage/CloudStorageORM.IntegrationTests.AWS.xml \;
+
+      - name: Upload AWS TRX Test Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-aws
+          path: TestResults/*.trx
+
+      - name: Upload AWS Coverage XML Files
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-xml-aws
+          path: TestResults/Coverage/*.xml
+
+      - name: Cleanup LocalStack Container
+        if: always()
+        run: docker rm -f localstack || true
+
+      integration-sampleapp:
+        name: Integration Tests (SampleApp)
+        needs: changes
+        if: github.event_name != 'pull_request' || needs.changes.outputs.docs_only != 'true'
+        runs-on: ubuntu-latest
+        env:
+          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+          CLOUDSTORAGEORM_AWS_SERVICE_URL: http://127.0.0.1:4566
+          CLOUDSTORAGEORM_AWS_ACCESS_KEY_ID: test
+          CLOUDSTORAGEORM_AWS_SECRET_ACCESS_KEY: test
+          CLOUDSTORAGEORM_AWS_REGION: us-east-1
+          CLOUDSTORAGEORM_AWS_BUCKET: cloudstorageorm-integration-tests
+
+        steps:
+        - name: Checkout repository
+          uses: actions/checkout@v5
+
+        - name: Setup .NET
+          uses: actions/setup-dotnet@v5
+          with:
+            dotnet-version: 10.0.x
+
+        - name: Restore SampleApp integration project
+          run: dotnet restore tests/CloudStorageORM.IntegrationTests.SampleApp/CloudStorageORM.IntegrationTests.SampleApp.csproj
+
+        - name: Run Azurite Emulator
+          run: |
+            docker run -d -p 10000:10000 -p 10001:10001 -p 10002:10002 --name azurite mcr.microsoft.com/azure-storage/azurite
+
+        - name: Run LocalStack Emulator (S3)
+          run: |
+            docker run -d -p 4566:4566 \
+              -e SERVICES=s3 \
+              -e AWS_DEFAULT_REGION=us-east-1 \
+              --name localstack \
+              localstack/localstack:3
+
+        - name: Wait for emulators
+          run: sleep 8
+
+        - name: Run SampleApp integration tests
+          run: |
+            mkdir -p TestResults/Coverage
+            dotnet test tests/CloudStorageORM.IntegrationTests.SampleApp/CloudStorageORM.IntegrationTests.SampleApp.csproj \
+              --configuration Release \
+              --logger "trx;LogFileName=CloudStorageORM.IntegrationTests.SampleApp.trx" \
+              --collect:"XPlat Code Coverage"
+            find . -name "CloudStorageORM.IntegrationTests.SampleApp.trx" -exec cp {} TestResults/ \;
+            find . -name "coverage.cobertura.xml" -exec cp {} TestResults/Coverage/CloudStorageORM.IntegrationTests.SampleApp.xml \;
+
+        - name: Upload SampleApp TRX Test Results
+          uses: actions/upload-artifact@v4
+          with:
+            name: test-results-sampleapp
+            path: TestResults/*.trx
+
+        - name: Upload SampleApp Coverage XML Files
+          uses: actions/upload-artifact@v4
+          with:
+            name: coverage-xml-sampleapp
+            path: TestResults/Coverage/*.xml
+
+        - name: Cleanup Azurite Container
+          if: always()
+          run: docker rm -f azurite || true
+
+        - name: Cleanup LocalStack Container
+          if: always()
+          run: docker rm -f localstack || true
+
+  test-report:
+    name: Aggregate Test Reports and Coverage
+    needs:
+      - changes
+      - build-and-unit
+      - integration-azure
+      - integration-aws
+      - integration-sampleapp
+    if: always() && (github.event_name != 'pull_request' || needs.changes.outputs.docs_only != 'true')
+    runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+    steps:
+      - name: Download all TRX artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: test-results-*
+          path: TestResults
+          merge-multiple: true
+
+      - name: Download all coverage XML artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: coverage-xml-*
+          path: TestResults/Coverage
+          merge-multiple: true
+
+      - name: Generate HTML Coverage Report
+        uses: danielpalme/ReportGenerator-GitHub-Action@v5
+        with:
+          reports: TestResults/Coverage/*.xml
+          targetdir: TestResults/CoverageReport
+          reporttypes: HtmlInline_AzurePipelines;Cobertura
+
+      - name: Upload HTML Coverage Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-html
+          path: TestResults/CoverageReport
+
+      - name: Publish Test Report as PR Comment
+        uses: dorny/test-reporter@v1
+        if: github.event_name == 'pull_request'
+        with:
+          name: Tests Report
+          path: TestResults/*.trx
+          reporter: dotnet-trx
+
+      - name: Publish Test Results to GitHub Actions UI
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always()
+        with:
+          files: TestResults/*.trx
+
 
   docs:
     name: Build Docs (DocFX)
@@ -221,48 +404,48 @@ jobs:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v5
+      - name: Checkout repository
+        uses: actions/checkout@v5
 
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v5
-      with:
-        dotnet-version: 10.0.x
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
 
-    - name: Install DocFX
-      shell: bash
-      run: |
-        dotnet tool update --global docfx
-        echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
+      - name: Install DocFX
+        shell: bash
+        run: |
+          dotnet tool update --global docfx
+          echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
 
-    - name: Restore dependencies
-      run: dotnet restore CloudStorageORM.sln
+      - name: Restore dependencies
+        run: dotnet restore CloudStorageORM.sln
 
-    - name: Install DocFX material template
-      shell: bash
-      run: ./scripts/setup-docfx-material.sh
+      - name: Install DocFX material template
+        shell: bash
+        run: ./scripts/setup-docfx-material.sh
 
-    - name: Build documentation site
-      run: docfx docfx.json
+      - name: Build documentation site
+        run: docfx docfx.json
 
-    - name: Upload generated docs artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: docs-site
-        path: _site
+      - name: Upload generated docs artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: docs-site
+          path: _site
 
-    - name: Deploy preview docs to gh-pages-preview
-      if: github.event_name == 'push' && github.ref == 'refs/heads/feature/docs'
-      uses: peaceiris/actions-gh-pages@v4
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./_site
-        publish_branch: gh-pages-preview
+      - name: Deploy preview docs to gh-pages-preview
+        if: github.event_name == 'push' && github.ref == 'refs/heads/feature/docs'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./_site
+          publish_branch: gh-pages-preview
 
-    - name: Deploy docs to gh-pages
-      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-      uses: peaceiris/actions-gh-pages@v4
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./_site
-        publish_branch: gh-pages
+      - name: Deploy docs to gh-pages
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./_site
+          publish_branch: gh-pages

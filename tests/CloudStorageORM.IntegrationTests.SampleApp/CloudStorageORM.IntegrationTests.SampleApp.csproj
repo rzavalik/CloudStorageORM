@@ -32,9 +32,10 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Compile Include="IntegrationTestSkip.cs"/>
-        <Compile Include="Azure/StorageFixture.cs"/>
-        <Compile Include="Azure/StorageProviders/**/*.cs"/>
+        <Compile Include="ProgramExit*SampleAppTests.cs"/>
+        <Compile Include="../CloudStorageORM.IntegrationTests/IntegrationTestSkip.cs" Link="IntegrationTestSkip.cs"/>
+        <Compile Include="../CloudStorageORM.IntegrationTests/Azure/StorageFixture.cs" Link="Azure/StorageFixture.cs"/>
+        <Compile Include="../CloudStorageORM.IntegrationTests/Aws/LocalStackFixture.cs" Link="Aws/LocalStackFixture.cs"/>
     </ItemGroup>
 
     <ItemGroup>
@@ -42,3 +43,4 @@
     </ItemGroup>
 
 </Project>
+

@@ -1,18 +1,15 @@
 using System.Diagnostics;
-using CloudStorageORM.IntegrationTests.Azure.Aws;
+using CloudStorageORM.IntegrationTests.Aws;
 using Shouldly;
 
-namespace CloudStorageORM.IntegrationTests.Azure;
+namespace CloudStorageORM.IntegrationTests.SampleApp;
 
-public class ProgramExitTests(StorageFixture fixture, LocalStackFixture awsFixture)
-    : IClassFixture<StorageFixture>, IClassFixture<LocalStackFixture>
+public class ProgramExitAwsSampleAppTests(LocalStackFixture fixture) : IClassFixture<LocalStackFixture>
 {
     [Fact]
     public async Task SampleApp_ShouldExitWithCodeZero_AndRunAllProviders()
     {
-        fixture.ShouldNotBeNull();
         fixture.EnsureAvailableOrSkip();
-        awsFixture.EnsureAvailableOrSkip();
 
         var repoRoot = FindRepoRoot();
 
@@ -31,13 +28,11 @@ public class ProgramExitTests(StorageFixture fixture, LocalStackFixture awsFixtu
         process.StartInfo.ArgumentList.Add("-c");
         process.StartInfo.ArgumentList.Add("Debug");
 
-        process.StartInfo.Environment["CLOUDSTORAGEORM_AZURE_CONNECTION_STRING"] = fixture.ConnectionString;
-        process.StartInfo.Environment["CLOUDSTORAGEORM_CONTAINER_NAME"] = fixture.ContainerName;
-        process.StartInfo.Environment["CLOUDSTORAGEORM_AWS_ACCESS_KEY_ID"] = awsFixture.AccessKeyId;
-        process.StartInfo.Environment["CLOUDSTORAGEORM_AWS_SECRET_ACCESS_KEY"] = awsFixture.SecretAccessKey;
-        process.StartInfo.Environment["CLOUDSTORAGEORM_AWS_REGION"] = awsFixture.Region;
-        process.StartInfo.Environment["CLOUDSTORAGEORM_AWS_SERVICE_URL"] = awsFixture.ServiceUrl;
-        process.StartInfo.Environment["CLOUDSTORAGEORM_AWS_BUCKET"] = awsFixture.BucketName;
+        process.StartInfo.Environment["CLOUDSTORAGEORM_AWS_ACCESS_KEY_ID"] = fixture.AccessKeyId;
+        process.StartInfo.Environment["CLOUDSTORAGEORM_AWS_SECRET_ACCESS_KEY"] = fixture.SecretAccessKey;
+        process.StartInfo.Environment["CLOUDSTORAGEORM_AWS_REGION"] = fixture.Region;
+        process.StartInfo.Environment["CLOUDSTORAGEORM_AWS_SERVICE_URL"] = fixture.ServiceUrl;
+        process.StartInfo.Environment["CLOUDSTORAGEORM_AWS_BUCKET"] = fixture.BucketName;
         process.StartInfo.Environment["CLOUDSTORAGEORM_AWS_FORCE_PATH_STYLE"] = "true";
 
         process.Start();
@@ -69,11 +64,14 @@ public class ProgramExitTests(StorageFixture fixture, LocalStackFixture awsFixtu
         var stdout = await stdoutTask;
         var stderr = await stderrTask;
 
-        process.ExitCode.ShouldBe(0, $"SampleApp should exit cleanly.\nSTDOUT:\n{stdout}\nSTDERR:\n{stderr}");
+        process.ExitCode.ShouldBe(0,
+            $"SampleApp should exit cleanly with AWS provider.\nSTDOUT:\n{stdout}\nSTDERR:\n{stderr}");
         stdout.ShouldContain("SampleApp Finished");
         stdout.ShouldContain("Running using EF InMemory Provider");
         stdout.ShouldContain("Running using EF Azure Provider");
         stdout.ShouldContain("Running using EF Aws Provider");
+        stdout.ShouldContain("Cloud provider: Azure");
+        stdout.ShouldContain("Cloud provider: Aws");
         stdout.ShouldContain("Clearing users before run");
         stdout.ShouldContain("sample-user-001");
         stdout.ShouldContain("Rollback verification passed");

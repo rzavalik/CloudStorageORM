@@ -2,7 +2,7 @@ using CloudStorageORM.Enums;
 using CloudStorageORM.Options;
 using CloudStorageORM.Providers.Aws.StorageProviders;
 
-namespace CloudStorageORM.IntegrationTests.Azure.Aws;
+namespace CloudStorageORM.IntegrationTests.Aws;
 
 public sealed class LocalStackFixture : IAsyncLifetime
 {

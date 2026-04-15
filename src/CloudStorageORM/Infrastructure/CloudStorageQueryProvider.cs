@@ -110,9 +110,14 @@ public class CloudStorageQueryProvider(
                 _logger?.LogQueryExecutionStarting(typeof(TEntity).Name);
             }
 
+            if (TryExecuteSkipTakePushdown<TEntity, TResult>(expression, out var pagedResult))
+            {
+                stopwatch.Stop();
+                return await pagedResult.ConfigureAwait(false);
+            }
+
             if (TryExtractPrimaryKeyConstraint<TEntity>(expression, out var keyConstraint))
             {
-                // ...existing code...
                 switch (keyConstraint)
                 {
                     case { IsEquality: true, EqualityValue: not null }:
@@ -167,6 +172,81 @@ public class CloudStorageQueryProvider(
             activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
             throw;
         }
+    }
+
+    private bool TryExecuteSkipTakePushdown<TEntity, TResult>(Expression expression, out Task<TResult> resultTask)
+        where TEntity : class
+    {
+        resultTask = Task.FromResult(default(TResult)!);
+
+        if (!TryExtractSkipTakeShape(expression, out var shape)
+            || shape.Take is null
+            || shape.Take.Value < 0
+            || shape.Skip < 0
+            || ContainsUnsupportedPaginationOperators(shape.BaseExpression)
+            || !IsEnumerableResult(typeof(TResult)))
+        {
+            return false;
+        }
+
+        var hasPredicate = ExtractPrimaryKeyPredicate(shape.BaseExpression) is not null;
+        var hasPrimaryKeyConstraint =
+            TryExtractPrimaryKeyConstraint<TEntity>(shape.BaseExpression, out var keyConstraint);
+
+        if (hasPredicate && !hasPrimaryKeyConstraint)
+        {
+            return false;
+        }
+
+        resultTask =
+            ExecuteSkipTakePushdownAsync<TEntity, TResult>(shape, hasPrimaryKeyConstraint ? keyConstraint : null);
+        return true;
+    }
+
+    private async Task<TResult> ExecuteSkipTakePushdownAsync<TEntity, TResult>(
+        SkipTakeShape shape,
+        PrimaryKeyConstraint? keyConstraint)
+        where TEntity : class
+    {
+        var take = shape.Take ?? 0;
+        if (take == 0)
+        {
+            return ExecuteAgainstInMemory<TResult, TEntity>(shape.BaseExpression, []);
+        }
+
+        IList<TEntity> page;
+
+        switch (keyConstraint)
+        {
+            case { IsEquality: true, EqualityValue: not null }:
+            {
+                var entity = await _database.TryLoadByPrimaryKeyAsync<TEntity>(keyConstraint.Value.EqualityValue!)
+                    .ConfigureAwait(false);
+                var equalityList = entity is null
+                    ? new List<TEntity>()
+                    : new List<TEntity> { entity };
+                page = equalityList.Skip(shape.Skip).Take(take).ToList();
+                break;
+            }
+
+            case { IsEquality: false, HasRangeBound: true }:
+                page = await _database
+                    .LoadByPrimaryKeyRangePageAsync<TEntity>(
+                        keyConstraint.Value.LowerBound,
+                        keyConstraint.Value.LowerInclusive,
+                        keyConstraint.Value.UpperBound,
+                        keyConstraint.Value.UpperInclusive,
+                        shape.Skip,
+                        take)
+                    .ConfigureAwait(false);
+                break;
+
+            default:
+                page = await _database.LoadPageAsync<TEntity>(shape.Skip, take).ConfigureAwait(false);
+                break;
+        }
+
+        return ExecuteAgainstInMemory<TResult, TEntity>(shape.BaseExpression, page);
     }
 
     private TResult ExecuteAgainstInMemory<TResult, TEntity>(Expression expression, IList<TEntity> list)
@@ -342,6 +422,74 @@ public class CloudStorageQueryProvider(
         return resultType.IsGenericType ? resultType.GetGenericArguments().First() : resultType;
     }
 
+    private static bool TryExtractSkipTakeShape(Expression expression, out SkipTakeShape shape)
+    {
+        shape = new SkipTakeShape(0, null, expression);
+        var skip = 0;
+        int? take = null;
+        var foundPagination = false;
+        var current = expression;
+
+        while (current is MethodCallExpression methodCall
+               && methodCall.Method.DeclaringType == typeof(Queryable)
+               && methodCall.Arguments.Count >= 2
+               && methodCall.Method.Name is nameof(Queryable.Skip) or nameof(Queryable.Take))
+        {
+            if (!TryEvaluatePaginationCount(methodCall.Arguments[1], out var count))
+            {
+                return false;
+            }
+
+            if (count < 0)
+            {
+                return false;
+            }
+
+            if (methodCall.Method.Name == nameof(Queryable.Skip))
+            {
+                skip += count;
+            }
+            else
+            {
+                take = take.HasValue ? Math.Min(take.Value, count) : count;
+            }
+
+            foundPagination = true;
+            current = methodCall.Arguments[0];
+        }
+
+        if (!foundPagination)
+        {
+            return false;
+        }
+
+        shape = new SkipTakeShape(skip, take, current);
+        return true;
+    }
+
+    private static bool TryEvaluatePaginationCount(Expression expression, out int count)
+    {
+        count = 0;
+
+        try
+        {
+            var boxed = Expression.Convert(expression, typeof(int));
+            count = Expression.Lambda<Func<int>>(boxed).Compile().Invoke();
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private static bool ContainsUnsupportedPaginationOperators(Expression expression)
+    {
+        var visitor = new UnsupportedPaginationOperatorVisitor();
+        visitor.Visit(expression);
+        return visitor.HasUnsupportedOperator;
+    }
+
     private bool TryExtractPrimaryKeyConstraint<TEntity>(Expression expression, out PrimaryKeyConstraint keyConstraint)
         where TEntity : class
     {
@@ -369,23 +517,26 @@ public class CloudStorageQueryProvider(
 
     private static LambdaExpression? ExtractPrimaryKeyPredicate(Expression expression)
     {
-        if (expression is not MethodCallExpression methodCall
-            || methodCall.Method.DeclaringType != typeof(Queryable))
+        while (true)
         {
-            return null;
-        }
+            if (expression is not MethodCallExpression methodCall ||
+                methodCall.Method.DeclaringType != typeof(Queryable))
+            {
+                return null;
+            }
 
-        if (TryExtractPredicateFromMethod(methodCall, out var predicate))
-        {
-            return predicate;
-        }
+            if (TryExtractPredicateFromMethod(methodCall, out var predicate))
+            {
+                return predicate;
+            }
 
-        if (methodCall.Arguments.Count == 0)
-        {
-            return null;
-        }
+            if (methodCall.Arguments.Count == 0)
+            {
+                return null;
+            }
 
-        return ExtractPrimaryKeyPredicate(methodCall.Arguments[0]);
+            expression = methodCall.Arguments[0];
+        }
     }
 
     private static bool TryExtractPredicateFromMethod(MethodCallExpression methodCall, out LambdaExpression? predicate)
@@ -429,23 +580,19 @@ public class CloudStorageQueryProvider(
     {
         keyConstraint = PrimaryKeyConstraint.None;
 
-        if (expression is BinaryExpression { NodeType: ExpressionType.AndAlso } andAlso)
+        if (expression is not BinaryExpression { NodeType: ExpressionType.AndAlso } andAlso)
         {
-            if (!TryExtractPrimaryKeyConstraint(andAlso.Left, primaryKeyName, out var left)
-                || !TryExtractPrimaryKeyConstraint(andAlso.Right, primaryKeyName, out var right))
-            {
-                return false;
-            }
-
-            return TryMergePrimaryKeyConstraints(left, right, out keyConstraint);
+            return expression is BinaryExpression binary
+                   && TryExtractSingleComparisonConstraint(binary, primaryKeyName, out keyConstraint);
         }
 
-        if (expression is not BinaryExpression binary)
+        if (!TryExtractPrimaryKeyConstraint(andAlso.Left, primaryKeyName, out var left)
+            || !TryExtractPrimaryKeyConstraint(andAlso.Right, primaryKeyName, out var right))
         {
             return false;
         }
 
-        return TryExtractSingleComparisonConstraint(binary, primaryKeyName, out keyConstraint);
+        return TryMergePrimaryKeyConstraints(left, right, out keyConstraint);
     }
 
     private static bool TryExtractSingleComparisonConstraint(BinaryExpression binary, string primaryKeyName,
@@ -583,17 +730,12 @@ public class CloudStorageQueryProvider(
         }
 
         var compare = CompareComparable(left.LowerBound, right.LowerBound);
-        if (compare > 0)
+        return compare switch
         {
-            return (left.LowerBound, left.LowerInclusive);
-        }
-
-        if (compare < 0)
-        {
-            return (right.LowerBound, right.LowerInclusive);
-        }
-
-        return (left.LowerBound, left.LowerInclusive && right.LowerInclusive);
+            > 0 => (left.LowerBound, left.LowerInclusive),
+            < 0 => (right.LowerBound, right.LowerInclusive),
+            _ => (left.LowerBound, left.LowerInclusive && right.LowerInclusive)
+        };
     }
 
     private static (object? upperBound, bool upperInclusive) SelectUpperBound(PrimaryKeyConstraint left,
@@ -753,6 +895,38 @@ public class CloudStorageQueryProvider(
             return base.VisitConstant(node);
         }
     }
+
+    private sealed class UnsupportedPaginationOperatorVisitor : ExpressionVisitor
+    {
+        public bool HasUnsupportedOperator { get; private set; }
+
+        protected override Expression VisitMethodCall(MethodCallExpression node)
+        {
+            if (HasUnsupportedOperator)
+            {
+                return node;
+            }
+
+            if (node.Method.DeclaringType == typeof(Queryable)
+                && node.Method.Name is nameof(Queryable.OrderBy)
+                    or nameof(Queryable.OrderByDescending)
+                    or nameof(Queryable.ThenBy)
+                    or nameof(Queryable.ThenByDescending)
+                    or nameof(Queryable.Select)
+                    or nameof(Queryable.SelectMany)
+                    or nameof(Queryable.Reverse)
+                    or nameof(Queryable.GroupBy)
+                    or nameof(Queryable.Distinct))
+            {
+                HasUnsupportedOperator = true;
+                return node;
+            }
+
+            return base.VisitMethodCall(node);
+        }
+    }
+
+    private readonly record struct SkipTakeShape(int Skip, int? Take, Expression BaseExpression);
 
     private readonly record struct PrimaryKeyConstraint(
         bool IsEquality,

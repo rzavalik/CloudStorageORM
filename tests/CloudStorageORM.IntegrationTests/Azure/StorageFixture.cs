@@ -5,6 +5,7 @@ namespace CloudStorageORM.IntegrationTests.Azure;
 public class StorageFixture : IAsyncLifetime
 {
     private const string DevelopmentStorageConnectionString = "UseDevelopmentStorage=true";
+
     private static readonly HttpClient HttpClient = new()
     {
         Timeout = TimeSpan.FromSeconds(2)

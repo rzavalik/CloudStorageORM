@@ -324,14 +324,135 @@ public class AzureBlobStorageProviderTests
         files.ShouldContain("test-folder/list-entity2.json");
     }
 
-    private class MockAsyncPageable(IEnumerable<BlobItem> items) : AsyncPageable<BlobItem>
+    [Fact]
+    public async Task ListPageAsync_ShouldReturnSinglePage()
+    {
+        var containerClientMock = new Mock<BlobContainerClient>();
+        var blobs = new[]
+        {
+            BlobsModelFactory.BlobItem(name: "test-folder/page-entity1.json"),
+            BlobsModelFactory.BlobItem(name: "test-folder/page-entity2.json")
+        };
+
+        containerClientMock
+            .Setup(x => x.GetBlobsAsync(
+                BlobTraits.None,
+                BlobStates.None,
+                "test-folder/",
+                It.IsAny<CancellationToken>()))
+            .Returns(new MockAsyncPageable(blobs));
+
+        var sut = MakeSut(containerClientMock);
+        var page = await sut.ListPageAsync("test-folder/", 2, null);
+
+        page.Keys.Count.ShouldBe(2);
+        page.HasMore.ShouldBeFalse();
+        page.ContinuationToken.ShouldBeNull();
+        page.Keys.ShouldContain("test-folder/page-entity1.json");
+    }
+
+    [Fact]
+    public async Task ListPageAsync_WithInvalidPageSize_Throws()
+    {
+        var sut = MakeSut(new Mock<BlobContainerClient>());
+
+        await Should.ThrowAsync<ArgumentOutOfRangeException>(() => sut.ListPageAsync("test-folder/", 0, null));
+    }
+
+    [Fact]
+    public async Task ListPageAsync_WithNoPages_ReturnsEmptyPage()
+    {
+        var containerClientMock = new Mock<BlobContainerClient>();
+        containerClientMock
+            .Setup(x => x.GetBlobsAsync(
+                BlobTraits.None,
+                BlobStates.None,
+                "test-folder/",
+                It.IsAny<CancellationToken>()))
+            .Returns(new MockAsyncPageable([]));
+
+        var sut = MakeSut(containerClientMock);
+        var page = await sut.ListPageAsync("test-folder/", 2, null);
+
+        page.Keys.ShouldBeEmpty();
+        page.HasMore.ShouldBeFalse();
+        page.ContinuationToken.ShouldBeNull();
+    }
+
+    [Fact]
+    public async Task ListAsync_AggregatesMultiplePages()
+    {
+        var containerClientMock = new Mock<BlobContainerClient>();
+        var pages = new List<Page<BlobItem>>
+        {
+            Page<BlobItem>.FromValues(
+                [BlobsModelFactory.BlobItem(name: "test-folder/p1-entity.json")],
+                "next-token",
+                Mock.Of<Response>()),
+            Page<BlobItem>.FromValues(
+                [BlobsModelFactory.BlobItem(name: "test-folder/p2-entity.json")],
+                null,
+                Mock.Of<Response>())
+        };
+
+        containerClientMock
+            .Setup(x => x.GetBlobsAsync(
+                BlobTraits.None,
+                BlobStates.None,
+                "test-folder/",
+                It.IsAny<CancellationToken>()))
+            .Returns(new MockAsyncPageable([], pages));
+
+        var sut = MakeSut(containerClientMock);
+        var files = await sut.ListAsync("test-folder/");
+
+        files.Count.ShouldBe(2);
+        files.ShouldContain("test-folder/p1-entity.json");
+        files.ShouldContain("test-folder/p2-entity.json");
+    }
+
+    private class MockAsyncPageable(IEnumerable<BlobItem> items, IReadOnlyList<Page<BlobItem>>? pages = null) : AsyncPageable<BlobItem>
     {
         private readonly IReadOnlyList<BlobItem> _items = items.ToList();
+        private readonly IReadOnlyList<Page<BlobItem>> _pages = pages ?? [];
 
         public override async IAsyncEnumerable<Page<BlobItem>> AsPages(string? continuationToken = null,
             int? pageSizeHint = null)
         {
-            yield return Page<BlobItem>.FromValues(_items, null, Mock.Of<Response>());
+            if (_pages.Count > 0)
+            {
+                var startIndex = 0;
+
+                if (!string.IsNullOrWhiteSpace(continuationToken))
+                {
+                    var matched = false;
+                    for (var i = 0; i < _pages.Count - 1; i++)
+                    {
+                        if (!string.Equals(_pages[i].ContinuationToken, continuationToken, StringComparison.Ordinal))
+                        {
+                            continue;
+                        }
+
+                        startIndex = i + 1;
+                        matched = true;
+                        break;
+                    }
+
+                    if (!matched)
+                    {
+                        yield break;
+                    }
+                }
+
+                yield return _pages[startIndex];
+                yield break;
+            }
+
+            if (_items.Count > 0)
+            {
+                yield return Page<BlobItem>.FromValues(_items, null, Mock.Of<Response>());
+            }
+
             await Task.CompletedTask;
         }
     }

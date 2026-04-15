@@ -68,7 +68,9 @@ dotnet test CloudStorageORM.sln --nologo -v minimal
 This runs:
 
 - unit tests in `tests/CloudStorageORM.Tests`
-- integration tests in `tests/CloudStorageORM.IntegrationTests`
+- Azure integration tests in `tests/CloudStorageORM.IntegrationTests/CloudStorageORM.IntegrationTests.Azure.csproj`
+- AWS integration tests in `tests/CloudStorageORM.IntegrationTests/CloudStorageORM.IntegrationTests.AWS.csproj`
+- SampleApp integration tests in `tests/CloudStorageORM.IntegrationTests.SampleApp/CloudStorageORM.IntegrationTests.SampleApp.csproj`
 
 For CI-style TRX and coverage artifact layout, see [ci.md](./ci.md).
 
@@ -163,8 +165,9 @@ dotnet test tests/CloudStorageORM.Tests/CloudStorageORM.Tests.csproj --nologo -v
 
 ## Related files
 
-- `tests/CloudStorageORM.IntegrationTests/StorageFixture.cs`
-- `tests/CloudStorageORM.IntegrationTests/ProgramExitTests.cs`
+- `tests/CloudStorageORM.IntegrationTests/CloudStorageORM.IntegrationTests.Azure.csproj`
+- `tests/CloudStorageORM.IntegrationTests/Azure/StorageFixture.cs`
+- `tests/CloudStorageORM.IntegrationTests/Azure/StorageProviders/AzureBlobStorageProviderTests.cs`
 - `coverlet.runsettings`
 - `dotnet-tools.json`
 

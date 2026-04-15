@@ -121,6 +121,25 @@ public interface IStorageProvider
     Task<List<string>> ListAsync(string folderPath);
 
     /// <summary>
+    /// Lists object paths under a folder-like prefix as a single page with continuation support.
+    /// </summary>
+    /// <param name="folderPath">Folder or prefix to search.</param>
+    /// <param name="pageSize">Maximum number of keys to return for this page.</param>
+    /// <param name="continuationToken">Continuation token returned by a previous call, if any.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A page of keys and continuation information.</returns>
+    /// <example>
+    /// <code>
+    /// var page = await storageProvider.ListPageAsync("users/", 100, null);
+    /// </code>
+    /// </example>
+    Task<StorageListPage> ListPageAsync(
+        string folderPath,
+        int pageSize,
+        string? continuationToken,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Sanitizes a raw blob name so it can be safely used by the provider.
     /// </summary>
     /// <param name="rawName">Original blob or folder name.</param>
