@@ -5,7 +5,6 @@ namespace CloudStorageORM.IntegrationTests.SampleApp;
 internal static class SampleAppProcessRunner
 {
     private const string SampleAppProjectPath = "samples/CloudStorageORM.SampleApp/SampleApp.csproj";
-    private const string SampleAppAssemblyName = "CloudStorageORM.SampleApp.dll";
 
     public static string FindRepoRoot()
     {
@@ -78,7 +77,8 @@ internal static class SampleAppProcessRunner
             UseShellExecute = false
         };
 
-        process.StartInfo.ArgumentList.Add(Path.Combine(publishDir, SampleAppAssemblyName));
+        var entryAssemblyPath = ResolvePublishedEntryAssemblyPath(publishDir);
+        process.StartInfo.ArgumentList.Add(entryAssemblyPath);
 
         if (environmentVariables is not null)
         {
@@ -135,7 +135,43 @@ internal static class SampleAppProcessRunner
             // Best-effort cleanup only.
         }
     }
+
+    private static string ResolvePublishedEntryAssemblyPath(string publishDir)
+    {
+        if (!Directory.Exists(publishDir))
+        {
+            throw new DirectoryNotFoundException($"Publish directory does not exist: {publishDir}");
+        }
+
+        var runtimeConfigFiles = Directory.GetFiles(publishDir, "*.runtimeconfig.json", SearchOption.TopDirectoryOnly);
+        if (runtimeConfigFiles.Length == 1)
+        {
+            var runtimeConfigBasedDll = Path.ChangeExtension(runtimeConfigFiles[0], ".dll");
+            if (File.Exists(runtimeConfigBasedDll))
+            {
+                return runtimeConfigBasedDll;
+            }
+        }
+
+        var expectedAssemblyName = $"{Path.GetFileNameWithoutExtension(SampleAppProjectPath)}.dll";
+        var expectedAssemblyPath = Path.Combine(publishDir, expectedAssemblyName);
+        if (File.Exists(expectedAssemblyPath))
+        {
+            return expectedAssemblyPath;
+        }
+
+        var publishedFiles = Directory
+            .EnumerateFiles(publishDir, "*", SearchOption.TopDirectoryOnly)
+            .Select(Path.GetFileName)
+            .Where(name => !string.IsNullOrWhiteSpace(name))
+            .OrderBy(name => name, StringComparer.Ordinal)
+            .ToArray();
+
+        throw new FileNotFoundException(
+            $"Unable to resolve published SampleApp entry assembly in '{publishDir}'. " +
+            $"Expected '{expectedAssemblyName}' or a single '*.runtimeconfig.json' pair. " +
+            $"Top-level files: {string.Join(", ", publishedFiles)}");
+    }
 }
 
 internal sealed record SampleAppRunResult(int ExitCode, string StdOut, string StdErr);
-
