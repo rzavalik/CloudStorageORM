@@ -174,12 +174,12 @@ await context.SaveChangesAsync(); // ETag should be valid
 <p><strong>Cause</strong>: All results are materialized in memory.</p>
 <p><strong>Solution</strong>:</p>
 <ol>
-<li><p>Filter at query time:</p>
+<li><p>Prefer primary-key predicates when possible (non-key filters still materialize then filter):</p>
 <pre><code class="lang-csharp">// ❌ Slow: fetch all
 var users = (await context.Users.ToListAsync())
     .Where(u =&gt; u.Status == &quot;Active&quot;);
 
-// ✅ Better: filter first
+// ⚠️ Same non-key behavior here today (materialize + in-memory filter)
 var users = await context.Users
     .Where(u =&gt; u.Status == &quot;Active&quot;)
     .ToListAsync();

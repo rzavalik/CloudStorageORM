@@ -136,7 +136,7 @@ catch
 <h3 id="phase-3-recovery">Phase 3: Recovery</h3>
 <p>On startup of a new transaction manager instance:</p>
 <ul>
-<li><strong>Completed manifests</strong>: Are finalized and removed</li>
+<li><strong>Completed manifests</strong>: Are treated as finalized/completed state</li>
 <li><strong>Preparing manifests</strong>: Are marked as <code>Aborted</code> (uncommitted work is discarded)</li>
 <li><strong>Committed manifests</strong>: Are replayed to ensure durability</li>
 </ul>
