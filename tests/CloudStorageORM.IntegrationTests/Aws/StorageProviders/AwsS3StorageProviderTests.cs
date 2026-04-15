@@ -1,4 +1,11 @@
+using System.ComponentModel.DataAnnotations;
+using CloudStorageORM.Enums;
+using CloudStorageORM.Extensions;
+using CloudStorageORM.Infrastructure;
 using CloudStorageORM.IntegrationTests.Aws;
+using CloudStorageORM.Options;
+using CloudStorageORM.Providers.Aws.StorageProviders;
+using Microsoft.EntityFrameworkCore;
 using Shouldly;
 
 namespace CloudStorageORM.IntegrationTests.AWS.Aws.StorageProviders;
@@ -72,6 +79,104 @@ public class AwsS3StorageProviderTests(LocalStackFixture fixture) : IClassFixtur
         ex.Message.ShouldContain("changed by another writer");
     }
 
+    [Fact]
+    public async Task TransactionalCommit_WithStaleEtagOnSave_ShouldThrowDbUpdateConcurrencyException()
+    {
+        fixture.EnsureAvailableOrSkip();
+
+        var (provider, bucketName) = await CreateIsolatedProviderAsync(fixture, "save");
+        var id = $"tx-save-{Guid.NewGuid():N}";
+        var path = new BlobPathResolver(provider).GetPath(typeof(AwsTransactionalEntity), id);
+
+        await provider.SaveAsync(path, new AwsTransactionalEntity { Id = id, Name = "v1" });
+        var original = await provider.ReadWithMetadataAsync<AwsTransactionalEntity>(path);
+
+        await using var context = CreateTransactionContext(fixture, bucketName);
+        var tracked = new AwsTransactionalEntity { Id = id, Name = "tx-update", ETag = original.ETag };
+        context.Attach(tracked);
+        context.Entry(tracked).Property(x => x.ETag).OriginalValue = original.ETag;
+        context.Entry(tracked).State = EntityState.Modified;
+
+        await using var transaction = await context.Database.BeginTransactionAsync();
+        await context.SaveChangesAsync();
+
+        await provider.SaveAsync(path, new AwsTransactionalEntity { Id = id, Name = "v2" });
+
+        await Should.ThrowAsync<DbUpdateConcurrencyException>(() => transaction.CommitAsync());
+    }
+
+    [Fact]
+    public async Task TransactionalCommit_WithStaleEtagOnDelete_ShouldThrowDbUpdateConcurrencyException()
+    {
+        fixture.EnsureAvailableOrSkip();
+
+        var (provider, bucketName) = await CreateIsolatedProviderAsync(fixture, "delete");
+        var id = $"tx-delete-{Guid.NewGuid():N}";
+        var path = new BlobPathResolver(provider).GetPath(typeof(AwsTransactionalEntity), id);
+
+        await provider.SaveAsync(path, new AwsTransactionalEntity { Id = id, Name = "v1" });
+        var original = await provider.ReadWithMetadataAsync<AwsTransactionalEntity>(path);
+
+        await using var context = CreateTransactionContext(fixture, bucketName);
+        var tracked = new AwsTransactionalEntity { Id = id, Name = "to-delete", ETag = original.ETag };
+        context.Attach(tracked);
+        context.Entry(tracked).Property(x => x.ETag).OriginalValue = original.ETag;
+        context.Remove(tracked);
+
+        await using var transaction = await context.Database.BeginTransactionAsync();
+        await context.SaveChangesAsync();
+
+        await provider.SaveAsync(path, new AwsTransactionalEntity { Id = id, Name = "v2" });
+
+        await Should.ThrowAsync<DbUpdateConcurrencyException>(() => transaction.CommitAsync());
+    }
+
+    private static AwsTransactionalTestDbContext CreateTransactionContext(LocalStackFixture fixture, string bucketName)
+    {
+        var options = new DbContextOptionsBuilder<AwsTransactionalTestDbContext>()
+            .UseCloudStorageOrm(cfg =>
+            {
+                cfg.Provider = CloudProvider.Aws;
+                cfg.ContainerName = bucketName;
+                cfg.Aws = new CloudStorageAwsOptions
+                {
+                    AccessKeyId = fixture.AccessKeyId,
+                    SecretAccessKey = fixture.SecretAccessKey,
+                    Region = fixture.Region,
+                    ServiceUrl = fixture.ServiceUrl,
+                    ForcePathStyle = true
+                };
+            })
+            .Options;
+
+        return new AwsTransactionalTestDbContext(options);
+    }
+
+    private static async Task<(AwsS3StorageProvider Provider, string BucketName)> CreateIsolatedProviderAsync(
+        LocalStackFixture fixture,
+        string scenario)
+    {
+        var rawBucketName = $"tx-{scenario}-{Guid.NewGuid():N}";
+        var bucketName = rawBucketName.Length <= 45 ? rawBucketName : rawBucketName[..45];
+        var options = new CloudStorageOptions
+        {
+            Provider = CloudProvider.Aws,
+            ContainerName = bucketName,
+            Aws = new CloudStorageAwsOptions
+            {
+                AccessKeyId = fixture.AccessKeyId,
+                SecretAccessKey = fixture.SecretAccessKey,
+                Region = fixture.Region,
+                ServiceUrl = fixture.ServiceUrl,
+                ForcePathStyle = true
+            }
+        };
+
+        var provider = new AwsS3StorageProvider(options);
+        await provider.CreateContainerIfNotExistsAsync();
+        return (provider, bucketName);
+    }
+
     private static string BuildPath(string scenario)
     {
         return $"test-folder/{scenario}-{Guid.NewGuid():N}.json";
@@ -81,5 +186,27 @@ public class AwsS3StorageProviderTests(LocalStackFixture fixture) : IClassFixtur
     {
         public string Id { get; init; } = string.Empty;
         public string Name { get; init; } = string.Empty;
+    }
+
+    private sealed class AwsTransactionalEntity
+    {
+        [MaxLength(100)]
+        public string Id { get; init; } = string.Empty;
+
+        [MaxLength(100)]
+        public string Name { get; set; } = string.Empty;
+
+        [MaxLength(256)]
+        public string? ETag { get; set; }
+    }
+
+    private sealed class AwsTransactionalTestDbContext(DbContextOptions<AwsTransactionalTestDbContext> options)
+        : DbContext(options)
+    {
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<AwsTransactionalEntity>().HasKey(x => x.Id);
+            modelBuilder.Entity<AwsTransactionalEntity>().UseObjectETagConcurrency();
+        }
     }
 }

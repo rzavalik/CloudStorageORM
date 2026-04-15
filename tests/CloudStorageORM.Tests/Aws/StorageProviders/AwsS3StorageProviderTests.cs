@@ -179,6 +179,8 @@ public class AwsS3StorageProviderTests
         s3Mock.Setup(x => x.DeleteObjectAsync(It.IsAny<DeleteObjectRequest>(), It.IsAny<CancellationToken>()))
             .Callback<DeleteObjectRequest, CancellationToken>((request, _) => capturedRequest = request)
             .ReturnsAsync(new DeleteObjectResponse());
+        s3Mock.Setup(x => x.GetObjectMetadataAsync(It.IsAny<GetObjectMetadataRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new GetObjectMetadataResponse { ETag = "etag-3" });
 
         var sut = CreateSut(s3Mock);
         await sut.DeleteAsync("users/id-3.json", "etag-3");

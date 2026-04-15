@@ -1,5 +1,6 @@
 using System.Text.Json;
 using CloudStorageORM.Interfaces.StorageProviders;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace CloudStorageORM.Infrastructure;
@@ -144,7 +145,11 @@ public class CloudStorageTransactionManager : IDbContextTransactionManager
         }
     }
 
-    internal async Task StageSaveOperationAsync(string path, object entity, CancellationToken cancellationToken)
+    internal async Task StageSaveOperationAsync(
+        string path,
+        object entity,
+        string? ifMatchETag,
+        CancellationToken cancellationToken)
     {
         var (transaction, manifest) = GetActiveTransactionState();
 
@@ -165,14 +170,15 @@ public class CloudStorageTransactionManager : IDbContextTransactionManager
                 Sequence = manifest.Operations.Count,
                 Kind = DurableTransactionOperationKind.Save,
                 Path = path,
-                PayloadJson = payloadJson
+                PayloadJson = payloadJson,
+                IfMatchETag = ifMatchETag
             });
         }
 
         await PersistManifestAsync(manifest, cancellationToken);
     }
 
-    internal async Task StageDeleteOperationAsync(string path, CancellationToken cancellationToken)
+    internal async Task StageDeleteOperationAsync(string path, string? ifMatchETag, CancellationToken cancellationToken)
     {
         var (transaction, manifest) = GetActiveTransactionState();
 
@@ -190,7 +196,8 @@ public class CloudStorageTransactionManager : IDbContextTransactionManager
             {
                 Sequence = manifest.Operations.Count,
                 Kind = DurableTransactionOperationKind.Delete,
-                Path = path
+                Path = path,
+                IfMatchETag = ifMatchETag
             });
         }
 
@@ -333,14 +340,57 @@ public class CloudStorageTransactionManager : IDbContextTransactionManager
                 case DurableTransactionOperationKind.Save:
                     var payloadJson = string.IsNullOrWhiteSpace(operation.PayloadJson) ? "{}" : operation.PayloadJson;
                     var payload = JsonSerializer.Deserialize<JsonElement>(payloadJson);
-                    await _storageProvider.SaveAsync(operation.Path, payload);
+                    await SaveDurableOperationAsync(operation, payload);
                     break;
 
                 case DurableTransactionOperationKind.Delete:
-                    await _storageProvider.DeleteAsync(operation.Path);
+                    await DeleteDurableOperationAsync(operation);
                     break;
             }
         }
+    }
+
+    private async Task SaveDurableOperationAsync(DurableTransactionOperation operation, JsonElement payload)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(operation.IfMatchETag))
+            {
+                await _storageProvider!.SaveAsync(operation.Path, payload);
+                return;
+            }
+
+            await _storageProvider!.SaveAsync(operation.Path, payload, operation.IfMatchETag);
+        }
+        catch (StoragePreconditionFailedException ex)
+        {
+            throw CreateConcurrencyException(operation.Path, ex);
+        }
+    }
+
+    private async Task DeleteDurableOperationAsync(DurableTransactionOperation operation)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(operation.IfMatchETag))
+            {
+                await _storageProvider!.DeleteAsync(operation.Path);
+                return;
+            }
+
+            await _storageProvider!.DeleteAsync(operation.Path, operation.IfMatchETag);
+        }
+        catch (StoragePreconditionFailedException ex)
+        {
+            throw CreateConcurrencyException(operation.Path, ex);
+        }
+    }
+
+    private static DbUpdateConcurrencyException CreateConcurrencyException(string path, Exception innerException)
+    {
+        return new DbUpdateConcurrencyException(
+            $"The operation expected the object ETag to match for '{path}', but it was updated by another process.",
+            innerException);
     }
 
     private static string GetManifestPath(Guid transactionId)
@@ -388,10 +438,11 @@ public class CloudStorageTransactionManager : IDbContextTransactionManager
 
     private sealed class DurableTransactionOperation
     {
-        public int Sequence { get; set; }
-        public DurableTransactionOperationKind Kind { get; set; }
-        public string Path { get; set; } = string.Empty;
-        public string? PayloadJson { get; set; }
+        public int Sequence { get; init; }
+        public DurableTransactionOperationKind Kind { get; init; }
+        public string Path { get; init; } = string.Empty;
+        public string? PayloadJson { get; init; }
+        public string? IfMatchETag { get; init; }
     }
 
     private sealed class DurableTransactionManifest

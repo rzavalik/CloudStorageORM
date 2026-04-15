@@ -2,6 +2,7 @@ using System.Text.Json;
 using CloudStorageORM.Abstractions;
 using CloudStorageORM.Infrastructure;
 using CloudStorageORM.Interfaces.StorageProviders;
+using Microsoft.EntityFrameworkCore;
 using Shouldly;
 
 namespace CloudStorageORM.Tests.Infrastructure;
@@ -212,7 +213,7 @@ public class CloudStorageTransactionManagerDurabilityTests
         const string userPath = "users/tx-stage2.json";
         var user = new TransactionTestEntity { Id = "tx-stage2", Name = "Stage 2" };
 
-        await manager.StageSaveOperationAsync(userPath, user, CancellationToken.None);
+        await manager.StageSaveOperationAsync(userPath, user, null, CancellationToken.None);
         await tx.CommitAsync();
 
         var persisted = await storage.ReadAsync<TransactionTestEntity>(userPath);
@@ -269,11 +270,11 @@ public class CloudStorageTransactionManagerDurabilityTests
         var manager = new CloudStorageTransactionManager(storage);
 
         var tx1 = await manager.BeginTransactionAsync();
-        await manager.StageDeleteOperationAsync("users/a.json", CancellationToken.None);
+        await manager.StageDeleteOperationAsync("users/a.json", null, CancellationToken.None);
         await tx1.RollbackAsync();
 
         var tx2 = await manager.BeginTransactionAsync();
-        await manager.StageDeleteOperationAsync("users/b.json", CancellationToken.None);
+        await manager.StageDeleteOperationAsync("users/b.json", null, CancellationToken.None);
         await tx2.RollbackAsync();
 
         storage.GetAllKeys().Any(k =>
@@ -284,11 +285,77 @@ public class CloudStorageTransactionManagerDurabilityTests
             .ShouldBeTrue();
     }
 
+    [Fact]
+    public async Task Commit_ReplaysConditionalSaveUsingStagedIfMatchEtag()
+    {
+        var storage = new InMemoryStorageProvider();
+        var manager = new CloudStorageTransactionManager(storage);
+        const string userPath = "users/conditional-save.json";
+
+        await storage.SaveAsync(userPath, new TransactionTestEntity { Id = "seed", Name = "Seed" });
+        var original = await storage.ReadWithMetadataAsync<TransactionTestEntity>(userPath);
+
+        var tx = await manager.BeginTransactionAsync();
+        await manager.StageSaveOperationAsync(
+            userPath,
+            new TransactionTestEntity { Id = "seed", Name = "Updated" },
+            original.ETag,
+            CancellationToken.None);
+
+        await tx.CommitAsync();
+
+        storage.ConditionalSaveRequests.ShouldContain(x =>
+            x.Path == userPath && x.IfMatchETag == original.ETag);
+    }
+
+    [Fact]
+    public async Task Commit_WhenConditionalSaveHasStaleEtag_ThrowsDbUpdateConcurrencyException()
+    {
+        var storage = new InMemoryStorageProvider();
+        var manager = new CloudStorageTransactionManager(storage);
+        const string userPath = "users/stale-save.json";
+
+        await storage.SaveAsync(userPath, new TransactionTestEntity { Id = "stale", Name = "V1" });
+        var original = await storage.ReadWithMetadataAsync<TransactionTestEntity>(userPath);
+
+        var tx = await manager.BeginTransactionAsync();
+        await manager.StageSaveOperationAsync(
+            userPath,
+            new TransactionTestEntity { Id = "stale", Name = "V2" },
+            original.ETag,
+            CancellationToken.None);
+
+        await storage.SaveAsync(userPath, new TransactionTestEntity { Id = "stale", Name = "Concurrent" });
+
+        await Should.ThrowAsync<DbUpdateConcurrencyException>(() => tx.CommitAsync());
+    }
+
+    [Fact]
+    public async Task Commit_WhenConditionalDeleteHasStaleEtag_ThrowsDbUpdateConcurrencyException()
+    {
+        var storage = new InMemoryStorageProvider();
+        var manager = new CloudStorageTransactionManager(storage);
+        const string userPath = "users/stale-delete.json";
+
+        await storage.SaveAsync(userPath, new TransactionTestEntity { Id = "stale-del", Name = "V1" });
+        var original = await storage.ReadWithMetadataAsync<TransactionTestEntity>(userPath);
+
+        var tx = await manager.BeginTransactionAsync();
+        await manager.StageDeleteOperationAsync(userPath, original.ETag, CancellationToken.None);
+
+        await storage.SaveAsync(userPath, new TransactionTestEntity { Id = "stale-del", Name = "Concurrent" });
+
+        await Should.ThrowAsync<DbUpdateConcurrencyException>(() => tx.CommitAsync());
+    }
+
     private sealed class InMemoryStorageProvider : IStorageProvider
     {
         private readonly Lock _sync = new();
         private readonly Dictionary<string, string> _store = new(StringComparer.Ordinal);
+        private readonly Dictionary<string, string> _etags = new(StringComparer.Ordinal);
         private readonly JsonSerializerOptions _jsonOptions = new(JsonSerializerDefaults.Web);
+
+        public List<(string Path, string? IfMatchETag)> ConditionalSaveRequests { get; } = [];
 
         // ReSharper disable once UnusedMember.Local
         public IEnumerable<string> Keys
@@ -321,6 +388,7 @@ public class CloudStorageTransactionManagerDurabilityTests
             lock (_sync)
             {
                 _store[path] = JsonSerializer.Serialize(entity, _jsonOptions);
+                _etags[path] = CreateNextEtag();
             }
 
             return Task.CompletedTask;
@@ -328,8 +396,22 @@ public class CloudStorageTransactionManagerDurabilityTests
 
         public Task<string?> SaveAsync<T>(string path, T entity, string? ifMatchETag)
         {
-            SaveAsync(path, entity);
-            return Task.FromResult<string?>("in-memory-etag");
+            lock (_sync)
+            {
+                ConditionalSaveRequests.Add((path, ifMatchETag));
+
+                if (!string.IsNullOrWhiteSpace(ifMatchETag)
+                    && (!_etags.TryGetValue(path, out var currentEtag)
+                        || !string.Equals(currentEtag, ifMatchETag, StringComparison.Ordinal)))
+                {
+                    throw new StoragePreconditionFailedException(path);
+                }
+
+                _store[path] = JsonSerializer.Serialize(entity, _jsonOptions);
+                var nextEtag = CreateNextEtag();
+                _etags[path] = nextEtag;
+                return Task.FromResult<string?>(nextEtag);
+            }
         }
 
         public Task<T> ReadAsync<T>(string path)
@@ -349,7 +431,11 @@ public class CloudStorageTransactionManagerDurabilityTests
         {
             var value = await ReadAsync<T>(path);
             var exists = !EqualityComparer<T>.Default.Equals(value, default!);
-            return new StorageObject<T>(value, exists ? "in-memory-etag" : null, exists);
+            lock (_sync)
+            {
+                _etags.TryGetValue(path, out var eTag);
+                return new StorageObject<T>(value, exists ? eTag : null, exists);
+            }
         }
 
         public Task DeleteAsync(string path)
@@ -357,12 +443,29 @@ public class CloudStorageTransactionManagerDurabilityTests
             lock (_sync)
             {
                 _store.Remove(path);
+                _etags.Remove(path);
             }
 
             return Task.CompletedTask;
         }
 
-        public Task DeleteAsync(string path, string? ifMatchETag) => DeleteAsync(path);
+        public Task DeleteAsync(string path, string? ifMatchETag)
+        {
+            lock (_sync)
+            {
+                if (!string.IsNullOrWhiteSpace(ifMatchETag)
+                    && (!_etags.TryGetValue(path, out var currentEtag)
+                        || !string.Equals(currentEtag, ifMatchETag, StringComparison.Ordinal)))
+                {
+                    throw new StoragePreconditionFailedException(path);
+                }
+
+                _store.Remove(path);
+                _etags.Remove(path);
+            }
+
+            return Task.CompletedTask;
+        }
 
         public Task<List<string>> ListAsync(string folderPath)
         {
@@ -413,6 +516,7 @@ public class CloudStorageTransactionManagerDurabilityTests
             lock (_sync)
             {
                 _store[path] = json;
+                _etags[path] = CreateNextEtag();
             }
 
             return Task.CompletedTask;
@@ -433,6 +537,8 @@ public class CloudStorageTransactionManagerDurabilityTests
                 return _store.Keys.OrderBy(k => k, StringComparer.Ordinal).ToArray();
             }
         }
+
+        private static string CreateNextEtag() => $"in-memory-etag-{Guid.NewGuid():N}";
     }
 
     private sealed class TransactionTestEntity

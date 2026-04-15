@@ -17,20 +17,6 @@ Backlog policy
 
 P0 - Correctness and recoverability (must complete before new provider expansion)
 
-Issue P0-01
-Title: Preserve ETag preconditions in staged transactions
-Scope:
-- Add `ifMatchETag` support to staged operation model and durable manifest (`src/CloudStorageORM/Infrastructure/CloudStorageTransactionManager.cs`).
-- Forward original ETag values when staging save/delete inside transactions (`src/CloudStorageORM/Infrastructure/CloudStorageDatabase.cs`).
-- Replay staged operations with provider conditional calls (`src/CloudStorageORM/Infrastructure/CloudStorageTransactionManager.cs`).
-Acceptance Criteria:
-- [ ] Updates/deletes staged in a transaction honor ETag preconditions during commit replay.
-- [ ] Conflicts surface as `DbUpdateConcurrencyException` in transactional flows.
-- [ ] No regression for non-transactional save/delete behavior.
-Test Checklist:
-- [ ] Add/extend unit tests in `tests/CloudStorageORM.Tests/Infrastructure/CloudStorageTransactionManagerTests.cs`.
-- [ ] Add integration coverage in `tests/CloudStorageORM.IntegrationTests/**` for Azure and AWS stale-ETag commit scenarios.
-
 Issue P0-02
 Title: Make commit replay crash-safe and idempotent
 Scope:
@@ -217,7 +203,7 @@ Test Checklist:
 
 Execution tracking
 - [ ] Create epic: "Enterprise Readiness".
-- [ ] Milestone A: Transaction correctness and recovery (P0-01..P0-05).
+- [ ] Milestone A: Transaction correctness and recovery (P0-02..P0-05).
 - [ ] Milestone B: Security, observability, auditability (P1-01..P1-05).
 - [ ] Milestone C: Platform maturity and operations (P2-01..P2-04).
 

@@ -77,6 +77,13 @@ When you call `CommitAsync()`:
 2. Operations are replayed in sequence
 3. Manifest state changes to `Completed`
 
+When optimistic concurrency is enabled (`UseObjectETagConcurrency(...)`), staged updates and deletes keep the
+original `If-Match` ETag precondition in the durable manifest. During replay, commit uses those same conditional
+provider calls.
+
+If the object changed after staging but before commit replay, `CommitAsync()` throws `DbUpdateConcurrencyException`.
+This matches the non-transactional `SaveChangesAsync()` conflict behavior.
+
 ### Phase 3: Recovery
 
 On startup of a new transaction manager instance:

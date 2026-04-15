@@ -210,6 +210,15 @@ public class AwsS3StorageProvider : IStorageProvider
 
         try
         {
+            if (!string.IsNullOrWhiteSpace(ifMatchETag))
+            {
+                var currentEtag = await GetObjectETagAsync(path);
+                if (!ETagMatches(currentEtag, ifMatchETag))
+                {
+                    throw new StoragePreconditionFailedException(path);
+                }
+            }
+
             await _s3Client.DeleteObjectAsync(new DeleteObjectRequest
             {
                 BucketName = _bucketName,

@@ -1,9 +1,9 @@
 # 📦 CloudStorageORM - Library Documentation
 
 **Target Framework**: `net10.0`  
-**Current Release**: `v1.0.13`  
+**Current Release**: `v1.0.14`  
 **Language Version**: `C# 14`  
-**EF Core Packages**: `Microsoft.EntityFrameworkCore 9.0.4`, `Microsoft.EntityFrameworkCore.Relational 9.0.4`  
+**EF Core Packages**: `Microsoft.EntityFrameworkCore 10.0.5`, `Microsoft.EntityFrameworkCore.Relational 10.0.5`  
 **Testing**: `xUnit`, `Shouldly`, `Moq`, `Coverlet`, `ReportGenerator`
 
 ---
@@ -22,11 +22,12 @@ The current branch is focused on:
 - CRUD flows that behave similarly to the EF InMemory provider for the sample app
 - Unit and integration test coverage around infrastructure, queries, validators, and provider behavior
 
-## Release notes for `v1.0.13`
+## Release notes for `v1.0.14`
 
-- Server-side `Skip`/`Take` pushdown is now supported for eligible query shapes.
-- Observability guidance has been refreshed to reflect the logging, tracing, and diagnostics options available in `CloudStorageOptions.Observability`.
-- The release line has been advanced to `v1.0.13` in the package metadata and public docs.
+- Transaction commit replay now preserves staged `If-Match` ETag preconditions for update/delete operations.
+- Transactional stale-ETag conflicts now surface as `DbUpdateConcurrencyException` during commit replay.
+- Added Azure and AWS integration coverage for stale-ETag commit conflicts in transactional flows.
+- Enabled Dependabot automation for NuGet and GitHub Actions updates via `.github/dependabot.yml`.
 
 ---
 
