@@ -74,7 +74,8 @@
 <h1 id="ci-workflow-githubworkflowsciyml">CI workflow (<code>.github/workflows/ci.yml</code>)</h1>
 
 <p>This repository validates build, tests, and coverage through the <code>Build and Test</code> workflow.
-Package publishing is handled by <code>.github/workflows/publish.yml</code>, which validates that the packed NuGet includes <code>README.md</code> and correct repository/readme metadata before push, then publishes to both NuGet.org and GitHub Packages.
+Package publishing is handled by <code>.github/workflows/publish.yml</code>, which validates that the packed NuGet includes
+<code>README.md</code> and correct repository/readme metadata before push, then publishes to both NuGet.org and GitHub Packages.
 The same CI workflow also runs a parallel DocFX documentation job that builds the static site and deploys it by branch:
 <code>main</code> pushes publish to <code>gh-pages</code>, while <code>feature/docs</code> pushes publish to <code>gh-pages-preview</code> for pre-merge validation.
 Publishing runs on <code>v*.*.*</code> tags (for example, <code>v1.0.12</code>) or manual dispatch.</p>
@@ -89,7 +90,7 @@ Publishing runs on <code>v*.*.*</code> tags (for example, <code>v1.0.12</code>) 
 </ul>
 <hr>
 <h2 id="what-ci-does">What CI does</h2>
-<p>In order, CI executes:</p>
+<p>CI executes provider-specific test jobs in parallel, plus a dedicated SampleApp integration lane, followed by a report aggregation job:</p>
 <ol start="0">
 <li>force JavaScript-based actions to run on Node.js 24 (<code>FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true</code>)</li>
 <li>checkout</li>
@@ -98,17 +99,16 @@ Publishing runs on <code>v*.*.*</code> tags (for example, <code>v1.0.12</code>) 
 <li><code>dotnet restore CloudStorageORM.sln</code></li>
 <li><code>dotnet build CloudStorageORM.sln --no-restore --configuration Release</code></li>
 <li>generate CycloneDX SBOM (<code>TestResults/SBOM/cloudstorageorm.sbom.cdx.json</code>)</li>
-<li>start Azurite container</li>
-<li>start LocalStack container (S3 enabled)</li>
-<li>wait for emulators</li>
-<li>run all <code>*.Tests.csproj</code> projects with TRX + XPlat coverage</li>
-<li>upload TRX artifacts</li>
-<li>upload Cobertura XML artifacts</li>
-<li>upload SBOM artifact</li>
+<li>run unit tests (no emulator dependency)</li>
+<li>upload unit TRX and coverage artifacts</li>
+<li>run Azure integration tests in a dedicated job (Azurite only)</li>
+<li>run AWS integration tests in a dedicated job (LocalStack only)</li>
+<li>run SampleApp integration tests in a dedicated job (Azurite + LocalStack)</li>
+<li>upload provider-specific and SampleApp TRX + coverage artifacts</li>
+<li>aggregate all TRX + coverage XML in a report job</li>
 <li>generate HTML coverage report</li>
 <li>upload HTML coverage artifact</li>
 <li>publish PR test comment and unit test UI results</li>
-<li>cleanup containers</li>
 </ol>
 <p>In parallel, CI also executes a <code>Build Docs (DocFX)</code> job:</p>
 <ol>
@@ -126,13 +126,16 @@ Publishing runs on <code>v*.*.*</code> tags (for example, <code>v1.0.12</code>) 
 <code>docs/**</code>, <code>docfx.json</code>, <code>README.md</code>, <code>CONTRIBUTING.md</code>, <code>ROADMAP.md</code>, <code>CODE_OF_CONDUCT.md</code>, <code>SECURITY.md</code>,
 <code>.github/PULL_REQUEST_TEMPLATE.md</code>, <code>.github/ISSUE_TEMPLATE/**</code>, and <code>.github/copilot-instructions.md</code>.
 If any file outside this scope changes, full <code>Build, Test, and Coverage</code> still runs.</p>
-<p>The Node.js 24 opt-in keeps workflows aligned with GitHub Actions runtime deprecation timelines while first- and third-party actions continue their Node 24 transitions. This opt-in is enabled in both <code>.github/workflows/ci.yml</code> and <code>.github/workflows/publish.yml</code>.</p>
+<p>The Node.js 24 opt-in keeps workflows aligned with GitHub Actions runtime deprecation timelines while first- and
+third-party actions continue their Node 24 transitions. This opt-in is enabled in both <code>.github/workflows/ci.yml</code> and
+<code>.github/workflows/publish.yml</code>.</p>
 <hr>
-<h2 id="emulator-details">Emulator details</h2>
-<p>CI starts:</p>
+<h2 id="emulator-details-by-job">Emulator details by job</h2>
+<p>CI starts emulators only in integration jobs:</p>
 <ul>
-<li>Azurite (<code>mcr.microsoft.com/azure-storage/azurite</code>, unpinned/latest tag) on <code>10000</code>, <code>10001</code>, <code>10002</code></li>
-<li>LocalStack (<code>localstack/localstack:3</code>) on <code>4566</code></li>
+<li><code>integration-azure</code> starts Azurite (<code>mcr.microsoft.com/azure-storage/azurite</code>) on <code>10000</code>, <code>10001</code>, <code>10002</code></li>
+<li><code>integration-aws</code> starts LocalStack (<code>localstack/localstack:3</code>) on <code>4566</code></li>
+<li><code>integration-sampleapp</code> starts both Azurite and LocalStack</li>
 </ul>
 <p>AWS test environment variables are injected in CI:</p>
 <ul>
@@ -144,10 +147,11 @@ If any file outside this scope changes, full <code>Build, Test, and Coverage</co
 </ul>
 <hr>
 <h2 id="test-and-coverage-artifacts">Test and coverage artifacts</h2>
-<p>CI publishes five artifacts:</p>
+<p>CI publishes artifacts per job and in the aggregate report stage:</p>
 <ul>
-<li><code>test-results</code> -&gt; <code>TestResults/*.trx</code></li>
-<li><code>coverage-xml</code> -&gt; <code>TestResults/Coverage/*.xml</code></li>
+<li><code>test-results-unit</code>, <code>test-results-azure</code>, <code>test-results-aws</code> -&gt; <code>TestResults/*.trx</code></li>
+<li><code>test-results-sampleapp</code> -&gt; <code>TestResults/*.trx</code></li>
+<li><code>coverage-xml-unit</code>, <code>coverage-xml-azure</code>, <code>coverage-xml-aws</code>, <code>coverage-xml-sampleapp</code> -&gt; <code>TestResults/Coverage/*.xml</code></li>
 <li><code>sbom-cyclonedx</code> -&gt; <code>TestResults/SBOM/*.json</code></li>
 <li><code>coverage-html</code> -&gt; <code>TestResults/CoverageReport</code></li>
 <li><code>docs-site</code> -&gt; <code>_site</code></li>
@@ -177,6 +181,18 @@ for proj in $(find . -type f -iname &quot;*.Tests.csproj&quot;); do
   find . -name &quot;${name}.trx&quot; -exec cp {} TestResults/ \;
   find . -name &quot;coverage.cobertura.xml&quot; -exec cp {} TestResults/Coverage/${name}.xml \;
 done
+
+dotnet test tests/CloudStorageORM.IntegrationTests/CloudStorageORM.IntegrationTests.Azure.csproj --configuration Release \
+  --logger &quot;trx;LogFileName=CloudStorageORM.IntegrationTests.Azure.trx&quot; \
+  --collect:&quot;XPlat Code Coverage&quot;
+
+dotnet test tests/CloudStorageORM.IntegrationTests/CloudStorageORM.IntegrationTests.AWS.csproj --configuration Release \
+  --logger &quot;trx;LogFileName=CloudStorageORM.IntegrationTests.AWS.trx&quot; \
+  --collect:&quot;XPlat Code Coverage&quot;
+
+dotnet test tests/CloudStorageORM.IntegrationTests.SampleApp/CloudStorageORM.IntegrationTests.SampleApp.csproj --configuration Release \
+  --logger &quot;trx;LogFileName=CloudStorageORM.IntegrationTests.SampleApp.trx&quot; \
+  --collect:&quot;XPlat Code Coverage&quot;
 </code></pre>
 <p>Then generate HTML coverage:</p>
 <pre><code class="lang-bash">dotnet tool restore

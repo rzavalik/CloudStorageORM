@@ -107,11 +107,8 @@ docker run -d \
 </ul>
 <hr>
 <h2 id="run-aws-integration-tests-only">Run AWS integration tests only</h2>
-<pre><code class="lang-bash">dotnet test tests/CloudStorageORM.IntegrationTests/CloudStorageORM.IntegrationTests.Azure.csproj \
-  --filter &quot;FullyQualifiedName~Aws&quot; \
-  --nologo -v minimal
+<pre><code class="lang-bash">dotnet test tests/CloudStorageORM.IntegrationTests/CloudStorageORM.IntegrationTests.AWS.csproj --nologo -v minimal
 </code></pre>
-<p>Note: there is a single integration test project file (<code>CloudStorageORM.IntegrationTests.Azure.csproj</code>) that contains both Azure and AWS integration tests.</p>
 <p>If LocalStack is unavailable, AWS integration scenarios are skipped by fixture guards.</p>
 <hr>
 <h2 id="run-the-sample-app-with-localstack-available">Run the sample app with LocalStack available</h2>
@@ -143,9 +140,11 @@ export CLOUDSTORAGEORM_AWS_FORCE_PATH_STYLE=true
 <h2 id="related-files">Related files</h2>
 <ul>
 <li><code>src/CloudStorageORM/Providers/Aws/StorageProviders/AwsS3StorageProvider.cs</code></li>
+<li><code>tests/CloudStorageORM.IntegrationTests/CloudStorageORM.IntegrationTests.AWS.csproj</code></li>
+<li><code>tests/CloudStorageORM.IntegrationTests.SampleApp/CloudStorageORM.IntegrationTests.SampleApp.csproj</code></li>
 <li><code>tests/CloudStorageORM.IntegrationTests/Aws/LocalStackFixture.cs</code></li>
 <li><code>tests/CloudStorageORM.IntegrationTests/Aws/StorageProviders/AwsS3StorageProviderTests.cs</code></li>
-<li><code>tests/CloudStorageORM.IntegrationTests/Aws/ProgramExitAwsTests.cs</code></li>
+<li><code>tests/CloudStorageORM.IntegrationTests.SampleApp/ProgramExitAwsSampleAppTests.cs</code></li>
 </ul>
 
 </article>

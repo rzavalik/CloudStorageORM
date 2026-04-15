@@ -208,19 +208,32 @@ var user = await context.Users
 </tbody>
 </table>
 <h2 id="pagination">Pagination</h2>
-<p>CloudStorageORM currently does not push down <code>Skip</code>/<code>Take</code> to storage, so pagination is materialized and then sliced in
-memory:</p>
+<p>CloudStorageORM now supports <code>Skip</code>/<code>Take</code> pushdown for supported query shapes. When pushdown applies, object paths are
+paged provider-side and only the requested slice is materialized.</p>
+<p>Pushdown applies when:</p>
+<ul>
+<li>pagination appears as a <code>Skip(...).Take(...)</code>/<code>Take(...).Skip(...)</code> chain at the query edge</li>
+<li>the pre-pagination query shape avoids unsupported operators (<code>OrderBy*</code>, <code>ThenBy*</code>, <code>Select*</code>, <code>Reverse</code>, <code>GroupBy</code>,
+<code>Distinct</code>)</li>
+<li>any predicate is either absent or recognized as a primary-key constraint (<code>==</code>, <code>&gt;</code>, <code>&gt;=</code>, <code>&lt;</code>, <code>&lt;=</code>)</li>
+</ul>
+<p>Example (eligible for pushdown):</p>
 <pre><code class="lang-csharp">var pageSize = 10;
 var pageNumber = 2;
 
-var users = await context.Users
-    .ToListAsync();
-
-var pagedUsers = users
+var pagedUsers = await context.Users
     .Skip((pageNumber - 1) * pageSize)
     .Take(pageSize)
-    .ToList();
+    .ToListAsync();
 </code></pre>
+<p>Example with primary-key range + pagination (eligible for pushdown):</p>
+<pre><code class="lang-csharp">var users = await context.Users
+    .Where(u =&gt; u.Id &gt;= &quot;100&quot; &amp;&amp; u.Id &lt; &quot;200&quot;)
+    .Skip(20)
+    .Take(20)
+    .ToListAsync();
+</code></pre>
+<p>When the shape is not eligible, CloudStorageORM falls back to materialize-then-slice behavior.</p>
 <h2 id="performance-considerations">Performance considerations</h2>
 <ol>
 <li><strong>Prefer primary-key filters</strong> (<code>Id == ...</code>, key ranges) in latency-sensitive paths</li>
@@ -231,7 +244,7 @@ var pagedUsers = users
 <h2 id="limitations">Limitations</h2>
 <ul>
 <li>No server-side relational query execution; non-key filtering is in-memory</li>
-<li>No server-side <code>Skip()</code> or <code>Take()</code> pushdown</li>
+<li><code>Skip()</code>/<code>Take()</code> pushdown is shape-dependent; unsupported query shapes fall back to in-memory slicing</li>
 <li>No <code>Include()</code> for related entities (object storage is not relational)</li>
 <li>Composite-key optimization behavior is limited; optimize primarily for single primary-key constraints</li>
 <li>Complex nested queries may require manual materialization and reshaping</li>

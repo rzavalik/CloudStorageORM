@@ -118,7 +118,9 @@ docker run -d \
 <p>This runs:</p>
 <ul>
 <li>unit tests in <code>tests/CloudStorageORM.Tests</code></li>
-<li>integration tests in <code>tests/CloudStorageORM.IntegrationTests</code></li>
+<li>Azure integration tests in <code>tests/CloudStorageORM.IntegrationTests/CloudStorageORM.IntegrationTests.Azure.csproj</code></li>
+<li>AWS integration tests in <code>tests/CloudStorageORM.IntegrationTests/CloudStorageORM.IntegrationTests.AWS.csproj</code></li>
+<li>SampleApp integration tests in <code>tests/CloudStorageORM.IntegrationTests.SampleApp/CloudStorageORM.IntegrationTests.SampleApp.csproj</code></li>
 </ul>
 <p>For CI-style TRX and coverage artifact layout, see <a href="ci.html">ci.md</a>.</p>
 <p>If Azurite is unavailable, Azure-backed integration scenarios are skipped by fixture guards.</p>
@@ -177,8 +179,9 @@ docker run -d \
 <hr>
 <h2 id="related-files">Related files</h2>
 <ul>
-<li><code>tests/CloudStorageORM.IntegrationTests/StorageFixture.cs</code></li>
-<li><code>tests/CloudStorageORM.IntegrationTests/ProgramExitTests.cs</code></li>
+<li><code>tests/CloudStorageORM.IntegrationTests/CloudStorageORM.IntegrationTests.Azure.csproj</code></li>
+<li><code>tests/CloudStorageORM.IntegrationTests/Azure/StorageFixture.cs</code></li>
+<li><code>tests/CloudStorageORM.IntegrationTests/Azure/StorageProviders/AzureBlobStorageProviderTests.cs</code></li>
 <li><code>coverlet.runsettings</code></li>
 <li><code>dotnet-tools.json</code></li>
 </ul>

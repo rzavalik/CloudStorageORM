@@ -104,6 +104,20 @@
     },
     {
       "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Abstractions.StorageListPage.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Abstractions.StorageListPage.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Abstractions.StorageListPage",
+      "Summary": "<p sourcefile=\"api/CloudStorageORM.Abstractions.StorageListPage.yml\" sourcestartlinenumber=\"1\">Represents a single provider list page with continuation state.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
       "source_relative_path": "api/CloudStorageORM.Abstractions.StorageObject-1.yml",
       "output": {
         ".html": {

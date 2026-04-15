@@ -70,6 +70,70 @@ references:
   commentId: T:CloudStorageORM.Abstractions.ModelAttribute
   fullName: CloudStorageORM.Abstractions.ModelAttribute
   nameWithType: ModelAttribute
+- uid: CloudStorageORM.Abstractions.StorageListPage
+  name: StorageListPage
+  href: api/CloudStorageORM.Abstractions.StorageListPage.html
+  commentId: T:CloudStorageORM.Abstractions.StorageListPage
+  fullName: CloudStorageORM.Abstractions.StorageListPage
+  nameWithType: StorageListPage
+- uid: CloudStorageORM.Abstractions.StorageListPage.#ctor(System.Collections.Generic.IReadOnlyList{System.String},System.String,System.Boolean)
+  name: StorageListPage(IReadOnlyList<string>, string?, bool)
+  href: api/CloudStorageORM.Abstractions.StorageListPage.html#CloudStorageORM_Abstractions_StorageListPage__ctor_System_Collections_Generic_IReadOnlyList_System_String__System_String_System_Boolean_
+  commentId: M:CloudStorageORM.Abstractions.StorageListPage.#ctor(System.Collections.Generic.IReadOnlyList{System.String},System.String,System.Boolean)
+  name.vb: New(IReadOnlyList(Of String), String, Boolean)
+  fullName: CloudStorageORM.Abstractions.StorageListPage.StorageListPage(System.Collections.Generic.IReadOnlyList<string>, string?, bool)
+  fullName.vb: CloudStorageORM.Abstractions.StorageListPage.New(System.Collections.Generic.IReadOnlyList(Of String), String, Boolean)
+  nameWithType: StorageListPage.StorageListPage(IReadOnlyList<string>, string?, bool)
+  nameWithType.vb: StorageListPage.New(IReadOnlyList(Of String), String, Boolean)
+- uid: CloudStorageORM.Abstractions.StorageListPage.#ctor*
+  name: StorageListPage
+  href: api/CloudStorageORM.Abstractions.StorageListPage.html#CloudStorageORM_Abstractions_StorageListPage__ctor_
+  commentId: Overload:CloudStorageORM.Abstractions.StorageListPage.#ctor
+  isSpec: "True"
+  name.vb: New
+  fullName: CloudStorageORM.Abstractions.StorageListPage.StorageListPage
+  fullName.vb: CloudStorageORM.Abstractions.StorageListPage.New
+  nameWithType: StorageListPage.StorageListPage
+  nameWithType.vb: StorageListPage.New
+- uid: CloudStorageORM.Abstractions.StorageListPage.ContinuationToken
+  name: ContinuationToken
+  href: api/CloudStorageORM.Abstractions.StorageListPage.html#CloudStorageORM_Abstractions_StorageListPage_ContinuationToken
+  commentId: P:CloudStorageORM.Abstractions.StorageListPage.ContinuationToken
+  fullName: CloudStorageORM.Abstractions.StorageListPage.ContinuationToken
+  nameWithType: StorageListPage.ContinuationToken
+- uid: CloudStorageORM.Abstractions.StorageListPage.ContinuationToken*
+  name: ContinuationToken
+  href: api/CloudStorageORM.Abstractions.StorageListPage.html#CloudStorageORM_Abstractions_StorageListPage_ContinuationToken_
+  commentId: Overload:CloudStorageORM.Abstractions.StorageListPage.ContinuationToken
+  isSpec: "True"
+  fullName: CloudStorageORM.Abstractions.StorageListPage.ContinuationToken
+  nameWithType: StorageListPage.ContinuationToken
+- uid: CloudStorageORM.Abstractions.StorageListPage.HasMore
+  name: HasMore
+  href: api/CloudStorageORM.Abstractions.StorageListPage.html#CloudStorageORM_Abstractions_StorageListPage_HasMore
+  commentId: P:CloudStorageORM.Abstractions.StorageListPage.HasMore
+  fullName: CloudStorageORM.Abstractions.StorageListPage.HasMore
+  nameWithType: StorageListPage.HasMore
+- uid: CloudStorageORM.Abstractions.StorageListPage.HasMore*
+  name: HasMore
+  href: api/CloudStorageORM.Abstractions.StorageListPage.html#CloudStorageORM_Abstractions_StorageListPage_HasMore_
+  commentId: Overload:CloudStorageORM.Abstractions.StorageListPage.HasMore
+  isSpec: "True"
+  fullName: CloudStorageORM.Abstractions.StorageListPage.HasMore
+  nameWithType: StorageListPage.HasMore
+- uid: CloudStorageORM.Abstractions.StorageListPage.Keys
+  name: Keys
+  href: api/CloudStorageORM.Abstractions.StorageListPage.html#CloudStorageORM_Abstractions_StorageListPage_Keys
+  commentId: P:CloudStorageORM.Abstractions.StorageListPage.Keys
+  fullName: CloudStorageORM.Abstractions.StorageListPage.Keys
+  nameWithType: StorageListPage.Keys
+- uid: CloudStorageORM.Abstractions.StorageListPage.Keys*
+  name: Keys
+  href: api/CloudStorageORM.Abstractions.StorageListPage.html#CloudStorageORM_Abstractions_StorageListPage_Keys_
+  commentId: Overload:CloudStorageORM.Abstractions.StorageListPage.Keys
+  isSpec: "True"
+  fullName: CloudStorageORM.Abstractions.StorageListPage.Keys
+  nameWithType: StorageListPage.Keys
 - uid: CloudStorageORM.Abstractions.StorageObject`1
   name: StorageObject<T>
   href: api/CloudStorageORM.Abstractions.StorageObject-1.html
@@ -651,6 +715,22 @@ references:
   fullName.vb: CloudStorageORM.Infrastructure.CloudStorageDatabase.LoadByPrimaryKeyRangeAsync(Of TEntity)(Object, Boolean, Object, Boolean, Microsoft.EntityFrameworkCore.DbContext)
   nameWithType: CloudStorageDatabase.LoadByPrimaryKeyRangeAsync<TEntity>(object?, bool, object?, bool, DbContext?)
   nameWithType.vb: CloudStorageDatabase.LoadByPrimaryKeyRangeAsync(Of TEntity)(Object, Boolean, Object, Boolean, DbContext)
+- uid: CloudStorageORM.Infrastructure.CloudStorageDatabase.LoadByPrimaryKeyRangePageAsync*
+  name: LoadByPrimaryKeyRangePageAsync
+  href: api/CloudStorageORM.Infrastructure.CloudStorageDatabase.html#CloudStorageORM_Infrastructure_CloudStorageDatabase_LoadByPrimaryKeyRangePageAsync_
+  commentId: Overload:CloudStorageORM.Infrastructure.CloudStorageDatabase.LoadByPrimaryKeyRangePageAsync
+  isSpec: "True"
+  fullName: CloudStorageORM.Infrastructure.CloudStorageDatabase.LoadByPrimaryKeyRangePageAsync
+  nameWithType: CloudStorageDatabase.LoadByPrimaryKeyRangePageAsync
+- uid: CloudStorageORM.Infrastructure.CloudStorageDatabase.LoadByPrimaryKeyRangePageAsync``1(System.Object,System.Boolean,System.Object,System.Boolean,System.Int32,System.Int32,Microsoft.EntityFrameworkCore.DbContext)
+  name: LoadByPrimaryKeyRangePageAsync<TEntity>(object?, bool, object?, bool, int, int, DbContext?)
+  href: api/CloudStorageORM.Infrastructure.CloudStorageDatabase.html#CloudStorageORM_Infrastructure_CloudStorageDatabase_LoadByPrimaryKeyRangePageAsync__1_System_Object_System_Boolean_System_Object_System_Boolean_System_Int32_System_Int32_Microsoft_EntityFrameworkCore_DbContext_
+  commentId: M:CloudStorageORM.Infrastructure.CloudStorageDatabase.LoadByPrimaryKeyRangePageAsync``1(System.Object,System.Boolean,System.Object,System.Boolean,System.Int32,System.Int32,Microsoft.EntityFrameworkCore.DbContext)
+  name.vb: LoadByPrimaryKeyRangePageAsync(Of TEntity)(Object, Boolean, Object, Boolean, Integer, Integer, DbContext)
+  fullName: CloudStorageORM.Infrastructure.CloudStorageDatabase.LoadByPrimaryKeyRangePageAsync<TEntity>(object?, bool, object?, bool, int, int, Microsoft.EntityFrameworkCore.DbContext?)
+  fullName.vb: CloudStorageORM.Infrastructure.CloudStorageDatabase.LoadByPrimaryKeyRangePageAsync(Of TEntity)(Object, Boolean, Object, Boolean, Integer, Integer, Microsoft.EntityFrameworkCore.DbContext)
+  nameWithType: CloudStorageDatabase.LoadByPrimaryKeyRangePageAsync<TEntity>(object?, bool, object?, bool, int, int, DbContext?)
+  nameWithType.vb: CloudStorageDatabase.LoadByPrimaryKeyRangePageAsync(Of TEntity)(Object, Boolean, Object, Boolean, Integer, Integer, DbContext)
 - uid: CloudStorageORM.Infrastructure.CloudStorageDatabase.LoadEntitiesAsync*
   name: LoadEntitiesAsync
   href: api/CloudStorageORM.Infrastructure.CloudStorageDatabase.html#CloudStorageORM_Infrastructure_CloudStorageDatabase_LoadEntitiesAsync_
@@ -667,6 +747,22 @@ references:
   fullName.vb: CloudStorageORM.Infrastructure.CloudStorageDatabase.LoadEntitiesAsync(Of TEntity)(Microsoft.EntityFrameworkCore.DbContext)
   nameWithType: CloudStorageDatabase.LoadEntitiesAsync<TEntity>(DbContext)
   nameWithType.vb: CloudStorageDatabase.LoadEntitiesAsync(Of TEntity)(DbContext)
+- uid: CloudStorageORM.Infrastructure.CloudStorageDatabase.LoadPageAsync*
+  name: LoadPageAsync
+  href: api/CloudStorageORM.Infrastructure.CloudStorageDatabase.html#CloudStorageORM_Infrastructure_CloudStorageDatabase_LoadPageAsync_
+  commentId: Overload:CloudStorageORM.Infrastructure.CloudStorageDatabase.LoadPageAsync
+  isSpec: "True"
+  fullName: CloudStorageORM.Infrastructure.CloudStorageDatabase.LoadPageAsync
+  nameWithType: CloudStorageDatabase.LoadPageAsync
+- uid: CloudStorageORM.Infrastructure.CloudStorageDatabase.LoadPageAsync``1(System.Int32,System.Int32,Microsoft.EntityFrameworkCore.DbContext)
+  name: LoadPageAsync<TEntity>(int, int, DbContext?)
+  href: api/CloudStorageORM.Infrastructure.CloudStorageDatabase.html#CloudStorageORM_Infrastructure_CloudStorageDatabase_LoadPageAsync__1_System_Int32_System_Int32_Microsoft_EntityFrameworkCore_DbContext_
+  commentId: M:CloudStorageORM.Infrastructure.CloudStorageDatabase.LoadPageAsync``1(System.Int32,System.Int32,Microsoft.EntityFrameworkCore.DbContext)
+  name.vb: LoadPageAsync(Of TEntity)(Integer, Integer, DbContext)
+  fullName: CloudStorageORM.Infrastructure.CloudStorageDatabase.LoadPageAsync<TEntity>(int, int, Microsoft.EntityFrameworkCore.DbContext?)
+  fullName.vb: CloudStorageORM.Infrastructure.CloudStorageDatabase.LoadPageAsync(Of TEntity)(Integer, Integer, Microsoft.EntityFrameworkCore.DbContext)
+  nameWithType: CloudStorageDatabase.LoadPageAsync<TEntity>(int, int, DbContext?)
+  nameWithType.vb: CloudStorageDatabase.LoadPageAsync(Of TEntity)(Integer, Integer, DbContext)
 - uid: CloudStorageORM.Infrastructure.CloudStorageDatabase.Model
   name: Model
   href: api/CloudStorageORM.Infrastructure.CloudStorageDatabase.html#CloudStorageORM_Infrastructure_CloudStorageDatabase_Model
@@ -2310,6 +2406,22 @@ references:
   isSpec: "True"
   fullName: CloudStorageORM.Interfaces.StorageProviders.IStorageProvider.ListAsync
   nameWithType: IStorageProvider.ListAsync
+- uid: CloudStorageORM.Interfaces.StorageProviders.IStorageProvider.ListPageAsync(System.String,System.Int32,System.String,System.Threading.CancellationToken)
+  name: ListPageAsync(string, int, string?, CancellationToken)
+  href: api/CloudStorageORM.Interfaces.StorageProviders.IStorageProvider.html#CloudStorageORM_Interfaces_StorageProviders_IStorageProvider_ListPageAsync_System_String_System_Int32_System_String_System_Threading_CancellationToken_
+  commentId: M:CloudStorageORM.Interfaces.StorageProviders.IStorageProvider.ListPageAsync(System.String,System.Int32,System.String,System.Threading.CancellationToken)
+  name.vb: ListPageAsync(String, Integer, String, CancellationToken)
+  fullName: CloudStorageORM.Interfaces.StorageProviders.IStorageProvider.ListPageAsync(string, int, string?, System.Threading.CancellationToken)
+  fullName.vb: CloudStorageORM.Interfaces.StorageProviders.IStorageProvider.ListPageAsync(String, Integer, String, System.Threading.CancellationToken)
+  nameWithType: IStorageProvider.ListPageAsync(string, int, string?, CancellationToken)
+  nameWithType.vb: IStorageProvider.ListPageAsync(String, Integer, String, CancellationToken)
+- uid: CloudStorageORM.Interfaces.StorageProviders.IStorageProvider.ListPageAsync*
+  name: ListPageAsync
+  href: api/CloudStorageORM.Interfaces.StorageProviders.IStorageProvider.html#CloudStorageORM_Interfaces_StorageProviders_IStorageProvider_ListPageAsync_
+  commentId: Overload:CloudStorageORM.Interfaces.StorageProviders.IStorageProvider.ListPageAsync
+  isSpec: "True"
+  fullName: CloudStorageORM.Interfaces.StorageProviders.IStorageProvider.ListPageAsync
+  nameWithType: IStorageProvider.ListPageAsync
 - uid: CloudStorageORM.Interfaces.StorageProviders.IStorageProvider.ReadAsync*
   name: ReadAsync
   href: api/CloudStorageORM.Interfaces.StorageProviders.IStorageProvider.html#CloudStorageORM_Interfaces_StorageProviders_IStorageProvider_ReadAsync_
@@ -2965,6 +3077,22 @@ references:
   isSpec: "True"
   fullName: CloudStorageORM.Providers.Aws.StorageProviders.AwsS3StorageProvider.ListAsync
   nameWithType: AwsS3StorageProvider.ListAsync
+- uid: CloudStorageORM.Providers.Aws.StorageProviders.AwsS3StorageProvider.ListPageAsync(System.String,System.Int32,System.String,System.Threading.CancellationToken)
+  name: ListPageAsync(string, int, string?, CancellationToken)
+  href: api/CloudStorageORM.Providers.Aws.StorageProviders.AwsS3StorageProvider.html#CloudStorageORM_Providers_Aws_StorageProviders_AwsS3StorageProvider_ListPageAsync_System_String_System_Int32_System_String_System_Threading_CancellationToken_
+  commentId: M:CloudStorageORM.Providers.Aws.StorageProviders.AwsS3StorageProvider.ListPageAsync(System.String,System.Int32,System.String,System.Threading.CancellationToken)
+  name.vb: ListPageAsync(String, Integer, String, CancellationToken)
+  fullName: CloudStorageORM.Providers.Aws.StorageProviders.AwsS3StorageProvider.ListPageAsync(string, int, string?, System.Threading.CancellationToken)
+  fullName.vb: CloudStorageORM.Providers.Aws.StorageProviders.AwsS3StorageProvider.ListPageAsync(String, Integer, String, System.Threading.CancellationToken)
+  nameWithType: AwsS3StorageProvider.ListPageAsync(string, int, string?, CancellationToken)
+  nameWithType.vb: AwsS3StorageProvider.ListPageAsync(String, Integer, String, CancellationToken)
+- uid: CloudStorageORM.Providers.Aws.StorageProviders.AwsS3StorageProvider.ListPageAsync*
+  name: ListPageAsync
+  href: api/CloudStorageORM.Providers.Aws.StorageProviders.AwsS3StorageProvider.html#CloudStorageORM_Providers_Aws_StorageProviders_AwsS3StorageProvider_ListPageAsync_
+  commentId: Overload:CloudStorageORM.Providers.Aws.StorageProviders.AwsS3StorageProvider.ListPageAsync
+  isSpec: "True"
+  fullName: CloudStorageORM.Providers.Aws.StorageProviders.AwsS3StorageProvider.ListPageAsync
+  nameWithType: AwsS3StorageProvider.ListPageAsync
 - uid: CloudStorageORM.Providers.Aws.StorageProviders.AwsS3StorageProvider.ReadAsync*
   name: ReadAsync
   href: api/CloudStorageORM.Providers.Aws.StorageProviders.AwsS3StorageProvider.html#CloudStorageORM_Providers_Aws_StorageProviders_AwsS3StorageProvider_ReadAsync_
@@ -3195,6 +3323,22 @@ references:
   isSpec: "True"
   fullName: CloudStorageORM.Providers.Azure.StorageProviders.AzureBlobStorageProvider.ListAsync
   nameWithType: AzureBlobStorageProvider.ListAsync
+- uid: CloudStorageORM.Providers.Azure.StorageProviders.AzureBlobStorageProvider.ListPageAsync(System.String,System.Int32,System.String,System.Threading.CancellationToken)
+  name: ListPageAsync(string, int, string?, CancellationToken)
+  href: api/CloudStorageORM.Providers.Azure.StorageProviders.AzureBlobStorageProvider.html#CloudStorageORM_Providers_Azure_StorageProviders_AzureBlobStorageProvider_ListPageAsync_System_String_System_Int32_System_String_System_Threading_CancellationToken_
+  commentId: M:CloudStorageORM.Providers.Azure.StorageProviders.AzureBlobStorageProvider.ListPageAsync(System.String,System.Int32,System.String,System.Threading.CancellationToken)
+  name.vb: ListPageAsync(String, Integer, String, CancellationToken)
+  fullName: CloudStorageORM.Providers.Azure.StorageProviders.AzureBlobStorageProvider.ListPageAsync(string, int, string?, System.Threading.CancellationToken)
+  fullName.vb: CloudStorageORM.Providers.Azure.StorageProviders.AzureBlobStorageProvider.ListPageAsync(String, Integer, String, System.Threading.CancellationToken)
+  nameWithType: AzureBlobStorageProvider.ListPageAsync(string, int, string?, CancellationToken)
+  nameWithType.vb: AzureBlobStorageProvider.ListPageAsync(String, Integer, String, CancellationToken)
+- uid: CloudStorageORM.Providers.Azure.StorageProviders.AzureBlobStorageProvider.ListPageAsync*
+  name: ListPageAsync
+  href: api/CloudStorageORM.Providers.Azure.StorageProviders.AzureBlobStorageProvider.html#CloudStorageORM_Providers_Azure_StorageProviders_AzureBlobStorageProvider_ListPageAsync_
+  commentId: Overload:CloudStorageORM.Providers.Azure.StorageProviders.AzureBlobStorageProvider.ListPageAsync
+  isSpec: "True"
+  fullName: CloudStorageORM.Providers.Azure.StorageProviders.AzureBlobStorageProvider.ListPageAsync
+  nameWithType: AzureBlobStorageProvider.ListPageAsync
 - uid: CloudStorageORM.Providers.Azure.StorageProviders.AzureBlobStorageProvider.ReadAsync*
   name: ReadAsync
   href: api/CloudStorageORM.Providers.Azure.StorageProviders.AzureBlobStorageProvider.html#CloudStorageORM_Providers_Azure_StorageProviders_AzureBlobStorageProvider_ReadAsync_

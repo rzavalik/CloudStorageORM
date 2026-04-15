@@ -104,7 +104,7 @@ storage.Azure.ConnectionString = &quot;UseDevelopmentStorage=true&quot;;
 <h3 id="limitations">Limitations</h3>
 <ul>
 <li>Not implemented: blob leases for distributed locking (planned v1.1.0)</li>
-<li>Container must exist before use</li>
+<li>Container is created automatically on first use when missing</li>
 </ul>
 <h2 id="aws-s3">AWS S3</h2>
 <p>CloudStorageORM's <strong>AWS S3</strong> provider is production-ready and fully featured.</p>
@@ -115,7 +115,7 @@ storage.ContainerName = &quot;local-bucket&quot;;
 storage.Aws.AccessKeyId = &quot;test&quot;;
 storage.Aws.SecretAccessKey = &quot;test&quot;;
 storage.Aws.Region = &quot;us-east-1&quot;;
-storage.Aws.ServiceUrl = &quot;http://localhost:4566&quot;;
+storage.Aws.ServiceUrl = &quot;http://127.0.0.1:4566&quot;;
 storage.Aws.ForcePathStyle = true;
 </code></pre>
 <p>Then start LocalStack:</p>
@@ -142,7 +142,7 @@ storage.Aws.Region = &quot;us-west-2&quot;;
 <h3 id="limitations-1">Limitations</h3>
 <ul>
 <li>Not implemented: S3 object locks for distributed locking (planned v1.1.0)</li>
-<li>Bucket must exist before use</li>
+<li>Bucket is created automatically on first use when missing</li>
 </ul>
 <h2 id="google-cloud-storage">Google Cloud Storage</h2>
 <p><strong>Not yet implemented.</strong> Google Cloud Storage support is planned for v1.3.0+.</p>

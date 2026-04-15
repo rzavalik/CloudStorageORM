@@ -180,22 +180,24 @@
 <ul>
 <li>Azure connection string: <code>UseDevelopmentStorage=true</code></li>
 <li>Azure container: <code>sampleapp-container</code></li>
-<li>AWS endpoint: <code>http://localhost:4566</code></li>
+<li>AWS endpoint: <code>http://127.0.0.1:4566</code></li>
 <li>AWS region: <code>us-east-1</code></li>
 <li>AWS credentials: <code>test</code> / <code>test</code></li>
 </ul>
-<p>You can override values with env vars (for example <code>CLOUDSTORAGEORM_AZURE_CONNECTION_STRING</code>, <code>CLOUDSTORAGEORM_AWS_SERVICE_URL</code>, <code>CLOUDSTORAGEORM_AWS_BUCKET</code>).</p>
+<p>You can override values with env vars (for example <code>CLOUDSTORAGEORM_AZURE_CONNECTION_STRING</code>,
+<code>CLOUDSTORAGEORM_AWS_SERVICE_URL</code>, <code>CLOUDSTORAGEORM_AWS_BUCKET</code>).</p>
 <hr>
 <h2 id="regression-safety">Regression safety</h2>
 <p>This sample is also covered by an integration test:</p>
 <ul>
-<li><code>tests/CloudStorageORM.IntegrationTests/ProgramExitTests.cs</code></li>
-<li><code>tests/CloudStorageORM.IntegrationTests/Aws/ProgramExitAwsTests.cs</code></li>
+<li><code>tests/CloudStorageORM.IntegrationTests.SampleApp/ProgramExitAzureSampleAppTests.cs</code></li>
+<li><code>tests/CloudStorageORM.IntegrationTests.SampleApp/ProgramExitAwsSampleAppTests.cs</code></li>
 </ul>
 <p>Those tests launch the sample through <code>dotnet run</code> and verify it exits with code <code>0</code> and prints <code>SampleApp Finished</code>.</p>
 <hr>
 <h2 id="why-this-sample-matters">Why this sample matters</h2>
-<p>The sample is the clearest executable proof, on the current branch, that CloudStorageORM is intended to be consumed like an EF provider rather than through a completely separate repository API.
+<p>The sample is the clearest executable proof, on the current branch, that CloudStorageORM is intended to be consumed like
+an EF provider rather than through a completely separate repository API.
 It also serves as a guardrail for query execution changes, provider behavior, and end-to-end startup wiring.</p>
 <hr>
 <h2 id="related-docs">Related docs</h2>

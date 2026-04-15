@@ -205,6 +205,12 @@ The current branch expects, among other things:</p>
 <pre><code class="lang-bash">./scripts/run-local-ci-tests.sh
 </code></pre>
 <p>This script mirrors CI startup/test behavior and runs Azurite with <code>--skipApiVersionCheck</code> for local compatibility.</p>
+<p>Integration tests are split by provider:</p>
+<ul>
+<li><code>tests/CloudStorageORM.IntegrationTests/CloudStorageORM.IntegrationTests.Azure.csproj</code></li>
+<li><code>tests/CloudStorageORM.IntegrationTests/CloudStorageORM.IntegrationTests.AWS.csproj</code></li>
+<li><code>tests/CloudStorageORM.IntegrationTests.SampleApp/CloudStorageORM.IntegrationTests.SampleApp.csproj</code></li>
+</ul>
 <h3 id="integration-tests-with-azurite">Integration tests with Azurite</h3>
 <p>If your change touches Azure provider behavior, sample app behavior, or end-to-end query execution, start Azurite first:</p>
 <pre><code class="lang-bash">docker rm -f azurite || true
@@ -216,6 +222,9 @@ docker run -d \
   mcr.microsoft.com/azure-storage/azurite:latest \
   azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0 --skipApiVersionCheck
 </code></pre>
+<p>Then run Azure integration tests:</p>
+<pre><code class="lang-bash">dotnet test tests/CloudStorageORM.IntegrationTests/CloudStorageORM.IntegrationTests.Azure.csproj --nologo -v minimal
+</code></pre>
 <h3 id="integration-tests-with-localstack-aws">Integration tests with LocalStack (AWS)</h3>
 <p>If your change touches AWS provider behavior, start LocalStack with S3 enabled:</p>
 <pre><code class="lang-bash">docker rm -f localstack || true
@@ -225,6 +234,13 @@ docker run -d \
   -e SERVICES=s3 \
   -e AWS_DEFAULT_REGION=us-east-1 \
   localstack/localstack:3
+</code></pre>
+<p>Then run AWS integration tests:</p>
+<pre><code class="lang-bash">dotnet test tests/CloudStorageORM.IntegrationTests/CloudStorageORM.IntegrationTests.AWS.csproj --nologo -v minimal
+</code></pre>
+<h3 id="sampleapp-integration-tests">SampleApp integration tests</h3>
+<p>If your change touches sample startup/wiring or end-to-end provider flow expectations, run the dedicated SampleApp lane:</p>
+<pre><code class="lang-bash">dotnet test tests/CloudStorageORM.IntegrationTests.SampleApp/CloudStorageORM.IntegrationTests.SampleApp.csproj --nologo -v minimal
 </code></pre>
 <h3 id="coverage-workflow">Coverage workflow</h3>
 <pre><code class="lang-bash">dotnet test CloudStorageORM.sln --nologo --settings coverlet.runsettings --collect:&quot;XPlat Code Coverage&quot; -v minimal
@@ -279,13 +295,18 @@ All changes should go through a PR and pass CI.</p>
 <li>pushes to <code>feature/docs</code> (DocFX preview validation branch)</li>
 <li>pull requests targeting <code>main</code>, <code>feature/**</code>, <code>bug/**</code>, or <code>hotfix/**</code></li>
 </ul>
-<p>Release publishing (<code>.github/workflows/publish.yml</code>) runs on <code>v*.*.*</code> tags (or manual dispatch) and publishes <code>CloudStorageORM</code> to NuGet.org and GitHub Packages.</p>
-<p>CI and publish workflows currently opt JavaScript-based GitHub Actions into the Node.js 24 runtime using <code>FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true</code>.</p>
+<p>Release publishing (<code>.github/workflows/publish.yml</code>) runs on <code>v*.*.*</code> tags (or manual dispatch) and publishes
+<code>CloudStorageORM</code> to NuGet.org and GitHub Packages.</p>
+<p>CI and publish workflows currently opt JavaScript-based GitHub Actions into the Node.js 24 runtime using
+<code>FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true</code>.</p>
+<p>CI runs test lanes in parallel: unit tests, Azure integration tests (Azurite), and AWS integration tests (LocalStack),
+then aggregates TRX and coverage artifacts.</p>
 <p>CI also exports a CycloneDX SBOM artifact (<code>sbom-cyclonedx</code>) for each run.</p>
 <p>If you change CI behavior, update contributor and testing docs in the same PR.</p>
 <hr>
 <h2 id="need-help">Need help?</h2>
-<p>Open a <a href="https://github.com/rzavalik/CloudStorageORM/discussions">Discussion</a> if you have questions, ideas, or design feedback.</p>
+<p>Open a <a href="https://github.com/rzavalik/CloudStorageORM/discussions">Discussion</a> if you have questions, ideas, or design
+feedback.</p>
 
 </article>
 

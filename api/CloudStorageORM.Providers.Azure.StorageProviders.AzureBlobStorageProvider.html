@@ -314,7 +314,7 @@ Class AzureBlobStorageProvider  <a class="header-action link-secondary" title="V
 
   <h3 id="CloudStorageORM_Providers_Azure_StorageProviders_AzureBlobStorageProvider_CreateContainerIfNotExistsAsync" data-uid="CloudStorageORM.Providers.Azure.StorageProviders.AzureBlobStorageProvider.CreateContainerIfNotExistsAsync">
   CreateContainerIfNotExistsAsync()
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/feature/docs/src/CloudStorageORM/Providers/Azure/StorageProviders/AzureBlobStorageProvider.cs/#L206"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/feature/docs/src/CloudStorageORM/Providers/Azure/StorageProviders/AzureBlobStorageProvider.cs/#L235"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Creates the container or bucket if it does not already exist.</p>
@@ -434,7 +434,7 @@ Class AzureBlobStorageProvider  <a class="header-action link-secondary" title="V
 
   <h3 id="CloudStorageORM_Providers_Azure_StorageProviders_AzureBlobStorageProvider_DeleteContainerAsync" data-uid="CloudStorageORM.Providers.Azure.StorageProviders.AzureBlobStorageProvider.DeleteContainerAsync">
   DeleteContainerAsync()
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/feature/docs/src/CloudStorageORM/Providers/Azure/StorageProviders/AzureBlobStorageProvider.cs/#L203"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/feature/docs/src/CloudStorageORM/Providers/Azure/StorageProviders/AzureBlobStorageProvider.cs/#L232"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Deletes the underlying container or bucket when it exists.</p>
@@ -501,6 +501,57 @@ Class AzureBlobStorageProvider  <a class="header-action link-secondary" title="V
 
   <h4 class="section" id="CloudStorageORM_Providers_Azure_StorageProviders_AzureBlobStorageProvider_ListAsync_System_String__examples">Examples</h4>
   <pre><code class="lang-csharp">var keys = await storageProvider.ListAsync("users/");</code></pre>
+
+
+
+
+
+
+  <a id="CloudStorageORM_Providers_Azure_StorageProviders_AzureBlobStorageProvider_ListPageAsync_" data-uid="CloudStorageORM.Providers.Azure.StorageProviders.AzureBlobStorageProvider.ListPageAsync*"></a>
+
+  <h3 id="CloudStorageORM_Providers_Azure_StorageProviders_AzureBlobStorageProvider_ListPageAsync_System_String_System_Int32_System_String_System_Threading_CancellationToken_" data-uid="CloudStorageORM.Providers.Azure.StorageProviders.AzureBlobStorageProvider.ListPageAsync(System.String,System.Int32,System.String,System.Threading.CancellationToken)">
+  ListPageAsync(string, int, string?, CancellationToken)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/feature/docs/src/CloudStorageORM/Providers/Azure/StorageProviders/AzureBlobStorageProvider.cs/#L203"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Lists object paths under a folder-like prefix as a single page with continuation support.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task&lt;StorageListPage&gt; ListPageAsync(string folderPath, int pageSize, string? continuationToken, CancellationToken cancellationToken = default)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>folderPath</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd><p>Folder or prefix to search.</p>
+</dd>
+    <dt><code>pageSize</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>Maximum number of keys to return for this page.</p>
+</dd>
+    <dt><code>continuationToken</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd><p>Continuation token returned by a previous call, if any.</p>
+</dd>
+    <dt><code>cancellationToken</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.cancellationtoken">CancellationToken</a></dt>
+    <dd><p>Cancellation token.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task-1">Task</a>&lt;<a class="xref" href="CloudStorageORM.Abstractions.StorageListPage.html">StorageListPage</a>&gt;</dt>
+    <dd><p>A page of keys and continuation information.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+  <h4 class="section" id="CloudStorageORM_Providers_Azure_StorageProviders_AzureBlobStorageProvider_ListPageAsync_System_String_System_Int32_System_String_System_Threading_CancellationToken__examples">Examples</h4>
+  <pre><code class="lang-csharp">var page = await storageProvider.ListPageAsync("users/", 100, null);</code></pre>
 
 
 
@@ -608,7 +659,7 @@ if (result.Exists) { Console.WriteLine(result.ETag); }</code></pre>
 
   <h3 id="CloudStorageORM_Providers_Azure_StorageProviders_AzureBlobStorageProvider_SanitizeBlobName_System_String_" data-uid="CloudStorageORM.Providers.Azure.StorageProviders.AzureBlobStorageProvider.SanitizeBlobName(System.String)">
   SanitizeBlobName(string)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/feature/docs/src/CloudStorageORM/Providers/Azure/StorageProviders/AzureBlobStorageProvider.cs/#L212"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/feature/docs/src/CloudStorageORM/Providers/Azure/StorageProviders/AzureBlobStorageProvider.cs/#L241"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Sanitizes a raw blob name so it can be safely used by the provider.</p>
