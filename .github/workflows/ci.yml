@@ -323,15 +323,27 @@ jobs:
             fi
           done
 
-          echo "Waiting for LocalStack health..."
-          for i in {1..60}; do
-            if curl -fsS "http://127.0.0.1:4566/_localstack/health" | grep -q '"s3": "running"'; then
-              echo "LocalStack S3 is running."
+          echo "Waiting for LocalStack S3 readiness..."
+          for i in {1..120}; do
+            health="$(curl -fsS "http://127.0.0.1:4566/_localstack/health" || true)"
+
+            # Accept both common LocalStack v3 health payload shapes.
+            if echo "$health" | grep -Eq '"s3"\s*:\s*"running"|"s3"\s*:\s*\{[^}]*"status"\s*:\s*"running"'; then
+              echo "LocalStack health endpoint reports S3 running."
               break
             fi
+
+            # Fallback to a real S3 call to avoid depending on health JSON shape.
+            if docker exec localstack awslocal s3 ls >/dev/null 2>&1; then
+              echo "LocalStack S3 is responding."
+              break
+            fi
+
             sleep 1
-            if [ "$i" -eq 60 ]; then
+            if [ "$i" -eq 120 ]; then
               echo "LocalStack did not become ready in time."
+              echo "Last LocalStack health payload:"
+              echo "$health"
               docker logs localstack || true
               exit 1
             fi
