@@ -74,9 +74,9 @@
 <h1 id="-cloudstorageorm---library-documentation">📦 CloudStorageORM - Library Documentation</h1>
 
 <p><strong>Target Framework</strong>: <code>net10.0</code><br>
-<strong>Current Release</strong>: <code>v1.0.13</code><br>
+<strong>Current Release</strong>: <code>v1.0.14</code><br>
 <strong>Language Version</strong>: <code>C# 14</code><br>
-<strong>EF Core Packages</strong>: <code>Microsoft.EntityFrameworkCore 9.0.4</code>, <code>Microsoft.EntityFrameworkCore.Relational 9.0.4</code><br>
+<strong>EF Core Packages</strong>: <code>Microsoft.EntityFrameworkCore 10.0.5</code>, <code>Microsoft.EntityFrameworkCore.Relational 10.0.5</code><br>
 <strong>Testing</strong>: <code>xUnit</code>, <code>Shouldly</code>, <code>Moq</code>, <code>Coverlet</code>, <code>ReportGenerator</code></p>
 <hr>
 <h2 id="overview">Overview</h2>
@@ -91,11 +91,12 @@ The provider surface is designed so that <strong>Google Cloud Storage</strong> c
 <li>CRUD flows that behave similarly to the EF InMemory provider for the sample app</li>
 <li>Unit and integration test coverage around infrastructure, queries, validators, and provider behavior</li>
 </ul>
-<h2 id="release-notes-for-v1013">Release notes for <code>v1.0.13</code></h2>
+<h2 id="release-notes-for-v1014">Release notes for <code>v1.0.14</code></h2>
 <ul>
-<li>Server-side <code>Skip</code>/<code>Take</code> pushdown is now supported for eligible query shapes.</li>
-<li>Observability guidance has been refreshed to reflect the logging, tracing, and diagnostics options available in <code>CloudStorageOptions.Observability</code>.</li>
-<li>The release line has been advanced to <code>v1.0.13</code> in the package metadata and public docs.</li>
+<li>Transaction commit replay now preserves staged <code>If-Match</code> ETag preconditions for update/delete operations.</li>
+<li>Transactional stale-ETag conflicts now surface as <code>DbUpdateConcurrencyException</code> during commit replay.</li>
+<li>Added Azure and AWS integration coverage for stale-ETag commit conflicts in transactional flows.</li>
+<li>Enabled Dependabot automation for NuGet and GitHub Actions updates via <code>.github/dependabot.yml</code>.</li>
 </ul>
 <hr>
 <h2 id="current-project-structure">Current project structure</h2>

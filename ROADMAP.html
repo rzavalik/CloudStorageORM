@@ -76,9 +76,19 @@
 <p>This document outlines the evolution of CloudStorageORM from the current release line into the next planned milestones.</p>
 <hr>
 <h2 id="-current-released-version">✅ Current released version</h2>
+<h3 id="v1014">v1.0.14</h3>
+<ul>
+<li>Version bump to <code>1.0.14</code> for the current release line.</li>
+<li>Preserve staged transaction <code>If-Match</code> ETag preconditions during commit replay for update/delete operations.</li>
+<li>Surface stale-ETag transactional commit conflicts as <code>DbUpdateConcurrencyException</code>.</li>
+<li>Add Azure and AWS integration coverage for stale-ETag transactional commit scenarios.</li>
+<li>Enable Dependabot automation for NuGet and GitHub Actions updates through <code>.github/dependabot.yml</code>.</li>
+</ul>
+<hr>
+<h2 id="-previous-releases">📋 Previous releases</h2>
 <h3 id="v1013">v1.0.13</h3>
 <ul>
-<li>Version bump to <code>1.0.13</code> for the current release line</li>
+<li>Version bump to <code>1.0.13</code> for the previous release line</li>
 <li>Documentation refreshed to keep local test guidance aligned with CI emulator setup</li>
 <li>Server-side <code>Skip</code>/<code>Take</code> pushdown for supported query shapes</li>
 <li>Observability improvements and refreshed guidance for logging, tracing, and diagnostics options</li>
@@ -90,8 +100,6 @@
 </ul>
 </li>
 </ul>
-<hr>
-<h2 id="-previous-releases">📋 Previous releases</h2>
 <h3 id="v1012">v1.0.12</h3>
 <ul>
 <li>Version bump to <code>1.0.12</code> for the previous release line</li>

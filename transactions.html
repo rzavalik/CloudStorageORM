@@ -133,6 +133,11 @@ catch
 <li>Operations are replayed in sequence</li>
 <li>Manifest state changes to <code>Completed</code></li>
 </ol>
+<p>When optimistic concurrency is enabled (<code>UseObjectETagConcurrency(...)</code>), staged updates and deletes keep the
+original <code>If-Match</code> ETag precondition in the durable manifest. During replay, commit uses those same conditional
+provider calls.</p>
+<p>If the object changed after staging but before commit replay, <code>CommitAsync()</code> throws <code>DbUpdateConcurrencyException</code>.
+This matches the non-transactional <code>SaveChangesAsync()</code> conflict behavior.</p>
 <h3 id="phase-3-recovery">Phase 3: Recovery</h3>
 <p>On startup of a new transaction manager instance:</p>
 <ul>

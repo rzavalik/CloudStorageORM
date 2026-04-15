@@ -78,7 +78,7 @@ Package publishing is handled by <code>.github/workflows/publish.yml</code>, whi
 <code>README.md</code> and correct repository/readme metadata before push, then publishes to both NuGet.org and GitHub Packages.
 The same CI workflow also runs a parallel DocFX documentation job that builds the static site and deploys it by branch:
 <code>main</code> pushes publish to <code>gh-pages</code>, while <code>feature/docs</code> pushes publish to <code>gh-pages-preview</code> for pre-merge validation.
-Publishing runs on <code>v*.*.*</code> tags (for example, <code>v1.0.13</code>) or manual dispatch.</p>
+ePublishing runs on <code>v*.*.*</code> tags (for example, <code>v1.0.13</code>) or manual dispatch.</p>
 <hr>
 <h2 id="triggers">Triggers</h2>
 <p>The workflow runs on:</p>
@@ -88,6 +88,17 @@ Publishing runs on <code>v*.*.*</code> tags (for example, <code>v1.0.13</code>) 
 <li>pull request targeting <code>main</code>, <code>feature/**</code>, <code>bug/**</code>, or <code>hotfix/**</code></li>
 <li>changes under <code>_site/**</code> are ignored at trigger time</li>
 </ul>
+<hr>
+<h2 id="dependabot-updates">Dependabot updates</h2>
+<p>Dependency automation is configured in <code>.github/dependabot.yml</code>.</p>
+<ul>
+<li>ecosystems: <code>nuget</code> and <code>github-actions</code></li>
+<li>cadence: weekly on Monday (UTC)</li>
+<li>PR limits: <code>10</code> (<code>nuget</code>), <code>5</code> (<code>github-actions</code>)</li>
+<li>labels: <code>dependencies</code> plus ecosystem-specific labels (<code>nuget</code>, <code>github-actions</code>)</li>
+<li>commit prefixes: <code>deps</code> (<code>nuget</code>) and <code>ci</code> (<code>github-actions</code>)</li>
+</ul>
+<p>Dependabot pull requests run the same CI checks as any other pull request targeting supported branches.</p>
 <hr>
 <h2 id="what-ci-does">What CI does</h2>
 <p>CI executes provider-specific test jobs in parallel, plus a dedicated SampleApp integration lane, followed by a report aggregation job:</p>

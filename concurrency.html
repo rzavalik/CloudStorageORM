@@ -141,6 +141,14 @@ catch (DbUpdateConcurrencyException ex)
     // Entity was modified/deleted by another client
 }
 </code></pre>
+<h3 id="concurrency-inside-transactions">Concurrency inside transactions</h3>
+<p>When changes are staged inside <code>BeginTransactionAsync()</code> and later committed, CloudStorageORM preserves the original
+ETag preconditions in staged operations.</p>
+<ul>
+<li>Transactional commit replay still sends conditional update/delete requests.</li>
+<li>Stale ETags during replay surface as <code>DbUpdateConcurrencyException</code> from <code>CommitAsync()</code>.</li>
+<li>Non-transactional and transactional concurrency behavior are aligned.</li>
+</ul>
 <h2 id="conflict-handling-patterns">Conflict handling patterns</h2>
 <h3 id="pattern-1-reload-and-retry">Pattern 1: Reload and retry</h3>
 <pre><code class="lang-csharp">try

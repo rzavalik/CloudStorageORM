@@ -179,6 +179,13 @@ This document reflects the current expectations for the <code>main</code> branch
 <li><code>Closes #issue_number</code> when applicable</li>
 <li>any local setup notes reviewers need (for example, Azurite or LocalStack)</li>
 </ul>
+<h3 id="dependabot-prs">Dependabot PRs</h3>
+<p>For PRs opened by Dependabot (<code>.github/dependabot.yml</code>):</p>
+<ul>
+<li>keep scope focused on dependency or action updates</li>
+<li>keep required CI checks green before merge</li>
+<li>include follow-up notes when a version bump needs behavior or docs changes</li>
+</ul>
 <hr>
 <h2 id="coding-style-requirements">Coding style requirements</h2>
 <p>The repository formatting rules are driven by <code>.editorconfig</code>.
@@ -268,6 +275,7 @@ dotnet tool run reportgenerator \
 <li><code>docs/testing-with-azurite.md</code></li>
 <li><code>docs/testing-with-localstack.md</code></li>
 <li><code>docs/ci.md</code></li>
+<li><code>.github/dependabot.yml</code></li>
 <li><code>docfx.json</code></li>
 <li><code>docs/toc.yml</code></li>
 <li><code>docs/index.md</code></li>
