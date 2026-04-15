@@ -272,6 +272,92 @@ public async Task SyncUser(User user)
 }
 ```
 
+## Progressive live migration (planned)
+
+> This section documents a proposed approach for a future release. It is not fully implemented on the current `main`
+> branch.
+
+For teams migrating a live relational table (for example, `Profiles`) to CloudStorageORM, the recommended future
+direction is a
+**progressive migration bridge** instead of a full stop-the-world cutover.
+
+### Goals
+
+- Keep the application online during migration
+- Move data in phases by entity type
+- Provide explicit rollback points at each phase
+- Reduce risk with observability and drift checks
+
+### Proposed architecture (future)
+
+1. **Relational EF source context** remains write authority in early phases.
+2. **Backfill worker** copies existing rows from database to cloud objects.
+3. **Change capture + outbox** records profile updates/deletes in the same database transaction as the business write.
+4. **Replication worker** replays outbox events into CloudStorageORM paths using existing provider abstractions.
+5. **Read router** progressively shifts read traffic from database to cloud behind a feature flag.
+6. **Shadow read validator** compares both sources during rollout to detect drift.
+
+### Why this pattern
+
+CloudStorageORM currently supports context-scoped durable transactions, but it does not provide distributed transactions
+across
+different data stores. Using an outbox-style bridge avoids assuming atomic commit between relational writes and
+object-storage
+writes while still allowing reliable, replayable synchronization.
+
+### Rollout phases (future)
+
+1. **Prepare**
+    - Add migration feature flags.
+    - Define idempotency key strategy (for example: `EntityId + Version` or `EntityId + UpdatedAt`).
+2. **Backfill**
+    - Copy all existing `Profiles` to cloud storage.
+    - Track completion checkpoint for resumable execution.
+3. **Dual-write async**
+    - Keep database as source-of-truth.
+    - Persist outbox records for every `Profiles` write/delete.
+    - Replicate to cloud in background with retries.
+4. **Shadow reads**
+    - Serve reads from database.
+    - Compare cloud result in background and emit drift metrics.
+5. **Read cutover**
+    - Gradually route reads to cloud by tenant, user segment, or percentage.
+    - Keep automatic database fallback while confidence grows.
+6. **Write cutover and decommission**
+    - Promote cloud to primary write path.
+    - Keep temporary mirror writes if needed.
+    - Retire relational table only after stability window and reconciliation.
+
+### Failure handling and rollback
+
+- Pause rollout by feature flag without stopping the app.
+- Keep outbox replay idempotent to tolerate retries and restarts.
+- Route reads back to relational source immediately when drift/error budgets are exceeded.
+- Prefer explicit failure and alerting over silent fallback for unsupported scenarios.
+
+### Suggested future API shape (non-final)
+
+```csharp
+// Proposed API sketch for future releases (names are illustrative).
+services.AddCloudStorageOrmMigrationBridge<AppDbContext>(bridge =>
+{
+    bridge.Entity<Profile>(entity =>
+    {
+        entity.HasKey(x => x.Id);
+        entity.UseBackfill();
+        entity.UseOutboxReplication();
+        entity.EnableShadowReads();
+    });
+
+    bridge.ReadMode = MigrationReadMode.DatabasePrimary;
+    bridge.WriteMode = MigrationWriteMode.DualWriteAsync;
+});
+```
+
+Planned bridge behavior should continue to use standard `UseCloudStorageOrm(...)` configuration for cloud targets and
+preserve
+provider-specific options under `CloudStorageOptions.Azure` and `CloudStorageOptions.Aws`.
+
 ## See also
 
 - [Getting started](getting-started.md)
