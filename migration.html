@@ -302,6 +302,103 @@ await cloudStorageContext.SaveChangesAsync();
     await cloudStorageContext.SaveChangesAsync();
 }
 </code></pre>
+<h2 id="progressive-live-migration-planned">Progressive live migration (planned)</h2>
+<blockquote>
+<p>This section documents a proposed approach for a future release. It is not fully implemented on the current <code>main</code>
+branch.</p>
+</blockquote>
+<p>For teams migrating a live relational table (for example, <code>Profiles</code>) to CloudStorageORM, the recommended future
+direction is a
+<strong>progressive migration bridge</strong> instead of a full stop-the-world cutover.</p>
+<h3 id="goals">Goals</h3>
+<ul>
+<li>Keep the application online during migration</li>
+<li>Move data in phases by entity type</li>
+<li>Provide explicit rollback points at each phase</li>
+<li>Reduce risk with observability and drift checks</li>
+</ul>
+<h3 id="proposed-architecture-future">Proposed architecture (future)</h3>
+<ol>
+<li><strong>Relational EF source context</strong> remains write authority in early phases.</li>
+<li><strong>Backfill worker</strong> copies existing rows from database to cloud objects.</li>
+<li><strong>Change capture + outbox</strong> records profile updates/deletes in the same database transaction as the business write.</li>
+<li><strong>Replication worker</strong> replays outbox events into CloudStorageORM paths using existing provider abstractions.</li>
+<li><strong>Read router</strong> progressively shifts read traffic from database to cloud behind a feature flag.</li>
+<li><strong>Shadow read validator</strong> compares both sources during rollout to detect drift.</li>
+</ol>
+<h3 id="why-this-pattern">Why this pattern</h3>
+<p>CloudStorageORM currently supports context-scoped durable transactions, but it does not provide distributed transactions
+across
+different data stores. Using an outbox-style bridge avoids assuming atomic commit between relational writes and
+object-storage
+writes while still allowing reliable, replayable synchronization.</p>
+<h3 id="rollout-phases-future">Rollout phases (future)</h3>
+<ol>
+<li><strong>Prepare</strong>
+<ul>
+<li>Add migration feature flags.</li>
+<li>Define idempotency key strategy (for example: <code>EntityId + Version</code> or <code>EntityId + UpdatedAt</code>).</li>
+</ul>
+</li>
+<li><strong>Backfill</strong>
+<ul>
+<li>Copy all existing <code>Profiles</code> to cloud storage.</li>
+<li>Track completion checkpoint for resumable execution.</li>
+</ul>
+</li>
+<li><strong>Dual-write async</strong>
+<ul>
+<li>Keep database as source-of-truth.</li>
+<li>Persist outbox records for every <code>Profiles</code> write/delete.</li>
+<li>Replicate to cloud in background with retries.</li>
+</ul>
+</li>
+<li><strong>Shadow reads</strong>
+<ul>
+<li>Serve reads from database.</li>
+<li>Compare cloud result in background and emit drift metrics.</li>
+</ul>
+</li>
+<li><strong>Read cutover</strong>
+<ul>
+<li>Gradually route reads to cloud by tenant, user segment, or percentage.</li>
+<li>Keep automatic database fallback while confidence grows.</li>
+</ul>
+</li>
+<li><strong>Write cutover and decommission</strong>
+<ul>
+<li>Promote cloud to primary write path.</li>
+<li>Keep temporary mirror writes if needed.</li>
+<li>Retire relational table only after stability window and reconciliation.</li>
+</ul>
+</li>
+</ol>
+<h3 id="failure-handling-and-rollback">Failure handling and rollback</h3>
+<ul>
+<li>Pause rollout by feature flag without stopping the app.</li>
+<li>Keep outbox replay idempotent to tolerate retries and restarts.</li>
+<li>Route reads back to relational source immediately when drift/error budgets are exceeded.</li>
+<li>Prefer explicit failure and alerting over silent fallback for unsupported scenarios.</li>
+</ul>
+<h3 id="suggested-future-api-shape-non-final">Suggested future API shape (non-final)</h3>
+<pre><code class="lang-csharp">// Proposed API sketch for future releases (names are illustrative).
+services.AddCloudStorageOrmMigrationBridge&lt;AppDbContext&gt;(bridge =&gt;
+{
+    bridge.Entity&lt;Profile&gt;(entity =&gt;
+    {
+        entity.HasKey(x =&gt; x.Id);
+        entity.UseBackfill();
+        entity.UseOutboxReplication();
+        entity.EnableShadowReads();
+    });
+
+    bridge.ReadMode = MigrationReadMode.DatabasePrimary;
+    bridge.WriteMode = MigrationWriteMode.DualWriteAsync;
+});
+</code></pre>
+<p>Planned bridge behavior should continue to use standard <code>UseCloudStorageOrm(...)</code> configuration for cloud targets and
+preserve
+provider-specific options under <code>CloudStorageOptions.Azure</code> and <code>CloudStorageOptions.Aws</code>.</p>
 <h2 id="see-also">See also</h2>
 <ul>
 <li><a href="getting-started.html">Getting started</a></li>
