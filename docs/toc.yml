@@ -36,5 +36,7 @@
   items:
     - name: Sample app
       href: sampleapp.md
+    - name: Comparison with Other Frameworks
+      href: comparison.md
     - name: API reference
       href: api-reference.md
