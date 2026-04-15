@@ -437,7 +437,7 @@ jobs:
           path: TestResults/CoverageReport
 
       - name: Publish Test Report as PR Comment
-        uses: dorny/test-reporter@v1
+        uses: dorny/test-reporter@v3
         if: github.event_name == 'pull_request'
         continue-on-error: true
         with:
