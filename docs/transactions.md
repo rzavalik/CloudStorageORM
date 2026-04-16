@@ -74,7 +74,7 @@ __cloudstorageorm/tx/<transactionId>/manifest.json
 When you call `CommitAsync()`:
 
 1. Manifest state changes to `Committed`
-2. Operations are replayed in sequence
+2. Operations are replayed in sequence with progress tracking
 3. Manifest state changes to `Completed`
 
 When optimistic concurrency is enabled (`UseObjectETagConcurrency(...)`), staged updates and deletes keep the
@@ -84,13 +84,33 @@ provider calls.
 If the object changed after staging but before commit replay, `CommitAsync()` throws `DbUpdateConcurrencyException`.
 This matches the non-transactional `SaveChangesAsync()` conflict behavior.
 
+### Phase 2.5: Crash-safe replay and idempotence
+
+**Failure window**: Between marking a manifest as `Committed` and transitioning it to `Completed`, operations are being applied to storage. If the process interrupts during this window (network timeout, process crash, etc.), the transaction can be safely recovered.
+
+**Operation-level progress tracking**: Each operation in the manifest has a sequence number. As operations are applied to storage, the manifest tracks how many operations have been successfully applied (`AppliedOperationCount`). This enables safe resumption after interruption.
+
+**Resumable replay**: On recovery, when a `Committed` manifest is discovered:
+- If `AppliedOperationCount < Operations.Count`, replay resumes from the last successfully applied operation (skipping already-applied operations)
+- If `AppliedOperationCount == Operations.Count`, all operations have been applied, and the manifest transitions directly to `Completed`
+
+**Idempotence guarantee**: Operations are designed to be safely re-applied:
+- **Save operations** overwrite existing objects atomically, so re-saving an already-applied operation is safe
+- **Delete operations** on missing objects are tolerated (idempotent)
+
+This means re-running recovery on the same manifest is safe and produces no duplicate side effects.
+
 ### Phase 3: Recovery
 
 On startup of a new transaction manager instance:
 
-- **Completed manifests**: Are treated as finalized/completed state
+- **Completed manifests**: Are treated as finalized/completed state (no action needed)
 - **Preparing manifests**: Are marked as `Aborted` (uncommitted work is discarded)
 - **Committed manifests**: Are replayed to ensure durability
+  - If partially applied (due to prior interruption), replay resumes from the last applied operation
+  - If fully applied, manifest transitions directly to `Completed`
+
+Recovery is deterministic and idempotent—running it multiple times produces the same result.
 
 ## Example: Transaction with retry
 
