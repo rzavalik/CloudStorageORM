@@ -17,20 +17,6 @@ Backlog policy
 
 P0 - Correctness and recoverability (must complete before new provider expansion)
 
-Issue P0-02
-Title: Make commit replay crash-safe and idempotent
-Scope:
-- Add operation-level replay progress markers to manifest state (`src/CloudStorageORM/Infrastructure/CloudStorageTransactionManager.cs`).
-- Ensure recovery resumes deterministic replay after interruption (`src/CloudStorageORM/Infrastructure/CloudStorageTransactionManager.cs`).
-- Document failure-window semantics (`docs/transactions.md`).
-Acceptance Criteria:
-- [ ] Recovery can resume interrupted committed transactions without duplicating side effects.
-- [ ] Re-running recovery over same manifest is idempotent.
-- [ ] Preparing manifests are safely aborted without partial commit confusion.
-Test Checklist:
-- [ ] Add unit tests for interrupted replay and recovery resumption.
-- [ ] Add integration scenario simulating process interruption during commit (`tests/CloudStorageORM.IntegrationTests/**`).
-
 Issue P0-03
 Title: Add transient-fault retry strategy for provider I/O
 Scope:

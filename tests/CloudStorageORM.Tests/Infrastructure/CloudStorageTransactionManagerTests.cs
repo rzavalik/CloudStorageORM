@@ -233,22 +233,23 @@ public class CloudStorageTransactionManagerDurabilityTests
         const string userPath = "users/recovered.json";
 
         var manifestPath = $"__cloudstorageorm/tx/{txId:D}/manifest.json";
-        var manifestJson = $$"""
-                             {
-                               "transactionId": "{{txId}}",
-                               "state": 1,
-                               "createdAtUtc": "{{DateTimeOffset.UtcNow:O}}",
-                               "committedAtUtc": "{{DateTimeOffset.UtcNow:O}}",
-                               "operations": [
-                                 {
-                                   "sequence": 0,
-                                   "kind": 0,
-                                   "path": "{{userPath}}",
-                                   "payloadJson": "{\"id\":\"recovered\",\"name\":\"Recovered User\"}"
-                                 }
-                               ]
-                             }
-                             """;
+        var manifestJson =
+            $$"""
+              {
+                "transactionId": "{{txId}}",
+                "state": 1,
+                "createdAtUtc": "{{DateTimeOffset.UtcNow:O}}",
+                "committedAtUtc": "{{DateTimeOffset.UtcNow:O}}",
+                "operations": [
+                  {
+                    "sequence": 0,
+                    "kind": 0,
+                    "path": "{{userPath}}",
+                    "payloadJson": "{\"id\":\"recovered\",\"name\":\"Recovered User\"}"
+                  }
+                ]
+              }
+              """;
 
         await storage.SaveRawJsonAsync(manifestPath, manifestJson);
 
@@ -286,26 +287,280 @@ public class CloudStorageTransactionManagerDurabilityTests
     }
 
     [Fact]
-    public async Task Commit_ReplaysConditionalSaveUsingStagedIfMatchEtag()
+    public async Task Commit_WithInterruptedReplay_ResumesFromLastAppliedOperation()
+    {
+        var storage = new InMemoryStorageProvider();
+        var txId = Guid.NewGuid();
+        const string userPath1 = "users/resume-1.json";
+        const string userPath2 = "users/resume-2.json";
+
+        // Simulate a manifest that was in the middle of applying operations:
+        // Operation 0 was applied, but operation 1 was not.
+        var manifestPath = $"__cloudstorageorm/tx/{txId:D}/manifest.json";
+        var manifestJson =
+            $$"""
+              {
+                "transactionId": "{{txId}}",
+                "state": 1,
+                "createdAtUtc": "{{DateTimeOffset.UtcNow:O}}",
+                "committedAtUtc": "{{DateTimeOffset.UtcNow:O}}",
+                "appliedOperationCount": 1,
+                "operations": [
+                  {
+                    "sequence": 0,
+                    "kind": 0,
+                    "path": "{{userPath1}}",
+                    "payloadJson": "{\"id\":\"resume-1\",\"name\":\"First\"}"
+                  },
+                  {
+                    "sequence": 1,
+                    "kind": 0,
+                    "path": "{{userPath2}}",
+                    "payloadJson": "{\"id\":\"resume-2\",\"name\":\"Second\"}"
+                  }
+                ]
+              }
+              """;
+
+        await storage.SaveRawJsonAsync(manifestPath, manifestJson);
+        await storage.SaveAsync(userPath1, new TransactionTestEntity { Id = "resume-1", Name = "First" });
+
+        var manager = new CloudStorageTransactionManager(storage);
+        await manager.BeginTransactionAsync();
+
+        // After recovery, the second entity should be applied but not the first (already applied).
+        var secondEntity = await storage.ReadAsync<TransactionTestEntity>(userPath2);
+        secondEntity.ShouldNotBeNull();
+        secondEntity.Id.ShouldBe("resume-2");
+
+        var recoveredManifestJson = storage.GetRawJson(manifestPath);
+        recoveredManifestJson.ShouldContain("\"state\":2");
+        recoveredManifestJson.ShouldContain("\"appliedOperationCount\":2");
+    }
+
+    [Fact]
+    public async Task Recovery_IsIdempotent_ReRunningRecoveryDoesNotDuplicateSideEffects()
+    {
+        var storage = new InMemoryStorageProvider();
+        var txId = Guid.NewGuid();
+        const string userPath = "users/idempotent.json";
+
+        var manifestPath = $"__cloudstorageorm/tx/{txId:D}/manifest.json";
+        var manifestJson =
+            $$"""
+              {
+                "transactionId": "{{txId}}",
+                "state": 1,
+                "createdAtUtc": "{{DateTimeOffset.UtcNow:O}}",
+                "committedAtUtc": "{{DateTimeOffset.UtcNow:O}}",
+                "appliedOperationCount": 0,
+                "operations": [
+                  {
+                    "sequence": 0,
+                    "kind": 0,
+                    "path": "{{userPath}}",
+                    "payloadJson": "{\"id\":\"idempotent\",\"name\":\"Test\"}"
+                  }
+                ]
+              }
+              """;
+
+        await storage.SaveRawJsonAsync(manifestPath, manifestJson);
+
+        var manager1 = new CloudStorageTransactionManager(storage);
+        await manager1.BeginTransactionAsync();
+
+        var entityCount1 = storage.SaveRequests.Count(x => x.Path == userPath);
+        entityCount1.ShouldBe(1); // First recovery applies the operation
+
+        // Verify the manifest is now completed with full progress.
+        var recoveredManifestJson = storage.GetRawJson(manifestPath);
+        recoveredManifestJson.ShouldContain("\"state\":2"); // Completed state
+        recoveredManifestJson.ShouldContain("\"appliedOperationCount\":1"); // All operations applied
+
+        // Run recovery again (simulating a new manager instance on already-completed manifest).
+        var manager2 = new CloudStorageTransactionManager(storage);
+        await manager2.BeginTransactionAsync();
+
+        var entityCount2 = storage.SaveRequests.Count(x => x.Path == userPath);
+        entityCount2.ShouldBe(1); // No re-application on second recovery (manifest is Completed, not Committed)
+    }
+
+    [Fact]
+    public async Task Recovery_WithFullyAppliedManifest_TransitionsDirectlyToCompleted()
+    {
+        var storage = new InMemoryStorageProvider();
+        var txId = Guid.NewGuid();
+        const string userPath = "users/fully-applied.json";
+
+        var manifestPath = $"__cloudstorageorm/tx/{txId:D}/manifest.json";
+        var manifestJson =
+            $$"""
+              {
+                "transactionId": "{{txId}}",
+                "state": 1,
+                "createdAtUtc": "{{DateTimeOffset.UtcNow:O}}",
+                "committedAtUtc": "{{DateTimeOffset.UtcNow:O}}",
+                "appliedOperationCount": 1,
+                "operations": [
+                  {
+                    "sequence": 0,
+                    "kind": 0,
+                    "path": "{{userPath}}",
+                    "payloadJson": "{\"id\":\"fully\",\"name\":\"Applied\"}"
+                  }
+                ]
+              }
+              """;
+
+        await storage.SaveRawJsonAsync(manifestPath, manifestJson);
+        await storage.SaveAsync(userPath, new TransactionTestEntity { Id = "fully", Name = "Applied" });
+
+        var manager = new CloudStorageTransactionManager(storage);
+        await manager.BeginTransactionAsync();
+
+        var recoveredManifestJson = storage.GetRawJson(manifestPath);
+        recoveredManifestJson.ShouldContain("\"state\":2"); // Completed
+        recoveredManifestJson.ShouldContain("\"appliedOperationCount\":1");
+    }
+
+    [Fact]
+    public async Task Recovery_WithMultipleInterruptedOperations_ResumesAndCompletesAll()
+    {
+        var storage = new InMemoryStorageProvider();
+        var txId = Guid.NewGuid();
+        const string path1 = "items/item1.json";
+        const string path2 = "items/item2.json";
+        const string path3 = "items/item3.json";
+
+        // Three operations, only the first one was applied.
+        var manifestPath = $"__cloudstorageorm/tx/{txId:D}/manifest.json";
+        var manifestJson =
+            $$"""
+              {
+                "transactionId": "{{txId}}",
+                "state": 1,
+                "createdAtUtc": "{{DateTimeOffset.UtcNow:O}}",
+                "committedAtUtc": "{{DateTimeOffset.UtcNow:O}}",
+                "appliedOperationCount": 1,
+                "operations": [
+                  {
+                    "sequence": 0,
+                    "kind": 0,
+                    "path": "{{path1}}",
+                    "payloadJson": "{\"id\":\"1\",\"name\":\"One\"}"
+                  },
+                  {
+                    "sequence": 1,
+                    "kind": 0,
+                    "path": "{{path2}}",
+                    "payloadJson": "{\"id\":\"2\",\"name\":\"Two\"}"
+                  },
+                  {
+                    "sequence": 2,
+                    "kind": 0,
+                    "path": "{{path3}}",
+                    "payloadJson": "{\"id\":\"3\",\"name\":\"Three\"}"
+                  }
+                ]
+              }
+              """;
+
+        await storage.SaveRawJsonAsync(manifestPath, manifestJson);
+        await storage.SaveAsync(path1, new TransactionTestEntity { Id = "1", Name = "One" });
+
+        var manager = new CloudStorageTransactionManager(storage);
+        await manager.BeginTransactionAsync();
+
+        // All three entities should exist after recovery.
+        (await storage.ReadAsync<TransactionTestEntity>(path1)).ShouldNotBeNull();
+        (await storage.ReadAsync<TransactionTestEntity>(path2)).ShouldNotBeNull();
+        (await storage.ReadAsync<TransactionTestEntity>(path3)).ShouldNotBeNull();
+
+        var recoveredManifestJson = storage.GetRawJson(manifestPath);
+        recoveredManifestJson.ShouldContain("\"appliedOperationCount\":3");
+    }
+
+    [Fact]
+    public async Task Recovery_WithMixedSaveAndDeleteOperations_ResumesCorrectly()
+    {
+        var storage = new InMemoryStorageProvider();
+        var txId = Guid.NewGuid();
+        const string existingPath = "data/existing.json";
+        const string newPath = "data/new.json";
+        const string deletePath = "data/delete-me.json";
+
+        // Pre-create an entity to delete.
+        await storage.SaveAsync(deletePath, new TransactionTestEntity { Id = "to-delete", Name = "ToDelete" });
+
+        // Manifest with mixed operations: save, delete (partial progress).
+        var manifestPath = $"__cloudstorageorm/tx/{txId:D}/manifest.json";
+        var manifestJson =
+            $$"""
+              {
+                "transactionId": "{{txId}}",
+                "state": 1,
+                "createdAtUtc": "{{DateTimeOffset.UtcNow:O}}",
+                "committedAtUtc": "{{DateTimeOffset.UtcNow:O}}",
+                "appliedOperationCount": 1,
+                "operations": [
+                  {
+                    "sequence": 0,
+                    "kind": 0,
+                    "path": "{{existingPath}}",
+                    "payloadJson": "{\"id\":\"existing\",\"name\":\"Existing\"}"
+                  },
+                  {
+                    "sequence": 1,
+                    "kind": 1,
+                    "path": "{{deletePath}}",
+                    "payloadJson": null
+                  },
+                  {
+                    "sequence": 2,
+                    "kind": 0,
+                    "path": "{{newPath}}",
+                    "payloadJson": "{\"id\":\"new\",\"name\":\"New\"}"
+                  }
+                ]
+              }
+              """;
+
+        await storage.SaveRawJsonAsync(manifestPath, manifestJson);
+        await storage.SaveAsync(existingPath, new TransactionTestEntity { Id = "existing", Name = "Existing" });
+
+        var manager = new CloudStorageTransactionManager(storage);
+        await manager.BeginTransactionAsync();
+
+        // Verify operations were applied correctly.
+        (await storage.ReadAsync<TransactionTestEntity>(existingPath)).ShouldNotBeNull();
+        (await storage.ReadAsync<TransactionTestEntity>(deletePath)).ShouldBeNull(); // Deleted
+        (await storage.ReadAsync<TransactionTestEntity>(newPath)).ShouldNotBeNull(); // Created
+
+        var recoveredManifestJson = storage.GetRawJson(manifestPath);
+        recoveredManifestJson.ShouldContain("\"appliedOperationCount\":3");
+    }
+
+    [Fact]
+    public async Task Commit_ProgressMarkerIsPersistedAfterEachOperation()
     {
         var storage = new InMemoryStorageProvider();
         var manager = new CloudStorageTransactionManager(storage);
-        const string userPath = "users/conditional-save.json";
-
-        await storage.SaveAsync(userPath, new TransactionTestEntity { Id = "seed", Name = "Seed" });
-        var original = await storage.ReadWithMetadataAsync<TransactionTestEntity>(userPath);
 
         var tx = await manager.BeginTransactionAsync();
-        await manager.StageSaveOperationAsync(
-            userPath,
-            new TransactionTestEntity { Id = "seed", Name = "Updated" },
-            original.ETag,
+        const string path1 = "users/p1.json";
+        const string path2 = "users/p2.json";
+
+        await manager.StageSaveOperationAsync(path1, new TransactionTestEntity { Id = "p1", Name = "P1" }, null,
+            CancellationToken.None);
+        await manager.StageSaveOperationAsync(path2, new TransactionTestEntity { Id = "p2", Name = "P2" }, null,
             CancellationToken.None);
 
         await tx.CommitAsync();
 
-        storage.ConditionalSaveRequests.ShouldContain(x =>
-            x.Path == userPath && x.IfMatchETag == original.ETag);
+        var manifestPath = $"__cloudstorageorm/tx/{tx.TransactionId:D}/manifest.json";
+        var manifestJson = storage.GetRawJson(manifestPath);
+        manifestJson.ShouldContain("\"appliedOperationCount\":2");
     }
 
     [Fact]
@@ -355,7 +610,9 @@ public class CloudStorageTransactionManagerDurabilityTests
         private readonly Dictionary<string, string> _etags = new(StringComparer.Ordinal);
         private readonly JsonSerializerOptions _jsonOptions = new(JsonSerializerDefaults.Web);
 
+        // ReSharper disable once CollectionNeverQueried.Local
         public List<(string Path, string? IfMatchETag)> ConditionalSaveRequests { get; } = [];
+        public List<(string Path, object Entity)> SaveRequests { get; } = [];
 
         // ReSharper disable once UnusedMember.Local
         public IEnumerable<string> Keys
@@ -387,6 +644,7 @@ public class CloudStorageTransactionManagerDurabilityTests
         {
             lock (_sync)
             {
+                SaveRequests.Add((path, entity!));
                 _store[path] = JsonSerializer.Serialize(entity, _jsonOptions);
                 _etags[path] = CreateNextEtag();
             }
@@ -407,6 +665,7 @@ public class CloudStorageTransactionManagerDurabilityTests
                     throw new StoragePreconditionFailedException(path);
                 }
 
+                SaveRequests.Add((path, entity!));
                 _store[path] = JsonSerializer.Serialize(entity, _jsonOptions);
                 var nextEtag = CreateNextEtag();
                 _etags[path] = nextEtag;
@@ -418,12 +677,9 @@ public class CloudStorageTransactionManagerDurabilityTests
         {
             lock (_sync)
             {
-                if (!_store.TryGetValue(path, out var json))
-                {
-                    return Task.FromResult(default(T)!);
-                }
-
-                return Task.FromResult(JsonSerializer.Deserialize<T>(json, _jsonOptions)!);
+                return Task.FromResult(!_store.TryGetValue(path, out var json) 
+                    ? default(T)! 
+                    : JsonSerializer.Deserialize<T>(json, _jsonOptions)!)!;
             }
         }
 

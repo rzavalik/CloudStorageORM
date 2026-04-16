@@ -21,7 +21,7 @@ Support for **Google Cloud Storage** remains on the roadmap.
 
 ## ✨ Current status
 
-- ✅ Current release line: `v1.0.14`
+- ✅ Current release line: `v1.0.15`
 - ✅ Targets `net10.0`
 - ✅ Azure Blob Storage provider is implemented
 - ✅ AWS S3 provider is implemented
@@ -29,7 +29,9 @@ Support for **Google Cloud Storage** remains on the roadmap.
 - ✅ Sample app runs the same CRUD flow against EF InMemory, Azure, and AWS
 - ✅ Unit + integration tests run locally with Azurite and LocalStack
 - ✅ Coverage collection is wired with Coverlet + ReportGenerator
-- ✅ `v1.0.14` preserves `If-Match` ETag preconditions for staged transaction save/delete replay and surfaces conflicts as `DbUpdateConcurrencyException`
+- ✅ `v1.0.15` implements crash-safe, idempotent transaction replay with operation-level progress tracking
+- ✅ `v1.0.14` preserves `If-Match` ETag preconditions for staged transaction save/delete replay and surfaces conflicts
+  as `DbUpdateConcurrencyException`
 - ✅ `v1.0.14` enables Dependabot for NuGet and GitHub Actions updates via `.github/dependabot.yml`
 - ✅ `v1.0.13` adds server-side `Skip`/`Take` pushdown for supported query shapes
 - ✅ `v1.0.13` refreshes observability guidance for logging, tracing, and diagnostics options
@@ -132,7 +134,8 @@ await db.SaveChangesAsync();
 - Primary-key query predicates now support direct range-aware loading for `>`, `>=`, `<`, and `<=` in addition to
   equality-based lookups.
 - Coding style is enforced with **file-scoped namespaces** (`namespace X;`).
-- The sample app is covered by integration tests that publish the sample (`dotnet publish`) and verify the published app exits successfully.
+- The sample app is covered by integration tests that publish the sample (`dotnet publish`) and verify the published app
+  exits successfully.
 - Integration fixtures can skip Azure/AWS scenarios when Azurite/LocalStack are unavailable.
 - CloudStorage transaction support now uses a durable transaction journal under
   `__cloudstorageorm/tx/<transactionId>/manifest.json`.

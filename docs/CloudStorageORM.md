@@ -1,7 +1,7 @@
 # 📦 CloudStorageORM - Library Documentation
 
 **Target Framework**: `net10.0`  
-**Current Release**: `v1.0.14`  
+**Current Release**: `v1.0.15`  
 **Language Version**: `C# 14`  
 **EF Core Packages**: `Microsoft.EntityFrameworkCore 10.0.5`, `Microsoft.EntityFrameworkCore.Relational 10.0.5`  
 **Testing**: `xUnit`, `Shouldly`, `Moq`, `Coverlet`, `ReportGenerator`
@@ -21,6 +21,12 @@ The current branch is focused on:
 - LINQ query execution over persisted blobs
 - CRUD flows that behave similarly to the EF InMemory provider for the sample app
 - Unit and integration test coverage around infrastructure, queries, validators, and provider behavior
+
+## Release notes for `v1.0.15`
+
+- Transaction replay is now crash-safe and idempotent with operation-level progress tracking.
+- Interrupted commits can safely resume from the last applied operation without duplicating side effects.
+- Added operation-level replay progress markers to manifest state for deterministic recovery resumption.
 
 ## Release notes for `v1.0.14`
 
