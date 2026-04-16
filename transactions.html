@@ -130,7 +130,7 @@ catch
 <p>When you call <code>CommitAsync()</code>:</p>
 <ol>
 <li>Manifest state changes to <code>Committed</code></li>
-<li>Operations are replayed in sequence</li>
+<li>Operations are replayed in sequence with progress tracking</li>
 <li>Manifest state changes to <code>Completed</code></li>
 </ol>
 <p>When optimistic concurrency is enabled (<code>UseObjectETagConcurrency(...)</code>), staged updates and deletes keep the
@@ -138,13 +138,33 @@ original <code>If-Match</code> ETag precondition in the durable manifest. During
 provider calls.</p>
 <p>If the object changed after staging but before commit replay, <code>CommitAsync()</code> throws <code>DbUpdateConcurrencyException</code>.
 This matches the non-transactional <code>SaveChangesAsync()</code> conflict behavior.</p>
+<h3 id="phase-25-crash-safe-replay-and-idempotence">Phase 2.5: Crash-safe replay and idempotence</h3>
+<p><strong>Failure window</strong>: Between marking a manifest as <code>Committed</code> and transitioning it to <code>Completed</code>, operations are being applied to storage. If the process interrupts during this window (network timeout, process crash, etc.), the transaction can be safely recovered.</p>
+<p><strong>Operation-level progress tracking</strong>: Each operation in the manifest has a sequence number. As operations are applied to storage, the manifest tracks how many operations have been successfully applied (<code>AppliedOperationCount</code>). This enables safe resumption after interruption.</p>
+<p><strong>Resumable replay</strong>: On recovery, when a <code>Committed</code> manifest is discovered:</p>
+<ul>
+<li>If <code>AppliedOperationCount &lt; Operations.Count</code>, replay resumes from the last successfully applied operation (skipping already-applied operations)</li>
+<li>If <code>AppliedOperationCount == Operations.Count</code>, all operations have been applied, and the manifest transitions directly to <code>Completed</code></li>
+</ul>
+<p><strong>Idempotence guarantee</strong>: Operations are designed to be safely re-applied:</p>
+<ul>
+<li><strong>Save operations</strong> overwrite existing objects atomically, so re-saving an already-applied operation is safe</li>
+<li><strong>Delete operations</strong> on missing objects are tolerated (idempotent)</li>
+</ul>
+<p>This means re-running recovery on the same manifest is safe and produces no duplicate side effects.</p>
 <h3 id="phase-3-recovery">Phase 3: Recovery</h3>
 <p>On startup of a new transaction manager instance:</p>
 <ul>
-<li><strong>Completed manifests</strong>: Are treated as finalized/completed state</li>
+<li><strong>Completed manifests</strong>: Are treated as finalized/completed state (no action needed)</li>
 <li><strong>Preparing manifests</strong>: Are marked as <code>Aborted</code> (uncommitted work is discarded)</li>
-<li><strong>Committed manifests</strong>: Are replayed to ensure durability</li>
+<li><strong>Committed manifests</strong>: Are replayed to ensure durability
+<ul>
+<li>If partially applied (due to prior interruption), replay resumes from the last applied operation</li>
+<li>If fully applied, manifest transitions directly to <code>Completed</code></li>
 </ul>
+</li>
+</ul>
+<p>Recovery is deterministic and idempotent—running it multiple times produces the same result.</p>
 <h2 id="example-transaction-with-retry">Example: Transaction with retry</h2>
 <pre><code class="lang-csharp">var maxRetries = 3;
 var retryCount = 0;

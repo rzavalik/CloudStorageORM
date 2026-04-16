@@ -89,7 +89,7 @@ Support for <strong>Google Cloud Storage</strong> remains on the roadmap.</p>
 <hr>
 <h2 id="-current-status">✨ Current status</h2>
 <ul>
-<li>✅ Current release line: <code>v1.0.14</code></li>
+<li>✅ Current release line: <code>v1.0.15</code></li>
 <li>✅ Targets <code>net10.0</code></li>
 <li>✅ Azure Blob Storage provider is implemented</li>
 <li>✅ AWS S3 provider is implemented</li>
@@ -97,7 +97,9 @@ Support for <strong>Google Cloud Storage</strong> remains on the roadmap.</p>
 <li>✅ Sample app runs the same CRUD flow against EF InMemory, Azure, and AWS</li>
 <li>✅ Unit + integration tests run locally with Azurite and LocalStack</li>
 <li>✅ Coverage collection is wired with Coverlet + ReportGenerator</li>
-<li>✅ <code>v1.0.14</code> preserves <code>If-Match</code> ETag preconditions for staged transaction save/delete replay and surfaces conflicts as <code>DbUpdateConcurrencyException</code></li>
+<li>✅ <code>v1.0.15</code> implements crash-safe, idempotent transaction replay with operation-level progress tracking</li>
+<li>✅ <code>v1.0.14</code> preserves <code>If-Match</code> ETag preconditions for staged transaction save/delete replay and surfaces conflicts
+as <code>DbUpdateConcurrencyException</code></li>
 <li>✅ <code>v1.0.14</code> enables Dependabot for NuGet and GitHub Actions updates via <code>.github/dependabot.yml</code></li>
 <li>✅ <code>v1.0.13</code> adds server-side <code>Skip</code>/<code>Take</code> pushdown for supported query shapes</li>
 <li>✅ <code>v1.0.13</code> refreshes observability guidance for logging, tracing, and diagnostics options</li>
@@ -183,7 +185,8 @@ fields are under <code>storage.Azure</code> and <code>storage.Aws</code>.</li>
 <li>Primary-key query predicates now support direct range-aware loading for <code>&gt;</code>, <code>&gt;=</code>, <code>&lt;</code>, and <code>&lt;=</code> in addition to
 equality-based lookups.</li>
 <li>Coding style is enforced with <strong>file-scoped namespaces</strong> (<code>namespace X;</code>).</li>
-<li>The sample app is covered by integration tests that publish the sample (<code>dotnet publish</code>) and verify the published app exits successfully.</li>
+<li>The sample app is covered by integration tests that publish the sample (<code>dotnet publish</code>) and verify the published app
+exits successfully.</li>
 <li>Integration fixtures can skip Azure/AWS scenarios when Azurite/LocalStack are unavailable.</li>
 <li>CloudStorage transaction support now uses a durable transaction journal under
 <code>__cloudstorageorm/tx/&lt;transactionId&gt;/manifest.json</code>.</li>
