@@ -112,6 +112,9 @@ On startup of a new transaction manager instance:
 
 Recovery is deterministic and idempotent—running it multiple times produces the same result.
 
+The rollback, commit, crash-recovery, and stale-ETag conflict windows described above are covered by the dedicated
+Azure and AWS integration suites `AzureTransactionFailureWindowTests` and `AwsTransactionFailureWindowTests`.
+
 ## Example: Transaction with retry
 
 ```csharp

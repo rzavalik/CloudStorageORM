@@ -1,7 +1,7 @@
 # 📦 CloudStorageORM - Library Documentation
 
 **Target Framework**: `net10.0`  
-**Current Release**: `v1.0.15`  
+**Current Release**: `v1.0.16`
 **Language Version**: `C# 14`  
 **EF Core Packages**: `Microsoft.EntityFrameworkCore 10.0.5`, `Microsoft.EntityFrameworkCore.Relational 10.0.5`  
 **Testing**: `xUnit`, `Shouldly`, `Moq`, `Coverlet`, `ReportGenerator`
@@ -21,6 +21,14 @@ The current branch is focused on:
 - LINQ query execution over persisted blobs
 - CRUD flows that behave similarly to the EF InMemory provider for the sample app
 - Unit and integration test coverage around infrastructure, queries, validators, and provider behavior
+
+## Release notes for `v1.0.16`
+
+- Added configurable transient-fault retries for shared persistence/query provider I/O boundaries.
+- Retries now use bounded exponential backoff with jitter and explicit opt-in via `CloudStorageOptions.Retry`.
+- Non-transient failures (including ETag concurrency conflicts) are intentionally not retried.
+- Runtime logging/tracing now covers shared save, query, transaction, and recovery paths.
+- Azure and AWS integration suites now cover rollback, commit, crash-recovery, and stale-ETag conflict windows.
 
 ## Release notes for `v1.0.15`
 
@@ -73,6 +81,7 @@ Configuration model on the current branch:
 - Common fields: `CloudStorageOptions.Provider`, `CloudStorageOptions.ContainerName`
 - Azure fields: `CloudStorageOptions.Azure.ConnectionString`
 - AWS fields: `CloudStorageOptions.Aws.AccessKeyId`, `SecretAccessKey`, `Region`, `ServiceUrl`, `ForcePathStyle`
+- Retry fields: `CloudStorageOptions.Retry.Enabled`, `MaxRetries`, `BaseDelay`, `MaxDelay`, `JitterFactor`
 - Observability fields: `CloudStorageOptions.Observability.EnableLogging`, `EnableTracing`, `EnableDiagnostics`
 - `CloudStorageOptions.ConnectionString` at the root level is no longer used
 
@@ -129,8 +138,8 @@ CloudStorageORM observability is configured through `CloudStorageOptions.Observa
 
 - `EnableLogging` gates logging inside persistence and query paths.
 - `EnableTracing` gates `ActivitySource` spans emitted by internal operations.
-- `EnableDiagnostics` is currently surfaced as configuration/debug metadata and reserved for future custom diagnostics
-  events.
+- `EnableDiagnostics` is currently surfaced as configuration/debug metadata; custom runtime `DiagnosticListener`
+  events are not emitted yet.
 
 Related types:
 
@@ -239,6 +248,8 @@ The repository currently includes:
   `tests/CloudStorageORM.IntegrationTests/CloudStorageORM.IntegrationTests.Azure.csproj`
 - LocalStack-backed AWS integration tests in
   `tests/CloudStorageORM.IntegrationTests/CloudStorageORM.IntegrationTests.AWS.csproj`
+- dedicated Azure and AWS transaction failure-window suites covering rollback, commit, crash recovery, and stale-ETag
+  conflicts
 - Sample app integration tests in
   `tests/CloudStorageORM.IntegrationTests.SampleApp/CloudStorageORM.IntegrationTests.SampleApp.csproj`
 - coverage collection through `coverlet.collector` / `coverlet.msbuild`

@@ -18,6 +18,10 @@ public class AzureBlobStorageProvider : IStorageProvider
 {
     private readonly BlobContainerClient _containerClient;
     private const string DevelopmentStorageConnectionString = "UseDevelopmentStorage=true";
+    private static readonly JsonSerializerOptions ReadSerializerOptions = new()
+    {
+        PropertyNameCaseInsensitive = true
+    };
 
     private static Func<CloudStorageOptions, BlobContainerClient> OptionsContainerClientFactory { get; set; }
         = options => new BlobContainerClient(
@@ -147,7 +151,7 @@ public class AzureBlobStorageProvider : IStorageProvider
 
         var response = await blobClient.DownloadContentAsync();
         var etag = await TryGetBlobETagAsync(blobClient);
-        var entity = JsonSerializer.Deserialize<T>(response.Value.Content.ToString());
+        var entity = JsonSerializer.Deserialize<T>(response.Value.Content.ToString(), ReadSerializerOptions);
         return new StorageObject<T>(entity, etag, true);
     }
 

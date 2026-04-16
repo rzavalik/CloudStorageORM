@@ -21,7 +21,7 @@ Support for **Google Cloud Storage** remains on the roadmap.
 
 ## ✨ Current status
 
-- ✅ Current release line: `v1.0.15`
+- ✅ Current release line: `v1.0.16`
 - ✅ Targets `net10.0`
 - ✅ Azure Blob Storage provider is implemented
 - ✅ AWS S3 provider is implemented
@@ -29,6 +29,9 @@ Support for **Google Cloud Storage** remains on the roadmap.
 - ✅ Sample app runs the same CRUD flow against EF InMemory, Azure, and AWS
 - ✅ Unit + integration tests run locally with Azurite and LocalStack
 - ✅ Coverage collection is wired with Coverlet + ReportGenerator
+- ✅ `v1.0.16` adds configurable transient-fault retries (bounded exponential backoff + jitter) at shared persistence/query execution boundaries
+- ✅ `v1.0.16` completes runtime logging/tracing wiring across save/query/transaction/recovery paths
+- ✅ `v1.0.16` Azure and AWS integration suites cover rollback, commit, crash-recovery, and stale-ETag conflict windows
 - ✅ `v1.0.15` implements crash-safe, idempotent transaction replay with operation-level progress tracking
 - ✅ `v1.0.14` preserves `If-Match` ETag preconditions for staged transaction save/delete replay and surfaces conflicts
   as `DbUpdateConcurrencyException`
@@ -152,6 +155,8 @@ await db.SaveChangesAsync();
   this interface is not required.
 - When ETag concurrency is enabled, updates/deletes use provider-native `If-Match` conditions (Azure Blob and AWS S3)
   and conflicts are raised as `DbUpdateConcurrencyException`.
+- Transient retries are optional and configured under `storage.Retry` (`Enabled`, `MaxRetries`, `BaseDelay`,
+  `MaxDelay`, `JitterFactor`).
 - Future versions may add provider-native temporary locking (for example, Azure blob leases and AWS
   conditional/object-lock strategies) to improve concurrent-writer coordination.
 - `IDatabaseCreator` behavior is still minimal right now: schema-style database lifecycle methods are not fully

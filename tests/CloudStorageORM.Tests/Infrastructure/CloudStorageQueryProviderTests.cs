@@ -4,6 +4,7 @@ using CloudStorageORM.Abstractions;
 using CloudStorageORM.Enums;
 using CloudStorageORM.Infrastructure;
 using CloudStorageORM.Interfaces.StorageProviders;
+using CloudStorageORM.Options;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
@@ -23,9 +24,9 @@ public class CloudStorageQueryProviderTests
     private const string UserId2 = "user-2";
 
     private static (CloudStorageQueryProvider provider, Mock<IStorageProvider> storageProviderMock)
-        BuildProvider(List<QueryTestUser>? seed = null)
+        BuildProvider(List<QueryTestUser>? seed = null, CloudStorageOptions? cloudStorageOptions = null)
     {
-        seed ??= new List<QueryTestUser>();
+        seed ??= [];
         var storageProviderMock = new Mock<IStorageProvider>();
         storageProviderMock.Setup(x => x.CloudProvider).Returns(CloudProvider.Azure);
         storageProviderMock.Setup(x => x.SanitizeBlobName(It.IsAny<string>()))
@@ -55,13 +56,13 @@ public class CloudStorageQueryProviderTests
                 .ReturnsAsync(new StorageObject<QueryTestUser?>(user, "etag", true));
         }
 
-        var database = BuildDatabase(storageProviderMock.Object);
+        var database = BuildDatabase(storageProviderMock.Object, cloudStorageOptions);
         var provider = new CloudStorageQueryProvider(database, pathResolver);
         return (provider, storageProviderMock);
     }
 
     private static (CloudStorageQueryProvider provider, Mock<IStorageProvider> storageProviderMock)
-        BuildRangeProvider(List<RangeQueryTestUser>? seed = null)
+        BuildRangeProvider(List<RangeQueryTestUser>? seed = null, CloudStorageOptions? cloudStorageOptions = null)
     {
         seed ??= [];
         var storageProviderMock = new Mock<IStorageProvider>();
@@ -90,12 +91,14 @@ public class CloudStorageQueryProviderTests
                 .ReturnsAsync(new StorageObject<RangeQueryTestUser?>(user, "etag", true));
         }
 
-        var database = BuildRangeDatabase(storageProviderMock.Object);
+        var database = BuildRangeDatabase(storageProviderMock.Object, cloudStorageOptions);
         var provider = new CloudStorageQueryProvider(database, pathResolver);
         return (provider, storageProviderMock);
     }
 
-    private static CloudStorageDatabase BuildDatabase(IStorageProvider storageProvider)
+    private static CloudStorageDatabase BuildDatabase(
+        IStorageProvider storageProvider,
+        CloudStorageOptions? cloudStorageOptions = null)
     {
         var options = new DbContextOptionsBuilder<MinimalDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
@@ -143,10 +146,13 @@ public class CloudStorageQueryProviderTests
             storageProvider,
             currentDbContextMock.Object,
             new BlobPathResolver(storageProvider),
-            new CloudStorageTransactionManager());
+            new CloudStorageTransactionManager(),
+            cloudStorageOptions);
     }
 
-    private static CloudStorageDatabase BuildRangeDatabase(IStorageProvider storageProvider)
+    private static CloudStorageDatabase BuildRangeDatabase(
+        IStorageProvider storageProvider,
+        CloudStorageOptions? cloudStorageOptions = null)
     {
         var options = new DbContextOptionsBuilder<RangeMinimalDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
@@ -186,7 +192,92 @@ public class CloudStorageQueryProviderTests
             storageProvider,
             currentDbContextMock.Object,
             new BlobPathResolver(storageProvider),
-            new CloudStorageTransactionManager());
+            new CloudStorageTransactionManager(),
+            cloudStorageOptions);
+    }
+
+    [Fact]
+    public void FirstOrDefault_WithTransientReadError_Retries_WhenEnabled()
+    {
+        var retryOptions = new CloudStorageOptions
+        {
+            Provider = CloudProvider.Azure,
+            ContainerName = "tests",
+            Azure = new CloudStorageAzureOptions
+            {
+                ConnectionString = "UseDevelopmentStorage=true"
+            },
+            Retry = new CloudStorageRetryOptions
+            {
+                Enabled = true,
+                MaxRetries = 2,
+                BaseDelay = TimeSpan.Zero,
+                MaxDelay = TimeSpan.Zero,
+                JitterFactor = 0
+            }
+        };
+
+        var seed = new List<QueryTestUser>
+        {
+            new() { Id = UserId1, Name = "Alice" }
+        };
+
+        var (provider, storageMock) = BuildProvider(seed, retryOptions);
+        var pathResolver = new BlobPathResolver(storageMock.Object);
+        var blobName = pathResolver.GetBlobName(typeof(QueryTestUser));
+        var targetPath = $"{blobName}/{UserId1}.json";
+
+        storageMock
+            .SetupSequence(x => x.ReadWithMetadataAsync<QueryTestUser>(targetPath))
+            .ThrowsAsync(new HttpRequestException("temporary"))
+            .ReturnsAsync(new StorageObject<QueryTestUser>(seed[0], "etag", true));
+
+        var queryable = new CloudStorageQueryable<QueryTestUser>(provider);
+        var result = queryable.FirstOrDefault(u => u.Id == UserId1);
+
+        result.ShouldNotBeNull();
+        result.Id.ShouldBe(UserId1);
+        storageMock.Verify(x => x.ReadWithMetadataAsync<QueryTestUser>(targetPath), Times.Exactly(2));
+    }
+
+    [Fact]
+    public void FirstOrDefault_WithTransientReadError_DoesNotRetry_WhenDisabled()
+    {
+        var retryOptions = new CloudStorageOptions
+        {
+            Provider = CloudProvider.Azure,
+            ContainerName = "tests",
+            Azure = new CloudStorageAzureOptions
+            {
+                ConnectionString = "UseDevelopmentStorage=true"
+            },
+            Retry = new CloudStorageRetryOptions
+            {
+                Enabled = false,
+                MaxRetries = 2,
+                BaseDelay = TimeSpan.Zero,
+                MaxDelay = TimeSpan.Zero,
+                JitterFactor = 0
+            }
+        };
+
+        var seed = new List<QueryTestUser>
+        {
+            new() { Id = UserId1, Name = "Alice" }
+        };
+
+        var (provider, storageMock) = BuildProvider(seed, retryOptions);
+        var pathResolver = new BlobPathResolver(storageMock.Object);
+        var blobName = pathResolver.GetBlobName(typeof(QueryTestUser));
+        var targetPath = $"{blobName}/{UserId1}.json";
+
+        storageMock
+            .Setup(x => x.ReadWithMetadataAsync<QueryTestUser>(targetPath))
+            .ThrowsAsync(new HttpRequestException("temporary"));
+
+        var queryable = new CloudStorageQueryable<QueryTestUser>(provider);
+        Should.Throw<HttpRequestException>(() => queryable.FirstOrDefault(u => u.Id == UserId1));
+        storageMock.Verify(x => x.ReadWithMetadataAsync<QueryTestUser>(targetPath), Times.Once);
     }
 
     [Fact]

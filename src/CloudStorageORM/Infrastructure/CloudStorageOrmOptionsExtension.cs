@@ -13,6 +13,7 @@ using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
 
 namespace CloudStorageORM.Infrastructure;
 
@@ -63,7 +64,11 @@ public class CloudStorageOrmOptionsExtension : IDbContextOptionsExtension
 
         services.AddSingleton<IBlobPathResolver, BlobPathResolver>();
         services.AddSingleton<ITypeMappingSource, CloudStorageTypeMappingSource>();
-        services.AddScoped<IDbContextTransactionManager, CloudStorageTransactionManager>();
+        services.AddScoped<IDbContextTransactionManager>(sp =>
+            new CloudStorageTransactionManager(
+                sp.GetRequiredService<IStorageProvider>(),
+                sp.GetRequiredService<CloudStorageOptions>(),
+                ResolveTransactionManagerLogger(sp)));
         services.AddSingleton<IDatabaseCreator, CloudStorageDatabaseCreator>();
         services.AddSingleton<IModelSource, ModelSource>();
         services.AddSingleton<IModelRuntimeInitializer, ModelRuntimeInitializer>();
@@ -78,5 +83,27 @@ public class CloudStorageOrmOptionsExtension : IDbContextOptionsExtension
     public void Validate(IDbContextOptions options)
     {
         CloudStorageOptionsValidator.Validate(Options);
+    }
+
+    private static ILogger<CloudStorageTransactionManager>? ResolveTransactionManagerLogger(
+        IServiceProvider serviceProvider)
+    {
+        var logger = serviceProvider.GetService<ILogger<CloudStorageTransactionManager>>();
+        if (logger is not null)
+        {
+            return logger;
+        }
+
+        var loggerFactory = serviceProvider.GetService<ILoggerFactory>();
+        if (loggerFactory is not null)
+        {
+            return loggerFactory.CreateLogger<CloudStorageTransactionManager>();
+        }
+
+        var dbContextOptions = serviceProvider.GetService<IDbContextOptions>();
+        var coreOptionsExtension = dbContextOptions?.Extensions.OfType<CoreOptionsExtension>().FirstOrDefault();
+        loggerFactory = coreOptionsExtension?.LoggerFactory;
+
+        return loggerFactory?.CreateLogger<CloudStorageTransactionManager>();
     }
 }

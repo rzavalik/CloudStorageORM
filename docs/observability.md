@@ -2,14 +2,9 @@
 
 CloudStorageORM includes optional observability controls under `CloudStorageOptions.Observability`.
 
-## v1.0.13 release note
-
-The `v1.0.13` release keeps the same observability switches, but the documentation now highlights the
-logging, tracing, and diagnostics surface alongside the new server-side `Skip`/`Take` query support.
-
 ## Current capability on `main`
 
-- `EnableLogging` controls provider query/save log emission from CloudStorageORM internals.
+- `EnableLogging` controls runtime `ILogger` emission from shared save/query/transaction/recovery paths.
 - `EnableTracing` controls `ActivitySource` spans created by CloudStorageORM internals.
 - `EnableDiagnostics` is part of the public options model and EF debug info, but there are currently no custom
   `DiagnosticListener` events emitted yet.
@@ -38,7 +33,7 @@ services.AddDbContext<AppDbContext>(options =>
         storage.Observability.EnableTracing = true;
         storage.Observability.EnableDiagnostics = true;
 
-        // Reserved naming options (currently not used by runtime emission)
+        // Naming options are currently surfaced in options/debug info.
         storage.Observability.ActivitySourceName = "CloudStorageORM";
         storage.Observability.DiagnosticListenerName = "CloudStorageORM";
     });
@@ -110,6 +105,13 @@ CloudStorageORM event IDs are grouped by category in `CloudStorageOrmEventIds`:
 - Concurrency (`500x`)
 - Provider I/O (`600x`)
 - Validation (`700x`)
+
+Runtime paths currently emitting these event groups include:
+
+- `CloudStorageDatabase` save and materialization/listing boundaries
+- `CloudStorageQueryProvider` query execution boundaries
+- `CloudStorageTransactionManager` begin/commit/rollback/recovery and durable replay paths
+- `CloudStorageDbContext` configuration/validation initialization boundaries
 
 ## Related docs
 

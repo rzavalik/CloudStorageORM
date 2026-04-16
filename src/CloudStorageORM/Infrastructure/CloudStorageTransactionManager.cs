@@ -1,7 +1,10 @@
 using System.Text.Json;
 using CloudStorageORM.Interfaces.StorageProviders;
+using CloudStorageORM.Observability;
+using CloudStorageORM.Options;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.Logging;
 
 namespace CloudStorageORM.Infrastructure;
 
@@ -13,9 +16,15 @@ public class CloudStorageTransactionManager : IDbContextTransactionManager
     private const string TransactionPrefix = "__cloudstorageorm/tx";
 
     private readonly IStorageProvider? _storageProvider;
+    private readonly ILogger<CloudStorageTransactionManager>? _logger;
+    private readonly bool _enableLogging;
+    private readonly bool _enableTracing;
     private readonly Lock _sync = new();
+
     private readonly List<Func<CancellationToken, Task>> _pendingOperations = [];
-    private readonly JsonSerializerOptions _jsonOptions = new(JsonSerializerDefaults.Web);
+
+    // Preserve CLR property names in staged payloads so provider deserialization maps back to entity members.
+    private readonly JsonSerializerOptions _jsonOptions = new();
     private CloudStorageDbContextTransaction? _currentTransaction;
     private DurableTransactionManifest? _activeManifest;
     private bool _recoveryCompleted;
@@ -24,21 +33,31 @@ public class CloudStorageTransactionManager : IDbContextTransactionManager
     /// Creates a transaction manager without durable journal support.
     /// </summary>
     public CloudStorageTransactionManager()
+        : this(storageProvider: null, cloudStorageOptions: null, logger: null)
     {
     }
 
     /// <summary>
-    /// Creates a transaction manager with durable journal support backed by object storage.
+    /// Creates a transaction manager with optional storage, observability options, and logger.
     /// </summary>
     /// <param name="storageProvider">Storage provider used to persist transaction manifests.</param>
-    public CloudStorageTransactionManager(IStorageProvider storageProvider)
+    /// <param name="cloudStorageOptions">Cloud storage options controlling observability toggles.</param>
+    /// <param name="logger">Logger used for runtime transaction events.</param>
+    public CloudStorageTransactionManager(
+        IStorageProvider? storageProvider,
+        CloudStorageOptions? cloudStorageOptions = null,
+        ILogger<CloudStorageTransactionManager>? logger = null)
     {
         _storageProvider = storageProvider;
+        _logger = logger;
+        _enableLogging = cloudStorageOptions?.Observability.EnableLogging ?? true;
+        _enableTracing = cloudStorageOptions?.Observability.EnableTracing ?? true;
     }
 
     /// <inheritdoc />
     public IDbContextTransaction BeginTransaction()
     {
+        using var activity = _enableTracing ? CloudStorageOrmActivitySource.StartActivity("TransactionBegin") : null;
         EnsureRecoveryCompletedAsync(CancellationToken.None).GetAwaiter().GetResult();
 
         lock (_sync)
@@ -51,6 +70,10 @@ public class CloudStorageTransactionManager : IDbContextTransactionManager
             _pendingOperations.Clear();
             _currentTransaction = new CloudStorageDbContextTransaction(this);
             _activeManifest = DurableTransactionManifest.Create(_currentTransaction.TransactionId);
+            if (_enableLogging)
+            {
+                _logger?.LogTransactionBeginning(_currentTransaction.TransactionId.ToString("D"));
+            }
 
             return _currentTransaction;
         }
@@ -207,43 +230,74 @@ public class CloudStorageTransactionManager : IDbContextTransactionManager
     internal async Task CommitTransactionInternalAsync(CloudStorageDbContextTransaction transaction,
         CancellationToken cancellationToken)
     {
+        using var activity = _enableTracing ? CloudStorageOrmActivitySource.StartActivity("TransactionCommit") : null;
+        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
         var state = CaptureAndCloseTransaction(transaction);
 
-        if (_storageProvider is not null && state.Manifest is not null)
+        try
         {
-            state.Manifest.State = DurableTransactionState.Committed;
-            state.Manifest.CommittedAtUtc = DateTimeOffset.UtcNow;
-            await PersistManifestAsync(state.Manifest, cancellationToken);
+            if (_storageProvider is not null && state.Manifest is not null)
+            {
+                state.Manifest.State = DurableTransactionState.Committed;
+                state.Manifest.CommittedAtUtc = DateTimeOffset.UtcNow;
+                await PersistManifestAsync(state.Manifest, cancellationToken);
 
-            await ApplyDurableOperationsAsync(state.Manifest, cancellationToken);
+                await ApplyDurableOperationsAsync(state.Manifest, cancellationToken);
 
-            state.Manifest.State = DurableTransactionState.Completed;
-            state.Manifest.CompletedAtUtc = DateTimeOffset.UtcNow;
-            await PersistManifestAsync(state.Manifest, cancellationToken);
+                state.Manifest.State = DurableTransactionState.Completed;
+                state.Manifest.CompletedAtUtc = DateTimeOffset.UtcNow;
+                await PersistManifestAsync(state.Manifest, cancellationToken);
+            }
+
+            foreach (var operation in state.PendingOperations)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                await operation(cancellationToken);
+            }
+
+            stopwatch.Stop();
+            if (_enableLogging)
+            {
+                _logger?.LogTransactionCommitted(transaction.TransactionId.ToString("D"),
+                    stopwatch.ElapsedMilliseconds);
+            }
         }
-
-        foreach (var operation in state.PendingOperations)
+        catch (Exception ex)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            await operation(cancellationToken);
+            stopwatch.Stop();
+            activity?.SetStatus(System.Diagnostics.ActivityStatusCode.Error, ex.Message);
+            throw;
         }
     }
 
-    internal Task RollbackTransactionInternalAsync(CloudStorageDbContextTransaction transaction,
+    internal async Task RollbackTransactionInternalAsync(CloudStorageDbContextTransaction transaction,
         CancellationToken cancellationToken)
     {
+        using var activity = _enableTracing ? CloudStorageOrmActivitySource.StartActivity("TransactionRollback") : null;
+        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
         cancellationToken.ThrowIfCancellationRequested();
         var state = CaptureAndCloseTransaction(transaction);
 
         if (_storageProvider is null || state.Manifest is null)
         {
-            return Task.CompletedTask;
+            stopwatch.Stop();
+            if (_enableLogging)
+            {
+                _logger?.LogTransactionRolledBack(transaction.TransactionId.ToString("D"),
+                    stopwatch.ElapsedMilliseconds);
+            }
+
+            return;
         }
 
         state.Manifest.State = DurableTransactionState.Aborted;
         state.Manifest.CompletedAtUtc = DateTimeOffset.UtcNow;
-        return PersistManifestAsync(state.Manifest, cancellationToken);
-
+        await PersistManifestAsync(state.Manifest, cancellationToken);
+        stopwatch.Stop();
+        if (_enableLogging)
+        {
+            _logger?.LogTransactionRolledBack(transaction.TransactionId.ToString("D"), stopwatch.ElapsedMilliseconds);
+        }
     }
 
     private CloudStorageDbContextTransaction GetCurrentTransactionOrThrow()
@@ -274,48 +328,50 @@ public class CloudStorageTransactionManager : IDbContextTransactionManager
         }
     }
 
-     private async Task EnsureRecoveryCompletedAsync(CancellationToken cancellationToken)
-     {
-         if (_storageProvider is null || _recoveryCompleted)
-         {
-             return;
-         }
+    private async Task EnsureRecoveryCompletedAsync(CancellationToken cancellationToken)
+    {
+        using var activity = _enableTracing ? CloudStorageOrmActivitySource.StartActivity("TransactionRecovery") : null;
+        if (_storageProvider is null || _recoveryCompleted)
+        {
+            return;
+        }
 
-         var manifestPaths = await _storageProvider.ListAsync(TransactionPrefix);
-         var manifests = manifestPaths.Where(path => path.EndsWith("/manifest.json", StringComparison.OrdinalIgnoreCase));
+        var manifestPaths = await _storageProvider.ListAsync(TransactionPrefix);
+        var manifests =
+            manifestPaths.Where(path => path.EndsWith("/manifest.json", StringComparison.OrdinalIgnoreCase));
 
-         foreach (var manifestPath in manifests)
-         {
-             cancellationToken.ThrowIfCancellationRequested();
-             var manifest = await _storageProvider.ReadAsync<DurableTransactionManifest>(manifestPath);
-             if (manifest.TransactionId == Guid.Empty)
-             {
-                 continue;
-             }
+        foreach (var manifestPath in manifests)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var manifest = await _storageProvider.ReadAsync<DurableTransactionManifest>(manifestPath);
+            if (manifest.TransactionId == Guid.Empty)
+            {
+                continue;
+            }
 
-             switch (manifest.State)
-             {
-                 case DurableTransactionState.Committed:
-                     // Resume replay from where it left off, skipping already-applied operations.
-                     // If all operations are applied (AppliedOperationCount == Operations.Count),
-                     // this becomes a no-op and transitions directly to Completed.
-                     await ApplyDurableOperationsAsync(manifest, cancellationToken);
-                     manifest.State = DurableTransactionState.Completed;
-                     manifest.CompletedAtUtc = DateTimeOffset.UtcNow;
-                     await PersistManifestAsync(manifest, cancellationToken);
-                     break;
+            switch (manifest.State)
+            {
+                case DurableTransactionState.Committed:
+                    // Resume replay from where it left off, skipping already-applied operations.
+                    // If all operations are applied (AppliedOperationCount == Operations.Count),
+                    // this becomes a no-op and transitions directly to "Completed".
+                    await ApplyDurableOperationsAsync(manifest, cancellationToken);
+                    manifest.State = DurableTransactionState.Completed;
+                    manifest.CompletedAtUtc = DateTimeOffset.UtcNow;
+                    await PersistManifestAsync(manifest, cancellationToken);
+                    break;
 
-                 case DurableTransactionState.Preparing:
-                     // Uncommitted preparing transactions are safely aborted without losing data.
-                     manifest.State = DurableTransactionState.Aborted;
-                     manifest.CompletedAtUtc = DateTimeOffset.UtcNow;
-                     await PersistManifestAsync(manifest, cancellationToken);
-                     break;
-             }
-         }
+                case DurableTransactionState.Preparing:
+                    // Uncommitted preparing transactions are safely aborted without losing data.
+                    manifest.State = DurableTransactionState.Aborted;
+                    manifest.CompletedAtUtc = DateTimeOffset.UtcNow;
+                    await PersistManifestAsync(manifest, cancellationToken);
+                    break;
+            }
+        }
 
-         _recoveryCompleted = true;
-     }
+        _recoveryCompleted = true;
+    }
 
     private async Task PersistManifestAsync(DurableTransactionManifest manifest, CancellationToken cancellationToken)
     {
@@ -325,57 +381,87 @@ public class CloudStorageTransactionManager : IDbContextTransactionManager
         }
 
         cancellationToken.ThrowIfCancellationRequested();
+        if (_enableLogging)
+        {
+            _logger?.LogBlobUploadStarting(GetManifestPath(manifest.TransactionId), manifest.Operations.Count);
+        }
+
         await _storageProvider.SaveAsync(GetManifestPath(manifest.TransactionId), manifest);
+
+        if (_enableLogging)
+        {
+            _logger?.LogBlobUploadCompleted(GetManifestPath(manifest.TransactionId), 0);
+        }
     }
 
-     private async Task ApplyDurableOperationsAsync(DurableTransactionManifest manifest, CancellationToken cancellationToken)
-     {
-         if (_storageProvider is null)
-         {
-             return;
-         }
+    private async Task ApplyDurableOperationsAsync(DurableTransactionManifest manifest,
+        CancellationToken cancellationToken)
+    {
+        if (_storageProvider is null)
+        {
+            return;
+        }
 
-         var startIndex = manifest.AppliedOperationCount;
-         var operations = manifest.Operations.OrderBy(x => x.Sequence).ToList();
+        var startIndex = manifest.AppliedOperationCount;
+        var operations = manifest.Operations.OrderBy(x => x.Sequence).ToList();
 
-         for (var i = startIndex; i < operations.Count; i++)
-         {
-             cancellationToken.ThrowIfCancellationRequested();
+        for (var i = startIndex; i < operations.Count; i++)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
 
-             var operation = operations[i];
-             switch (operation.Kind)
-             {
-                 case DurableTransactionOperationKind.Save:
-                     var payloadJson = string.IsNullOrWhiteSpace(operation.PayloadJson) ? "{}" : operation.PayloadJson;
-                     var payload = JsonSerializer.Deserialize<JsonElement>(payloadJson);
-                     await SaveDurableOperationAsync(operation, payload);
-                     break;
+            var operation = operations[i];
+            switch (operation.Kind)
+            {
+                case DurableTransactionOperationKind.Save:
+                    var payloadJson = string.IsNullOrWhiteSpace(operation.PayloadJson) ? "{}" : operation.PayloadJson;
+                    var payload = JsonSerializer.Deserialize<JsonElement>(payloadJson);
+                    await SaveDurableOperationAsync(operation, payload);
+                    break;
 
-                 case DurableTransactionOperationKind.Delete:
-                     await DeleteDurableOperationAsync(operation);
-                     break;
-             }
+                case DurableTransactionOperationKind.Delete:
+                    await DeleteDurableOperationAsync(operation);
+                    break;
+            }
 
-             // Update progress marker after each operation is applied successfully.
-             manifest.AppliedOperationCount = i + 1;
-             await PersistManifestAsync(manifest, cancellationToken);
-         }
-     }
+            // Update progress marker after each operation is applied successfully.
+            manifest.AppliedOperationCount = i + 1;
+            await PersistManifestAsync(manifest, cancellationToken);
+        }
+    }
 
     private async Task SaveDurableOperationAsync(DurableTransactionOperation operation, JsonElement payload)
     {
         try
         {
+            if (_enableLogging)
+            {
+                _logger?.LogBlobUploadStarting(operation.Path, operation.PayloadJson?.Length ?? 0);
+            }
+
             if (string.IsNullOrWhiteSpace(operation.IfMatchETag))
             {
                 await _storageProvider!.SaveAsync(operation.Path, payload);
+                if (_enableLogging)
+                {
+                    _logger?.LogBlobUploadCompleted(operation.Path, 0);
+                }
+
                 return;
             }
 
             await _storageProvider!.SaveAsync(operation.Path, payload, operation.IfMatchETag);
+            if (_enableLogging)
+            {
+                _logger?.LogBlobUploadCompleted(operation.Path, 0);
+            }
         }
         catch (StoragePreconditionFailedException ex)
         {
+            if (_enableLogging)
+            {
+                _logger?.LogConcurrencyConflict("DurableTransactionOperation", null, operation.Path);
+            }
+
             throw CreateConcurrencyException(operation.Path, ex);
         }
     }
@@ -384,16 +470,35 @@ public class CloudStorageTransactionManager : IDbContextTransactionManager
     {
         try
         {
+            if (_enableLogging)
+            {
+                _logger?.LogBlobDeletionStarting(operation.Path);
+            }
+
             if (string.IsNullOrWhiteSpace(operation.IfMatchETag))
             {
                 await _storageProvider!.DeleteAsync(operation.Path);
+                if (_enableLogging)
+                {
+                    _logger?.LogBlobDeletionCompleted(operation.Path, 0);
+                }
+
                 return;
             }
 
             await _storageProvider!.DeleteAsync(operation.Path, operation.IfMatchETag);
+            if (_enableLogging)
+            {
+                _logger?.LogBlobDeletionCompleted(operation.Path, 0);
+            }
         }
         catch (StoragePreconditionFailedException ex)
         {
+            if (_enableLogging)
+            {
+                _logger?.LogConcurrencyConflict("DurableTransactionOperation", null, operation.Path);
+            }
+
             throw CreateConcurrencyException(operation.Path, ex);
         }
     }
@@ -408,7 +513,8 @@ public class CloudStorageTransactionManager : IDbContextTransactionManager
     private static string GetManifestPath(Guid transactionId)
         => $"{TransactionPrefix}/{transactionId:D}/manifest.json";
 
-    private (CloudStorageDbContextTransaction Transaction, DurableTransactionManifest Manifest) GetActiveTransactionState()
+    private (CloudStorageDbContextTransaction Transaction, DurableTransactionManifest Manifest)
+        GetActiveTransactionState()
     {
         lock (_sync)
         {
@@ -457,42 +563,47 @@ public class CloudStorageTransactionManager : IDbContextTransactionManager
         public string? IfMatchETag { get; init; }
     }
 
-     private sealed class DurableTransactionManifest
-     {
-         // ReSharper disable once MemberCanBePrivate.Local
-         // ReSharper disable once PropertyCanBeMadeInitOnly.Local
-         public Guid TransactionId { get; set; }
-         public DurableTransactionState State { get; set; }
-         // ReSharper disable once UnusedAutoPropertyAccessor.Local
-         public DateTimeOffset CreatedAtUtc { get; set; }
-         // ReSharper disable once UnusedAutoPropertyAccessor.Local
-         public DateTimeOffset? CommittedAtUtc { get; set; }
-         // ReSharper disable once UnusedAutoPropertyAccessor.Local
-         public DateTimeOffset? CompletedAtUtc { get; set; }
-         // ReSharper disable once AutoPropertyCanBeMadeGetOnly.Local
-         public List<DurableTransactionOperation> Operations { get; set; } = [];
-         /// <summary>
-         /// Tracks the number of operations that have been successfully applied to storage.
-         /// Used to resume replay after interruption without re-applying operations.
-         /// Value is 0 for new transactions, incremented as operations are applied during commit/recovery.
-         /// When AppliedOperationCount equals Operations.Count, all operations have been applied.
-         /// </summary>
-         public int AppliedOperationCount { get; set; }
+    private sealed class DurableTransactionManifest
+    {
+        // ReSharper disable once MemberCanBePrivate.Local
+        // ReSharper disable once PropertyCanBeMadeInitOnly.Local
+        public Guid TransactionId { get; set; }
+        public DurableTransactionState State { get; set; }
 
-         /// <summary>
-         /// Creates a new manifest for a transaction in the preparing state.
-         /// </summary>
-         /// <param name="transactionId">Unique transaction identifier.</param>
-         /// <returns>A new durable transaction manifest.</returns>
-         public static DurableTransactionManifest Create(Guid transactionId)
-         {
-             return new DurableTransactionManifest
-             {
-                 TransactionId = transactionId,
-                 State = DurableTransactionState.Preparing,
-                 CreatedAtUtc = DateTimeOffset.UtcNow,
-                 AppliedOperationCount = 0
-             };
-         }
-     }
+        // ReSharper disable once UnusedAutoPropertyAccessor.Local
+        public DateTimeOffset CreatedAtUtc { get; set; }
+
+        // ReSharper disable once UnusedAutoPropertyAccessor.Local
+        public DateTimeOffset? CommittedAtUtc { get; set; }
+
+        // ReSharper disable once UnusedAutoPropertyAccessor.Local
+        public DateTimeOffset? CompletedAtUtc { get; set; }
+
+        // ReSharper disable once AutoPropertyCanBeMadeGetOnly.Local
+        public List<DurableTransactionOperation> Operations { get; set; } = [];
+
+        /// <summary>
+        /// Tracks the number of operations that have been successfully applied to storage.
+        /// Used to resume replay after interruption without re-applying operations.
+        /// Value is 0 for new transactions, incremented as operations are applied during commit/recovery.
+        /// When AppliedOperationCount equals Operations.Count, all operations have been applied.
+        /// </summary>
+        public int AppliedOperationCount { get; set; }
+
+        /// <summary>
+        /// Creates a new manifest for a transaction in the preparing state.
+        /// </summary>
+        /// <param name="transactionId">Unique transaction identifier.</param>
+        /// <returns>A new durable transaction manifest.</returns>
+        public static DurableTransactionManifest Create(Guid transactionId)
+        {
+            return new DurableTransactionManifest
+            {
+                TransactionId = transactionId,
+                State = DurableTransactionState.Preparing,
+                CreatedAtUtc = DateTimeOffset.UtcNow,
+                AppliedOperationCount = 0
+            };
+        }
+    }
 }

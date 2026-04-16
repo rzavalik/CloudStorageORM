@@ -1,3 +1,4 @@
+using System.Globalization;
 using CloudStorageORM.Infrastructure;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 
@@ -36,14 +37,16 @@ public class CloudStorageOrmOptionsExtensionInfo(CloudStorageOrmOptionsExtension
     public override int GetServiceProviderHashCode()
     {
         var options = Extension.Options;
+        var retry =
+            $"retry:{options.Retry.Enabled}|{options.Retry.MaxRetries}|{options.Retry.BaseDelay.TotalMilliseconds}|{options.Retry.MaxDelay.TotalMilliseconds}|{options.Retry.JitterFactor}";
         var raw = options.Provider switch
         {
             Enums.CloudProvider.Azure =>
-                $"azure|{options.ContainerName}|{options.Azure.ConnectionString}|obs:{options.Observability.EnableLogging}|{options.Observability.EnableTracing}|{options.Observability.EnableDiagnostics}",
+                $"azure|{options.ContainerName}|{options.Azure.ConnectionString}|obs:{options.Observability.EnableLogging}|{options.Observability.EnableTracing}|{options.Observability.EnableDiagnostics}|{retry}",
             Enums.CloudProvider.Aws =>
-                $"aws|{options.ContainerName}|{options.Aws.Region}|{options.Aws.ServiceUrl}|{options.Aws.AccessKeyId}|{options.Aws.SecretAccessKey}|{options.Aws.ForcePathStyle}|obs:{options.Observability.EnableLogging}|{options.Observability.EnableTracing}|{options.Observability.EnableDiagnostics}",
+                $"aws|{options.ContainerName}|{options.Aws.Region}|{options.Aws.ServiceUrl}|{options.Aws.AccessKeyId}|{options.Aws.SecretAccessKey}|{options.Aws.ForcePathStyle}|obs:{options.Observability.EnableLogging}|{options.Observability.EnableTracing}|{options.Observability.EnableDiagnostics}|{retry}",
             _ =>
-                $"{options.Provider}|{options.ContainerName}|obs:{options.Observability.EnableLogging}|{options.Observability.EnableTracing}|{options.Observability.EnableDiagnostics}"
+                $"{options.Provider}|{options.ContainerName}|obs:{options.Observability.EnableLogging}|{options.Observability.EnableTracing}|{options.Observability.EnableDiagnostics}|{retry}"
         };
 
         return StringComparer.Ordinal.GetHashCode(raw);
@@ -66,7 +69,13 @@ public class CloudStorageOrmOptionsExtensionInfo(CloudStorageOrmOptionsExtension
         debugInfo["CloudStorageORM:ContainerName"] = options.ContainerName;
         debugInfo["CloudStorageORM:Observability:EnableLogging"] = options.Observability.EnableLogging.ToString();
         debugInfo["CloudStorageORM:Observability:EnableTracing"] = options.Observability.EnableTracing.ToString();
-        debugInfo["CloudStorageORM:Observability:EnableDiagnostics"] = options.Observability.EnableDiagnostics.ToString();
+        debugInfo["CloudStorageORM:Observability:EnableDiagnostics"] =
+            options.Observability.EnableDiagnostics.ToString();
+        debugInfo["CloudStorageORM:Retry:Enabled"] = options.Retry.Enabled.ToString();
+        debugInfo["CloudStorageORM:Retry:MaxRetries"] = options.Retry.MaxRetries.ToString();
+        debugInfo["CloudStorageORM:Retry:BaseDelayMs"] = options.Retry.BaseDelay.TotalMilliseconds.ToString(CultureInfo.InvariantCulture);
+        debugInfo["CloudStorageORM:Retry:MaxDelayMs"] = options.Retry.MaxDelay.TotalMilliseconds.ToString(CultureInfo.InvariantCulture);
+        debugInfo["CloudStorageORM:Retry:JitterFactor"] = options.Retry.JitterFactor.ToString(CultureInfo.InvariantCulture);
 
         switch (options.Provider)
         {
@@ -100,7 +109,8 @@ public class CloudStorageOrmOptionsExtensionInfo(CloudStorageOrmOptionsExtension
         return options.Provider switch
         {
             Enums.CloudProvider.Azure => options.Azure.ConnectionString,
-            Enums.CloudProvider.Aws => $"region={options.Aws.Region};serviceUrl={options.Aws.ServiceUrl};container={options.ContainerName}",
+            Enums.CloudProvider.Aws =>
+                $"region={options.Aws.Region};serviceUrl={options.Aws.ServiceUrl};container={options.ContainerName}",
             _ => options.ContainerName
         };
     }

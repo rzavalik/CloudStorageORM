@@ -27,6 +27,8 @@ public class CloudStorageDbContextDependenciesTests
         IDiagnosticsLogger<DbLoggerCategory.Update> updateLogger,
         IDiagnosticsLogger<DbLoggerCategory.Infrastructure> infrastructureLogger)
     {
+        var transactionManager = new Mock<IDbContextTransactionManager>().Object;
+
         return new CloudStorageDbContextDependencies(
             model,
             currentContext,
@@ -37,6 +39,7 @@ public class CloudStorageDbContextDependenciesTests
             queryProvider,
             stateManager,
             exceptionDetector,
+            transactionManager,
             updateLogger,
             infrastructureLogger
         );
@@ -311,6 +314,38 @@ public class CloudStorageDbContextDependenciesTests
     }
 
     [Fact]
+    public void Constructor_WithNullTransactionManager_ThrowsArgumentNullException()
+    {
+        var modelMock = new Mock<IModel>().Object;
+        var currentContextMock = new Mock<ICurrentDbContext>().Object;
+        var changeDetectorMock = new Mock<IChangeDetector>().Object;
+        var setSourceMock = new Mock<IDbSetSource>().Object;
+        var entityFinderSourceMock = new Mock<IEntityFinderSource>().Object;
+        var entityGraphAttacherMock = new Mock<IEntityGraphAttacher>().Object;
+        var queryProviderMock = new Mock<IAsyncQueryProvider>().Object;
+        var stateManagerMock = new Mock<IStateManager>().Object;
+        var exceptionDetectorMock = new Mock<IExceptionDetector>().Object;
+        var updateLoggerMock = new Mock<IDiagnosticsLogger<DbLoggerCategory.Update>>().Object;
+        var infrastructureLoggerMock = new Mock<IDiagnosticsLogger<DbLoggerCategory.Infrastructure>>().Object;
+
+        var exception = Should.Throw<ArgumentNullException>(() => new CloudStorageDbContextDependencies(
+            modelMock,
+            currentContextMock,
+            changeDetectorMock,
+            setSourceMock,
+            entityFinderSourceMock,
+            entityGraphAttacherMock,
+            queryProviderMock,
+            stateManagerMock,
+            exceptionDetectorMock,
+            null!,
+            updateLoggerMock,
+            infrastructureLoggerMock));
+
+        exception.ParamName.ShouldBe("transactionManager");
+    }
+
+    [Fact]
     public void Constructor_WithNullInfrastructureLogger_ThrowsArgumentNullException()
     {
         var dependencies = CreateValidDependencies();
@@ -346,6 +381,7 @@ public class CloudStorageDbContextDependenciesTests
         var queryProviderMock = new Mock<IAsyncQueryProvider>().Object;
         var stateManagerMock = new Mock<IStateManager>().Object;
         var exceptionDetectorMock = new Mock<IExceptionDetector>().Object;
+        var transactionManagerMock = new Mock<IDbContextTransactionManager>().Object;
         var updateLoggerMock = new Mock<IDiagnosticsLogger<DbLoggerCategory.Update>>().Object;
         var infrastructureLoggerMock = new Mock<IDiagnosticsLogger<DbLoggerCategory.Infrastructure>>().Object;
 
@@ -359,6 +395,7 @@ public class CloudStorageDbContextDependenciesTests
             queryProviderMock,
             stateManagerMock,
             exceptionDetectorMock,
+            transactionManagerMock,
             updateLoggerMock,
             infrastructureLoggerMock);
 
@@ -375,11 +412,12 @@ public class CloudStorageDbContextDependenciesTests
     }
 
     [Fact]
-    public void TransactionManager_ShouldReturnInstanceOfCloudStorageTransactionManager()
+    public void TransactionManager_WithInjectedManager_ReturnsSameInstance()
     {
         var dependencies = CreateValidDependencies();
+        var transactionManager = new Mock<IDbContextTransactionManager>().Object;
 
-        var sut = MakeSut(
+        var sut = new CloudStorageDbContextDependencies(
             dependencies.Item1,
             dependencies.Item2,
             dependencies.Item3,
@@ -389,10 +427,11 @@ public class CloudStorageDbContextDependenciesTests
             dependencies.Item7,
             dependencies.Item8,
             dependencies.Item9,
+            transactionManager,
             dependencies.Item10,
             dependencies.Item11
         );
 
-        sut.TransactionManager.ShouldBeOfType<CloudStorageTransactionManager>();
+        sut.TransactionManager.ShouldBe(transactionManager);
     }
 }

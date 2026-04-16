@@ -39,7 +39,42 @@ public class CloudStorageOptionsTests
 
         options.Azure.ShouldNotBeNull();
         options.Aws.ShouldNotBeNull();
+        options.Retry.ShouldNotBeNull();
         options.Observability.ShouldNotBeNull();
+    }
+
+    [Fact]
+    public void RetryOptions_DefaultToExplicitOptInWithBoundedValues()
+    {
+        var options = new CloudStorageOptions();
+
+        options.Retry.Enabled.ShouldBeFalse();
+        options.Retry.MaxRetries.ShouldBe(3);
+        options.Retry.BaseDelay.ShouldBe(TimeSpan.FromMilliseconds(100));
+        options.Retry.MaxDelay.ShouldBe(TimeSpan.FromSeconds(2));
+        options.Retry.JitterFactor.ShouldBe(0.2d);
+    }
+
+    [Fact]
+    public void RetryOptions_AreAssignable()
+    {
+        var options = new CloudStorageOptions
+        {
+            Retry =
+            {
+                Enabled = true,
+                MaxRetries = 5,
+                BaseDelay = TimeSpan.FromMilliseconds(150),
+                MaxDelay = TimeSpan.FromSeconds(1),
+                JitterFactor = 0.4d
+            }
+        };
+
+        options.Retry.Enabled.ShouldBeTrue();
+        options.Retry.MaxRetries.ShouldBe(5);
+        options.Retry.BaseDelay.ShouldBe(TimeSpan.FromMilliseconds(150));
+        options.Retry.MaxDelay.ShouldBe(TimeSpan.FromSeconds(1));
+        options.Retry.JitterFactor.ShouldBe(0.4d);
     }
 
     [Fact]

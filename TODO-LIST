@@ -15,49 +15,6 @@ Backlog policy
 
 ---
 
-P0 - Correctness and recoverability (must complete before new provider expansion)
-
-Issue P0-03
-Title: Add transient-fault retry strategy for provider I/O
-Scope:
-- Introduce bounded retry policy with jitter for transient provider failures in persistence/query paths (`src/CloudStorageORM/Infrastructure/CloudStorageDatabase.cs`, `src/CloudStorageORM/Infrastructure/CloudStorageQueryProvider.cs`).
-- Keep provider-specific behavior unchanged; apply retries at shared execution boundary.
-- Document retry configuration and caveats (`docs/configuration.md`, `docs/troubleshooting.md`).
-Acceptance Criteria:
-- [ ] Retry strategy is configurable and disabled/enabled explicitly by options.
-- [ ] Non-transient errors are not retried.
-- [ ] Transient failure paths succeed within configured retry budget when recoverable.
-Test Checklist:
-- [ ] Unit tests for classification and retry limits.
-- [ ] Integration tests against Azurite/LocalStack with induced transient errors where feasible.
-
-Issue P0-04
-Title: Complete runtime observability wiring
-Scope:
-- Emit currently missing logs/events across save/query/transaction/recovery paths (`src/CloudStorageORM/Observability/CloudStorageOrmLoggingExtensions.cs`, `src/CloudStorageORM/Infrastructure/CloudStorageDatabase.cs`, `src/CloudStorageORM/Infrastructure/CloudStorageQueryProvider.cs`, `src/CloudStorageORM/Infrastructure/CloudStorageTransactionManager.cs`).
-- Align docs with actual behavior, including `EnableDiagnostics` status (`docs/observability.md`).
-Acceptance Criteria:
-- [ ] Event IDs defined in `CloudStorageOrmEventIds` are emitted by real runtime paths or removed with rationale.
-- [ ] Tracing/logging toggles behave as documented.
-- [ ] Observability docs match actual implementation.
-Test Checklist:
-- [ ] Extend observability unit tests (`tests/CloudStorageORM.Tests/Observability/**`).
-- [ ] Add integration assertions for key transaction and concurrency log events.
-
-Issue P0-05
-Title: Add transaction/concurrency failure-window integration coverage
-Scope:
-- Add CI-stable integration scenarios for rollback, commit, crash-recovery, and stale-ETag conflicts (`tests/CloudStorageORM.IntegrationTests/**`).
-- Update local run docs for any new prerequisites (`docs/testing-with-azurite.md`, `docs/testing-with-localstack.md`).
-Acceptance Criteria:
-- [ ] CI passes deterministic transaction correctness scenarios on Azure and AWS emulators.
-- [ ] Coverage includes both success and failure windows.
-Test Checklist:
-- [ ] Add dedicated test classes for transaction recovery and cross-writer conflicts.
-- [ ] Validate compatibility with `.github/workflows/ci.yml` execution model.
-
----
-
 P1 - Security, auditability, and operational confidence
 
 Issue P1-01
@@ -189,7 +146,7 @@ Test Checklist:
 
 Execution tracking
 - [ ] Create epic: "Enterprise Readiness".
-- [ ] Milestone A: Transaction correctness and recovery (P0-02..P0-05).
+- [ ] Milestone A: Transaction correctness and recovery.
 - [ ] Milestone B: Security, observability, auditability (P1-01..P1-05).
 - [ ] Milestone C: Platform maturity and operations (P2-01..P2-04).
 

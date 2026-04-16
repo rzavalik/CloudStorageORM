@@ -1,11 +1,20 @@
 using System.ComponentModel.DataAnnotations;
+using CloudStorageORM.Abstractions;
 using CloudStorageORM.Enums;
 using CloudStorageORM.Extensions;
 using CloudStorageORM.Infrastructure;
+using CloudStorageORM.Interfaces.StorageProviders;
 using CloudStorageORM.Options;
 using CloudStorageORM.Providers.Azure.StorageProviders;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.EntityFrameworkCore.Update;
 using Shouldly;
+
+// ReSharper disable UnusedMember.Local
+// ReSharper disable UnusedParameter.Local
+// ReSharper disable PropertyCanBeMadeInitOnly.Local
 
 namespace CloudStorageORM.IntegrationTests.Azure.Azure.StorageProviders;
 
@@ -129,7 +138,69 @@ public class AzureBlobStorageProviderTests(StorageFixture fixture) : IClassFixtu
         await Should.ThrowAsync<DbUpdateConcurrencyException>(() => transaction.CommitAsync());
     }
 
-    private static AzureTransactionalTestDbContext CreateTransactionContext(string connectionString, string containerName)
+    [Fact]
+    public async Task RetryEnabled_SaveChangesAndPrimaryKeyQuery_RecoverFromInjectedTransientFailure()
+    {
+        fixture.EnsureAvailableOrSkip();
+
+        var (innerProvider, containerName) = await CreateIsolatedProviderAsync(fixture, "retry");
+        var options = new CloudStorageOptions
+        {
+            Provider = CloudProvider.Azure,
+            ContainerName = containerName,
+            Azure = new CloudStorageAzureOptions
+            {
+                ConnectionString = fixture.ConnectionString
+            },
+            Retry = new CloudStorageRetryOptions
+            {
+                Enabled = true,
+                MaxRetries = 2,
+                BaseDelay = TimeSpan.Zero,
+                MaxDelay = TimeSpan.Zero,
+                JitterFactor = 0
+            }
+        };
+
+        var flakyProvider = new TransientOnceStorageProvider(innerProvider, failSaveOnce: true, failReadOnce: true);
+        var dbContextOptions = new DbContextOptionsBuilder<RetryHarnessDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .Options;
+        await using var context = new RetryHarnessDbContext(dbContextOptions);
+
+        var database = new CloudStorageDatabase(
+            context.Model,
+            new NoOpDatabaseCreator(),
+            new NoOpExecutionStrategyFactory(),
+            flakyProvider,
+            new CurrentDbContextStub(context),
+            new BlobPathResolver(flakyProvider),
+            new CloudStorageTransactionManager(),
+            options);
+
+        var entity = new RetryHarnessEntity { Id = $"retry-{Guid.NewGuid():N}", Name = "before" };
+        context.Add(entity);
+        var entries = context
+            .ChangeTracker
+            .Entries()
+            .Select(e => (IUpdateEntry)e.GetInfrastructure())
+            .ToList();
+
+        var saved = await database.SaveChangesAsync(entries);
+        saved.ShouldBe(1);
+
+        var queryProvider = new CloudStorageQueryProvider(database, new BlobPathResolver(flakyProvider));
+        var queryable = new CloudStorageQueryable<RetryHarnessEntity>(queryProvider);
+        var loaded = queryable.FirstOrDefault(x => x.Id == entity.Id);
+
+        loaded.ShouldNotBeNull();
+        loaded.Name.ShouldBe("before");
+        flakyProvider.SaveAttempts.ShouldBeGreaterThanOrEqualTo(2);
+        flakyProvider.ReadAttempts.ShouldBeGreaterThanOrEqualTo(2);
+    }
+
+    private static AzureTransactionalTestDbContext CreateTransactionContext(string connectionString,
+        string containerName)
     {
         var options = new DbContextOptionsBuilder<AzureTransactionalTestDbContext>()
             .UseCloudStorageOrm(cfg =>
@@ -175,12 +246,131 @@ public sealed class AzureTransactionalTestDbContext(DbContextOptions<AzureTransa
 
 public sealed class TransactionTestEntity
 {
-    [MaxLength(100)]
-    public string Id { get; init; } = string.Empty;
+    [MaxLength(100)] public string Id { get; init; } = string.Empty;
 
-    [MaxLength(100)]
-    public string Name { get; set; } = string.Empty;
+    [MaxLength(100)] public string Name { get; set; } = string.Empty;
 
-    [MaxLength(256)]
-    public string? ETag { get; set; }
+    [MaxLength(256)] public string? ETag { get; set; }
+}
+
+public sealed class RetryHarnessDbContext(DbContextOptions<RetryHarnessDbContext> options) : DbContext(options)
+{
+    public DbSet<RetryHarnessEntity> Entities => Set<RetryHarnessEntity>();
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<RetryHarnessEntity>().HasKey(x => x.Id);
+    }
+}
+
+public sealed class RetryHarnessEntity
+{
+    [MaxLength(100)] public string Id { get; init; } = string.Empty;
+
+    [MaxLength(100)] public string Name { get; set; } = string.Empty;
+}
+
+internal sealed class TransientOnceStorageProvider(
+    IStorageProvider inner,
+    bool failSaveOnce,
+    bool failReadOnce) : IStorageProvider
+{
+    private int _saveFailuresRemaining = failSaveOnce ? 1 : 0;
+    private int _readFailuresRemaining = failReadOnce ? 1 : 0;
+
+    public int SaveAttempts { get; private set; }
+    public int ReadAttempts { get; private set; }
+
+    public CloudProvider CloudProvider => inner.CloudProvider;
+
+    public Task DeleteContainerAsync() => inner.DeleteContainerAsync();
+
+    public Task CreateContainerIfNotExistsAsync() => inner.CreateContainerIfNotExistsAsync();
+
+    public async Task SaveAsync<T>(string path, T entity)
+    {
+        SaveAttempts++;
+        if (_saveFailuresRemaining > 0)
+        {
+            _saveFailuresRemaining--;
+            throw new HttpRequestException("Injected transient save failure.");
+        }
+
+        await inner.SaveAsync(path, entity);
+    }
+
+    public async Task<string?> SaveAsync<T>(string path, T entity, string? ifMatchETag)
+    {
+        SaveAttempts++;
+        if (_saveFailuresRemaining > 0)
+        {
+            _saveFailuresRemaining--;
+            throw new HttpRequestException("Injected transient save failure.");
+        }
+
+        return await inner.SaveAsync(path, entity, ifMatchETag);
+    }
+
+    public Task<T> ReadAsync<T>(string path) => inner.ReadAsync<T>(path);
+
+    public async Task<StorageObject<T>> ReadWithMetadataAsync<T>(string path)
+    {
+        ReadAttempts++;
+        if (_readFailuresRemaining > 0)
+        {
+            _readFailuresRemaining--;
+            throw new HttpRequestException("Injected transient read failure.");
+        }
+
+        return await inner.ReadWithMetadataAsync<T>(path);
+    }
+
+    public Task DeleteAsync(string path) => inner.DeleteAsync(path);
+
+    public Task DeleteAsync(string path, string? ifMatchETag) => inner.DeleteAsync(path, ifMatchETag);
+
+    public Task<List<string>> ListAsync(string folderPath) => inner.ListAsync(folderPath);
+
+    public Task<StorageListPage> ListPageAsync(
+        string folderPath,
+        int pageSize,
+        string? continuationToken,
+        CancellationToken cancellationToken = default)
+    {
+        return inner.ListPageAsync(folderPath, pageSize, continuationToken, cancellationToken);
+    }
+
+    public string SanitizeBlobName(string rawName) => inner.SanitizeBlobName(rawName);
+}
+
+internal sealed class NoOpDatabaseCreator : IDatabaseCreator
+{
+    public bool EnsureDeleted() => true;
+
+    public Task<bool> EnsureDeletedAsync(CancellationToken cancellationToken = default) => Task.FromResult(true);
+
+    public bool EnsureCreated() => true;
+
+    public Task<bool> EnsureCreatedAsync(CancellationToken cancellationToken = default) => Task.FromResult(true);
+
+    public bool CanConnect() => true;
+
+    public Task<bool> CanConnectAsync(CancellationToken cancellationToken = default) => Task.FromResult(true);
+
+    public bool HasTables() => true;
+
+    public Task<bool> HasTablesAsync(CancellationToken cancellationToken = default) => Task.FromResult(true);
+}
+
+internal sealed class NoOpExecutionStrategyFactory : IExecutionStrategyFactory
+{
+    public IExecutionStrategy Create()
+    {
+        throw new NotSupportedException("Execution strategy is not used by this integration harness.");
+    }
+}
+
+internal sealed class CurrentDbContextStub(DbContext context) : ICurrentDbContext
+{
+    public DbContext Context => context;
 }

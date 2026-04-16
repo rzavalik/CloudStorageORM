@@ -70,7 +70,8 @@ This runs:
 - unit tests in `tests/CloudStorageORM.Tests`
 - Azure integration tests in `tests/CloudStorageORM.IntegrationTests/CloudStorageORM.IntegrationTests.Azure.csproj`
 - AWS integration tests in `tests/CloudStorageORM.IntegrationTests/CloudStorageORM.IntegrationTests.AWS.csproj`
-- SampleApp integration tests in `tests/CloudStorageORM.IntegrationTests.SampleApp/CloudStorageORM.IntegrationTests.SampleApp.csproj`
+- SampleApp integration tests in
+  `tests/CloudStorageORM.IntegrationTests.SampleApp/CloudStorageORM.IntegrationTests.SampleApp.csproj`
 
 For CI-style TRX and coverage artifact layout, see [ci.md](./ci.md).
 
@@ -83,6 +84,15 @@ If Azurite is unavailable, Azure-backed integration scenarios are skipped by fix
 ```bash
 dotnet test tests/CloudStorageORM.IntegrationTests/CloudStorageORM.IntegrationTests.Azure.csproj --nologo -v minimal
 ```
+
+To focus only on the Azure transaction failure-window suite (`AzureTransactionFailureWindowTests`), which covers
+rollback, commit, committed-manifest recovery, and stale-ETag conflict cases:
+
+```bash
+dotnet test tests/CloudStorageORM.IntegrationTests/CloudStorageORM.IntegrationTests.Azure.csproj --nologo -v minimal --filter "FullyQualifiedName~AzureTransactionFailureWindowTests"
+```
+
+The suite also asserts the transaction and concurrency log events emitted by the runtime path.
 
 ---
 
@@ -168,6 +178,7 @@ dotnet test tests/CloudStorageORM.Tests/CloudStorageORM.Tests.csproj --nologo -v
 - `tests/CloudStorageORM.IntegrationTests/CloudStorageORM.IntegrationTests.Azure.csproj`
 - `tests/CloudStorageORM.IntegrationTests/Azure/StorageFixture.cs`
 - `tests/CloudStorageORM.IntegrationTests/Azure/StorageProviders/AzureBlobStorageProviderTests.cs`
+- `tests/CloudStorageORM.IntegrationTests/Azure/Transactions/AzureTransactionFailureWindowTests.cs`
 - `coverlet.runsettings`
 - `dotnet-tools.json`
 
