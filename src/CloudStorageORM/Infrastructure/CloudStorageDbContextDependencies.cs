@@ -14,15 +14,6 @@ namespace CloudStorageORM.Infrastructure;
 /// </summary>
 public class CloudStorageDbContextDependencies : IDbContextDependencies
 {
-    private readonly IModel _model;
-    private readonly IChangeDetector _changeDetector;
-    private readonly IDbSetSource _setSource;
-    private readonly IEntityGraphAttacher _entityGraphAttacher;
-    private readonly IAsyncQueryProvider _queryProvider;
-    private readonly IStateManager _stateManager;
-    private readonly IExceptionDetector _exceptionDetector;
-    private readonly IDiagnosticsLogger<DbLoggerCategory.Update> _updateLogger;
-    private readonly IDiagnosticsLogger<DbLoggerCategory.Infrastructure> _infrastructureLogger;
     private readonly EntityFinderFactory _entityFinderFactory;
 
     /// <summary>
@@ -37,6 +28,7 @@ public class CloudStorageDbContextDependencies : IDbContextDependencies
     /// <param name="queryProvider">Async query provider.</param>
     /// <param name="stateManager">EF state manager.</param>
     /// <param name="exceptionDetector">EF exception detector.</param>
+    /// <param name="transactionManager">Transaction manager used by the DbContext infrastructure.</param>
     /// <param name="updateLogger">Update diagnostics logger.</param>
     /// <param name="infrastructureLogger">Infrastructure diagnostics logger.</param>
     /// <example>
@@ -54,28 +46,30 @@ public class CloudStorageDbContextDependencies : IDbContextDependencies
         IAsyncQueryProvider queryProvider,
         IStateManager stateManager,
         IExceptionDetector exceptionDetector,
+        IDbContextTransactionManager transactionManager,
         IDiagnosticsLogger<DbLoggerCategory.Update> updateLogger,
         IDiagnosticsLogger<DbLoggerCategory.Infrastructure> infrastructureLogger)
     {
-        _model = model ?? throw new ArgumentNullException(nameof(model));
+        Model = model ?? throw new ArgumentNullException(nameof(model));
         if (currentContext == null)
         {
             throw new ArgumentNullException(nameof(currentContext));
         }
 
-        _changeDetector = changeDetector ?? throw new ArgumentNullException(nameof(changeDetector));
-        _setSource = setSource ?? throw new ArgumentNullException(nameof(setSource));
+        ChangeDetector = changeDetector ?? throw new ArgumentNullException(nameof(changeDetector));
+        SetSource = setSource ?? throw new ArgumentNullException(nameof(setSource));
         if (entityFinderSource == null)
         {
             throw new ArgumentNullException(nameof(entityFinderSource));
         }
 
-        _entityGraphAttacher = entityGraphAttacher ?? throw new ArgumentNullException(nameof(entityGraphAttacher));
-        _queryProvider = queryProvider ?? throw new ArgumentNullException(nameof(queryProvider));
-        _stateManager = stateManager ?? throw new ArgumentNullException(nameof(stateManager));
-        _exceptionDetector = exceptionDetector ?? throw new ArgumentNullException(nameof(exceptionDetector));
-        _updateLogger = updateLogger ?? throw new ArgumentNullException(nameof(updateLogger));
-        _infrastructureLogger = infrastructureLogger ?? throw new ArgumentNullException(nameof(infrastructureLogger));
+        EntityGraphAttacher = entityGraphAttacher ?? throw new ArgumentNullException(nameof(entityGraphAttacher));
+        QueryProvider = queryProvider ?? throw new ArgumentNullException(nameof(queryProvider));
+        StateManager = stateManager ?? throw new ArgumentNullException(nameof(stateManager));
+        ExceptionDetector = exceptionDetector ?? throw new ArgumentNullException(nameof(exceptionDetector));
+        TransactionManager = transactionManager ?? throw new ArgumentNullException(nameof(transactionManager));
+        UpdateLogger = updateLogger ?? throw new ArgumentNullException(nameof(updateLogger));
+        InfrastructureLogger = infrastructureLogger ?? throw new ArgumentNullException(nameof(infrastructureLogger));
 
         _entityFinderFactory = new EntityFinderFactory(
             entityFinderSource,
@@ -85,27 +79,29 @@ public class CloudStorageDbContextDependencies : IDbContextDependencies
         );
     }
 
-    public IDbContextTransactionManager TransactionManager => new CloudStorageTransactionManager();
-    public IModel Model => _model;
-    public IModel DesignTimeModel => _model; // Returning the same model for design-time usage
+    public IDbContextTransactionManager TransactionManager { get; }
+
+    public IModel Model { get; }
+
+    public IModel DesignTimeModel => Model; // Returning the same model for design-time usage
     public DbContextOptions ContextOptions => throw new NotImplementedException();
     public IServiceProvider InternalServiceProvider => throw new NotImplementedException();
 
-    public IDbSetSource SetSource => _setSource;
+    public IDbSetSource SetSource { get; }
 
     public IEntityFinderFactory EntityFinderFactory => _entityFinderFactory;
 
-    public IAsyncQueryProvider QueryProvider => _queryProvider;
+    public IAsyncQueryProvider QueryProvider { get; }
 
-    public IStateManager StateManager => _stateManager;
+    public IStateManager StateManager { get; }
 
-    public IChangeDetector ChangeDetector => _changeDetector;
+    public IChangeDetector ChangeDetector { get; }
 
-    public IEntityGraphAttacher EntityGraphAttacher => _entityGraphAttacher;
+    public IEntityGraphAttacher EntityGraphAttacher { get; }
 
-    public IExceptionDetector ExceptionDetector => _exceptionDetector;
+    public IExceptionDetector ExceptionDetector { get; }
 
-    public IDiagnosticsLogger<DbLoggerCategory.Update> UpdateLogger => _updateLogger;
+    public IDiagnosticsLogger<DbLoggerCategory.Update> UpdateLogger { get; }
 
-    public IDiagnosticsLogger<DbLoggerCategory.Infrastructure> InfrastructureLogger => _infrastructureLogger;
+    public IDiagnosticsLogger<DbLoggerCategory.Infrastructure> InfrastructureLogger { get; }
 }

@@ -1,10 +1,12 @@
 using System.ComponentModel.DataAnnotations;
 using System.Linq.Expressions;
 using CloudStorageORM.Abstractions;
+using CloudStorageORM.Enums;
 using CloudStorageORM.Extensions;
 using CloudStorageORM.Infrastructure;
 using CloudStorageORM.Interfaces.Infrastructure;
 using CloudStorageORM.Interfaces.StorageProviders;
+using CloudStorageORM.Options;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -87,6 +89,76 @@ public class CloudStorageDatabaseTests
 
         changes.ShouldBe(1);
         fixture.StorageProviderMock.Verify(x => x.DeleteAsync("users/3.json"), Times.Once);
+    }
+
+    [Fact]
+    public async Task SaveChangesAsync_AddedEntry_RetriesTransientFailure_WhenEnabled()
+    {
+        var fixture = CreateFixture(new CloudStorageOptions
+        {
+            Provider = CloudProvider.Azure,
+            ContainerName = "tests",
+            Azure = new CloudStorageAzureOptions
+            {
+                ConnectionString = "UseDevelopmentStorage=true"
+            },
+            Retry = new CloudStorageRetryOptions
+            {
+                Enabled = true,
+                MaxRetries = 2,
+                BaseDelay = TimeSpan.Zero,
+                MaxDelay = TimeSpan.Zero,
+                JitterFactor = 0
+            }
+        });
+
+        var entity = new DbUser { Id = "retry-add", Name = "Retry" };
+        fixture.Context.Add(entity);
+        var entries = GetUpdateEntries(fixture.Context);
+        fixture.PathResolverMock.Setup(x => x.GetPath(It.IsAny<IUpdateEntry>())).Returns("users/retry-add.json");
+        fixture.StorageProviderMock
+            .SetupSequence(x => x.SaveAsync("users/retry-add.json", It.IsAny<object>()))
+            .ThrowsAsync(new HttpRequestException("temporary"))
+            .Returns(Task.CompletedTask);
+
+        var changes = await fixture.Database.SaveChangesAsync(entries);
+
+        changes.ShouldBe(1);
+        fixture.StorageProviderMock.Verify(x => x.SaveAsync("users/retry-add.json", It.IsAny<object>()), Times.Exactly(2));
+    }
+
+    [Fact]
+    public async Task SaveChangesAsync_AddedEntry_DoesNotRetryTransientFailure_WhenDisabled()
+    {
+        var fixture = CreateFixture(new CloudStorageOptions
+        {
+            Provider = CloudProvider.Azure,
+            ContainerName = "tests",
+            Azure = new CloudStorageAzureOptions
+            {
+                ConnectionString = "UseDevelopmentStorage=true"
+            },
+            Retry = new CloudStorageRetryOptions
+            {
+                Enabled = false,
+                MaxRetries = 3,
+                BaseDelay = TimeSpan.Zero,
+                MaxDelay = TimeSpan.Zero,
+                JitterFactor = 0
+            }
+        });
+
+        var entity = new DbUser { Id = "retry-disabled", Name = "Retry" };
+        fixture.Context.Add(entity);
+        var entries = GetUpdateEntries(fixture.Context);
+        fixture.PathResolverMock.Setup(x => x.GetPath(It.IsAny<IUpdateEntry>())).Returns("users/retry-disabled.json");
+        fixture.StorageProviderMock
+            .Setup(x => x.SaveAsync("users/retry-disabled.json", It.IsAny<object>()))
+            .ThrowsAsync(new HttpRequestException("temporary"));
+
+        await Should.ThrowAsync<HttpRequestException>(() => fixture.Database.SaveChangesAsync(entries));
+
+        fixture.StorageProviderMock.Verify(x => x.SaveAsync("users/retry-disabled.json", It.IsAny<object>()), Times.Once);
     }
 
     [Fact]
@@ -260,7 +332,7 @@ public class CloudStorageDatabaseTests
     [Fact]
     public async Task LoadEntitiesAsync_UsesBlobNameFromResolver()
     {
-        const string dbUsers = "dbusers";
+        const string dbUsers = "db-users";
         var fixture = CreateFixture();
         fixture.PathResolverMock.Setup(x => x.GetBlobName(typeof(DbUser))).Returns(dbUsers);
         fixture.StorageProviderMock.Setup(x => x.ListAsync(dbUsers)).ReturnsAsync([]);
@@ -535,7 +607,7 @@ public class CloudStorageDatabaseTests
             Expression.Quote(predicate));
     }
 
-    private static DatabaseFixture CreateFixture()
+    private static DatabaseFixture CreateFixture(CloudStorageOptions? cloudStorageOptions = null)
     {
         var dbOptions = new DbContextOptionsBuilder<DatabaseTestDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
@@ -566,7 +638,8 @@ public class CloudStorageDatabaseTests
             storageProviderMock.Object,
             currentDbContextMock.Object,
             pathResolverMock.Object,
-            transactionManager);
+            transactionManager,
+            cloudStorageOptions);
 
         return new DatabaseFixture(
             database,

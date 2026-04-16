@@ -51,6 +51,15 @@ These defaults are used by tests/sample if variables are not set:
 dotnet test tests/CloudStorageORM.IntegrationTests/CloudStorageORM.IntegrationTests.AWS.csproj --nologo -v minimal
 ```
 
+To focus only on the AWS transaction failure-window suite (`AwsTransactionFailureWindowTests`), which covers rollback,
+commit, committed-manifest recovery, and stale-ETag conflict cases:
+
+```bash
+dotnet test tests/CloudStorageORM.IntegrationTests/CloudStorageORM.IntegrationTests.AWS.csproj --nologo -v minimal --filter "FullyQualifiedName~AwsTransactionFailureWindowTests"
+```
+
+The suite also asserts the transaction and concurrency log events emitted by the runtime path.
+
 If LocalStack is unavailable, AWS integration scenarios are skipped by fixture guards.
 
 ---
@@ -103,4 +112,5 @@ export CLOUDSTORAGEORM_AWS_FORCE_PATH_STYLE=true
 - `tests/CloudStorageORM.IntegrationTests.SampleApp/CloudStorageORM.IntegrationTests.SampleApp.csproj`
 - `tests/CloudStorageORM.IntegrationTests/Aws/LocalStackFixture.cs`
 - `tests/CloudStorageORM.IntegrationTests/Aws/StorageProviders/AwsS3StorageProviderTests.cs`
+- `tests/CloudStorageORM.IntegrationTests/Aws/Transactions/AwsTransactionFailureWindowTests.cs`
 - `tests/CloudStorageORM.IntegrationTests.SampleApp/ProgramExitAwsSampleAppTests.cs`

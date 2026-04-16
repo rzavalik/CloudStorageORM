@@ -95,4 +95,75 @@ public class CloudStorageOptionsValidatorTests
         var ex = Should.Throw<InvalidOperationException>(() => CloudStorageOptionsValidator.Validate(options));
         ex.Message.ShouldContain("ContainerName");
     }
+
+    [Fact]
+    public void Validate_WithRetryEnabledAndValidBounds_DoesNotThrow()
+    {
+        var options = new CloudStorageOptions
+        {
+            Provider = CloudProvider.Azure,
+            ContainerName = "unit-container",
+            Azure = new CloudStorageAzureOptions
+            {
+                ConnectionString = "UseDevelopmentStorage=true"
+            },
+            Retry = new CloudStorageRetryOptions
+            {
+                Enabled = true,
+                MaxRetries = 4,
+                BaseDelay = TimeSpan.FromMilliseconds(25),
+                MaxDelay = TimeSpan.FromMilliseconds(250),
+                JitterFactor = 0.3
+            }
+        };
+
+        Should.NotThrow(() => CloudStorageOptionsValidator.Validate(options));
+    }
+
+    [Fact]
+    public void Validate_WithNegativeRetryMaxRetries_Throws()
+    {
+        var options = new CloudStorageOptions
+        {
+            Provider = CloudProvider.Azure,
+            ContainerName = "unit-container",
+            Azure = new CloudStorageAzureOptions
+            {
+                ConnectionString = "UseDevelopmentStorage=true"
+            },
+            Retry = new CloudStorageRetryOptions
+            {
+                Enabled = true,
+                MaxRetries = -1
+            }
+        };
+
+        var ex = Should.Throw<InvalidOperationException>(() => CloudStorageOptionsValidator.Validate(options));
+        ex.Message.ShouldContain("Retry.MaxRetries");
+    }
+
+    [Fact]
+    public void Validate_WithRetryMaxDelayLowerThanBaseDelay_Throws()
+    {
+        var options = new CloudStorageOptions
+        {
+            Provider = CloudProvider.Aws,
+            ContainerName = "unit-bucket",
+            Aws = new CloudStorageAwsOptions
+            {
+                AccessKeyId = "test-key",
+                SecretAccessKey = "test-secret",
+                Region = "us-east-1"
+            },
+            Retry = new CloudStorageRetryOptions
+            {
+                Enabled = true,
+                BaseDelay = TimeSpan.FromMilliseconds(200),
+                MaxDelay = TimeSpan.FromMilliseconds(100)
+            }
+        };
+
+        var ex = Should.Throw<InvalidOperationException>(() => CloudStorageOptionsValidator.Validate(options));
+        ex.Message.ShouldContain("Retry.MaxDelay");
+    }
 }

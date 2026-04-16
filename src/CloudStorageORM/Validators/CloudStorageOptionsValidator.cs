@@ -34,6 +34,8 @@ public static class CloudStorageOptionsValidator
             throw new InvalidOperationException("CloudStorageOptions.ContainerName must be provided.");
         }
 
+        ValidateRetryOptions(options);
+
         switch (options.Provider)
         {
             case CloudProvider.Azure:
@@ -44,6 +46,40 @@ public static class CloudStorageOptionsValidator
                 break;
             default:
                 throw new NotSupportedException($"Provider {options.Provider} not supported.");
+        }
+    }
+
+    private static void ValidateRetryOptions(CloudStorageOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(options.Retry);
+
+        if (options.Retry.MaxRetries < 0)
+        {
+            throw new InvalidOperationException(
+                "CloudStorageOptions.Retry.MaxRetries must be greater than or equal to zero.");
+        }
+
+        if (options.Retry.BaseDelay < TimeSpan.Zero)
+        {
+            throw new InvalidOperationException(
+                "CloudStorageOptions.Retry.BaseDelay must be greater than or equal to zero.");
+        }
+
+        if (options.Retry.MaxDelay < TimeSpan.Zero)
+        {
+            throw new InvalidOperationException(
+                "CloudStorageOptions.Retry.MaxDelay must be greater than or equal to zero.");
+        }
+
+        if (options.Retry.MaxDelay < options.Retry.BaseDelay)
+        {
+            throw new InvalidOperationException(
+                "CloudStorageOptions.Retry.MaxDelay must be greater than or equal to BaseDelay.");
+        }
+
+        if (options.Retry.JitterFactor is < 0d or > 1d)
+        {
+            throw new InvalidOperationException("CloudStorageOptions.Retry.JitterFactor must be between 0 and 1.");
         }
     }
 

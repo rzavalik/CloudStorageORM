@@ -1,9 +1,12 @@
 using CloudStorageORM.Extensions;
 using CloudStorageORM.Infrastructure;
 using CloudStorageORM.Interfaces.StorageProviders;
+using CloudStorageORM.Observability;
 using CloudStorageORM.Providers;
 using CloudStorageORM.Validators;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.Extensions.Logging;
 
 namespace CloudStorageORM.Contexts;
 
@@ -13,6 +16,7 @@ namespace CloudStorageORM.Contexts;
 public class CloudStorageDbContext : DbContext
 {
     private readonly IStorageProvider _storageProvider;
+    private readonly bool _enableLogging;
 
     /// <summary>
     /// Creates a CloudStorageORM DbContext from configured EF options.
@@ -41,8 +45,20 @@ public class CloudStorageDbContext : DbContext
                            ?.Options
                        ?? throw new InvalidCastException("Options must be of type CloudStorageOptions.");
 
+        var provider = options1.Provider;
+        var containerName = options1.ContainerName;
+        _enableLogging = options1.Observability.EnableLogging;
+
         _storageProvider = ProviderFactory.GetStorageProvider(options1)
                            ?? throw new ArgumentNullException(nameof(_storageProvider));
+
+        if (!_enableLogging)
+        {
+            return;
+        }
+
+        var logger = TryResolveLogger();
+        logger?.LogConfigurationInitialized(provider.ToString(), containerName);
     }
 
     /// <inheritdoc />
@@ -50,10 +66,31 @@ public class CloudStorageDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
+        var logger = _enableLogging ? TryResolveLogger() : null;
+        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+
         modelBuilder.ApplyBlobSettingsConventions();
 
         var validator = new CloudStorageModelValidator(_storageProvider);
+        logger?.LogValidationStarting("CloudStorageModel");
 
-        validator.Validate(modelBuilder.Model);
+        try
+        {
+            validator.Validate(modelBuilder.Model);
+            stopwatch.Stop();
+            logger?.LogValidationCompleted("CloudStorageModel", stopwatch.ElapsedMilliseconds);
+        }
+        catch (Exception ex)
+        {
+            stopwatch.Stop();
+            logger?.LogValidationFailed("CloudStorageModel", ex.Message, ex);
+            throw;
+        }
+    }
+
+    private ILogger<CloudStorageDbContext>? TryResolveLogger()
+    {
+        return ((IInfrastructure<IServiceProvider>)this).Instance.GetService(typeof(ILogger<CloudStorageDbContext>))
+            as ILogger<CloudStorageDbContext>;
     }
 }

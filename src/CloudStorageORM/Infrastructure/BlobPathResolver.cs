@@ -6,6 +6,10 @@ using Microsoft.EntityFrameworkCore.Update;
 
 namespace CloudStorageORM.Infrastructure;
 
+/// <summary>
+/// Resolves deterministic blob names and full storage paths for EF entity types.
+/// </summary>
+/// <param name="storageProvider">Provider used to sanitize blob names for the active cloud backend.</param>
 public class BlobPathResolver(IStorageProvider storageProvider) : IBlobPathResolver
 {
     private readonly IStorageProvider _storageProvider = storageProvider

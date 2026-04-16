@@ -52,13 +52,13 @@ public class CloudStorageQueryProvider(
     /// <inheritdoc />
     public object Execute(Expression expression)
     {
-        return ExecuteCoreAsync<object>(expression).GetAwaiter().GetResult();
+        return ExecuteCoreAsync<object>(expression, CancellationToken.None).GetAwaiter().GetResult();
     }
 
     /// <inheritdoc />
     public TResult Execute<TResult>(Expression expression)
     {
-        return ExecuteCoreAsync<TResult>(expression).GetAwaiter().GetResult();
+        return ExecuteCoreAsync<TResult>(expression, CancellationToken.None).GetAwaiter().GetResult();
     }
 
     /// <summary>
@@ -76,30 +76,35 @@ public class CloudStorageQueryProvider(
     public async Task<TResult> ExecuteAsync<TResult>(Expression expression,
         CancellationToken cancellationToken = default)
     {
-        return await ExecuteCoreAsync<TResult>(expression);
+        return await ExecuteCoreAsync<TResult>(expression, cancellationToken);
     }
 
     TResult IAsyncQueryProvider.ExecuteAsync<TResult>(Expression expression, CancellationToken cancellationToken)
     {
-        return Execute<TResult>(expression);
+        return ExecuteCoreAsync<TResult>(expression, cancellationToken).GetAwaiter().GetResult();
     }
 
-    private async Task<TResult> ExecuteCoreAsync<TResult>(Expression expression)
+    private async Task<TResult> ExecuteCoreAsync<TResult>(Expression expression, CancellationToken cancellationToken)
     {
         var elementType = ResolveEntityType(expression, typeof(TResult));
         var executeMethod = typeof(CloudStorageQueryProvider)
             .GetMethod(nameof(ExecuteTypedAsync), BindingFlags.Instance | BindingFlags.NonPublic)!
             .MakeGenericMethod(elementType, typeof(TResult));
 
-        var task = (Task)executeMethod.Invoke(this, [expression])!;
-        await task.ConfigureAwait(false);
-        var resultProperty = task.GetType().GetProperty("Result")!;
-        return (TResult)resultProperty.GetValue(task)!;
+        return await _database.ExecuteWithRetryAsync(async token =>
+        {
+            var task = (Task)executeMethod.Invoke(this, [expression, token])!;
+            await task.ConfigureAwait(false);
+            var resultProperty = task.GetType().GetProperty("Result")!;
+            return (TResult)resultProperty.GetValue(task)!;
+        }, cancellationToken).ConfigureAwait(false);
     }
 
-    private async Task<TResult> ExecuteTypedAsync<TEntity, TResult>(Expression expression)
+    private async Task<TResult> ExecuteTypedAsync<TEntity, TResult>(Expression expression,
+        CancellationToken cancellationToken)
         where TEntity : class
     {
+        cancellationToken.ThrowIfCancellationRequested();
         using var activity = _enableTracing ? CloudStorageOrmActivitySource.StartActivity("Query") : null;
         var stopwatch = Stopwatch.StartNew();
 
@@ -660,60 +665,66 @@ public class CloudStorageQueryProvider(
     private static bool TryMergePrimaryKeyConstraints(PrimaryKeyConstraint left, PrimaryKeyConstraint right,
         out PrimaryKeyConstraint merged)
     {
-        merged = PrimaryKeyConstraint.None;
-
-        if (left.IsNone || right.IsNone)
+        while (true)
         {
-            return false;
-        }
+            merged = PrimaryKeyConstraint.None;
 
-        if (left.IsEquality && right.IsEquality)
-        {
-            if (!Equals(left.EqualityValue, right.EqualityValue))
+            if (left.IsNone || right.IsNone)
             {
                 return false;
             }
 
-            merged = left;
+            switch (left.IsEquality)
+            {
+                case true when right.IsEquality:
+                {
+                    if (!Equals(left.EqualityValue, right.EqualityValue))
+                    {
+                        return false;
+                    }
+
+                    merged = left;
+                    return true;
+                }
+                case true:
+                {
+                    (left, right) = (right, left);
+                    continue;
+                }
+            }
+
+            if (right.IsEquality)
+            {
+                var equality = right.EqualityValue;
+                if (equality is null)
+                {
+                    return false;
+                }
+
+                if (!IsEqualityWithinRange(left, equality))
+                {
+                    return false;
+                }
+
+                merged = right;
+                return true;
+            }
+
+            var (lowerBound, lowerInclusive) = SelectLowerBound(left, right);
+            var (upperBound, upperInclusive) = SelectUpperBound(left, right);
+
+            if (lowerBound is not null && upperBound is not null)
+            {
+                var compare = CompareComparable(lowerBound, upperBound);
+                if (compare > 0 || (compare == 0 && (!lowerInclusive || !upperInclusive)))
+                {
+                    return false;
+                }
+            }
+
+            merged = PrimaryKeyConstraint.ForRange(lowerBound, lowerInclusive, upperBound, upperInclusive);
             return true;
         }
-
-        if (left.IsEquality)
-        {
-            return TryMergePrimaryKeyConstraints(right, left, out merged);
-        }
-
-        if (right.IsEquality)
-        {
-            var equality = right.EqualityValue;
-            if (equality is null)
-            {
-                return false;
-            }
-
-            if (!IsEqualityWithinRange(left, equality))
-            {
-                return false;
-            }
-
-            merged = right;
-            return true;
-        }
-
-        var (lowerBound, lowerInclusive) = SelectLowerBound(left, right);
-        var (upperBound, upperInclusive) = SelectUpperBound(left, right);
-
-        if (lowerBound is not null && upperBound is not null)
-        {
-            var compare = CompareComparable(lowerBound, upperBound);
-            if (compare > 0 || (compare == 0 && (!lowerInclusive || !upperInclusive)))
-            {
-                return false;
-            }
-        }
-
-        merged = PrimaryKeyConstraint.ForRange(lowerBound, lowerInclusive, upperBound, upperInclusive);
-        return true;
     }
 
     private static (object? lowerBound, bool lowerInclusive) SelectLowerBound(PrimaryKeyConstraint left,
@@ -907,8 +918,8 @@ public class CloudStorageQueryProvider(
                 return node;
             }
 
-            if (node.Method.DeclaringType == typeof(Queryable)
-                && node.Method.Name is nameof(Queryable.OrderBy)
+            if (node.Method.DeclaringType != typeof(Queryable)
+                || node.Method.Name is not (nameof(Queryable.OrderBy)
                     or nameof(Queryable.OrderByDescending)
                     or nameof(Queryable.ThenBy)
                     or nameof(Queryable.ThenByDescending)
@@ -916,13 +927,13 @@ public class CloudStorageQueryProvider(
                     or nameof(Queryable.SelectMany)
                     or nameof(Queryable.Reverse)
                     or nameof(Queryable.GroupBy)
-                    or nameof(Queryable.Distinct))
+                    or nameof(Queryable.Distinct)))
             {
-                HasUnsupportedOperator = true;
-                return node;
+                return base.VisitMethodCall(node);
             }
 
-            return base.VisitMethodCall(node);
+            HasUnsupportedOperator = true;
+            return node;
         }
     }
 

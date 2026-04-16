@@ -23,6 +23,10 @@ public class AwsS3StorageProvider : IStorageProvider
     private readonly IAmazonS3 _s3Client;
     private readonly SemaphoreSlim _bucketInitLock = new(1, 1);
     private bool _isBucketInitialized;
+    private static readonly JsonSerializerOptions ReadSerializerOptions = new()
+    {
+        PropertyNameCaseInsensitive = true
+    };
 
     private static Func<CloudStorageOptions, IAmazonS3> OptionsS3ClientFactory { get; set; } = options =>
     {
@@ -181,12 +185,12 @@ public class AwsS3StorageProvider : IStorageProvider
             var etag = response.ETag;
             if (!string.IsNullOrWhiteSpace(etag))
             {
-                return new StorageObject<T>(JsonSerializer.Deserialize<T>(json), etag, true);
+                return new StorageObject<T>(JsonSerializer.Deserialize<T>(json, ReadSerializerOptions), etag, true);
             }
 
             etag = await GetObjectETagAsync(path);
 
-            return new StorageObject<T>(JsonSerializer.Deserialize<T>(json), etag, true);
+            return new StorageObject<T>(JsonSerializer.Deserialize<T>(json, ReadSerializerOptions), etag, true);
         }
         catch (AmazonS3Exception ex) when (
             ex.StatusCode == HttpStatusCode.NotFound ||

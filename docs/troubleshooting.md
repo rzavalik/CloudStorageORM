@@ -35,6 +35,28 @@ docker run -d -p 4566:4566 \
 aws s3 ls --endpoint-url=http://127.0.0.1:4566
 ```
 
+### Repeated transient network failures
+
+**Symptoms**: intermittent `HttpRequestException`, timeout, or service unavailable responses during save/query
+operations.
+
+**Cause**: temporary network/provider instability and retry policy disabled or under-sized.
+
+**Solution**:
+
+1. Enable retries explicitly under `CloudStorageOptions.Retry`.
+2. Start with conservative values (`MaxRetries = 3`, `BaseDelay = 100ms`, `MaxDelay = 2s`, `JitterFactor = 0.2`).
+3. Increase `MaxRetries` or delay budget only when failures are recoverable and latency budget allows it.
+4. Keep in mind non-transient failures (for example stale ETag concurrency conflicts) are not retried.
+
+```csharp
+storage.Retry.Enabled = true;
+storage.Retry.MaxRetries = 3;
+storage.Retry.BaseDelay = TimeSpan.FromMilliseconds(100);
+storage.Retry.MaxDelay = TimeSpan.FromSeconds(2);
+storage.Retry.JitterFactor = 0.2;
+```
+
 ### Invalid credentials
 
 **Error**: `UnauthorizedAccessException` or `AccessDeniedException`

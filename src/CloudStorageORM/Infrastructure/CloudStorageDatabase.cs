@@ -22,6 +22,16 @@ namespace CloudStorageORM.Infrastructure;
 /// <summary>
 /// IDatabase implementation that persists EF entity changes to object storage.
 /// </summary>
+/// <param name="model">The EF model being persisted.</param>
+/// <param name="databaseCreator">Provider database creator.</param>
+/// <param name="executionStrategyFactory">EF execution strategy factory.</param>
+/// <param name="storageProvider">Cloud storage provider implementation.</param>
+/// <param name="currentDbContext">Accessor for the current DbContext instance.</param>
+/// <param name="blobPathResolver">Resolves entity blob paths.</param>
+/// <param name="transactionManager">Current transaction manager.</param>
+/// <param name="cloudStorageOptions">CloudStorageORM options controlling retries and observability.</param>
+/// <param name="loggerFactory">Factory used for category-specific loggers.</param>
+/// <param name="logger">Logger for database-level events.</param>
 public class CloudStorageDatabase(
     IModel model,
     IDatabaseCreator databaseCreator,
@@ -55,11 +65,20 @@ public class CloudStorageDatabase(
     private readonly bool _enableLogging = cloudStorageOptions?.Observability.EnableLogging ?? true;
     private readonly bool _enableTracing = cloudStorageOptions?.Observability.EnableTracing ?? true;
 
+    private readonly CloudStorageRetryExecutor _retryExecutor =
+        new(cloudStorageOptions?.Retry ?? new CloudStorageRetryOptions());
+
+    /// <summary>
+    /// Gets the EF model used by the database implementation.
+    /// </summary>
     public IModel Model { get; } = model ?? throw new ArgumentNullException(nameof(model));
 
     private IDatabaseCreator Creator { get; } =
         databaseCreator ?? throw new ArgumentNullException(nameof(databaseCreator));
 
+    /// <summary>
+    /// Gets the execution strategy factory used for EF infrastructure integration.
+    /// </summary>
     public IExecutionStrategyFactory ExecutionStrategyFactory { get; } = executionStrategyFactory ??
                                                                          throw new ArgumentNullException(
                                                                              nameof(executionStrategyFactory));
@@ -104,6 +123,13 @@ public class CloudStorageDatabase(
         return await ProcessChangesAsync(entries, cancellationToken);
     }
 
+    /// <summary>
+    /// Compiles a query expression into an executable delegate.
+    /// </summary>
+    /// <typeparam name="TResult">The query result type.</typeparam>
+    /// <param name="query">The query expression to compile.</param>
+    /// <param name="async">Whether the query should be compiled for asynchronous execution.</param>
+    /// <returns>A compiled query delegate.</returns>
     public Func<QueryContext, TResult> CompileQuery<TResult>(Expression query, bool async)
     {
         throw new NotImplementedException();
@@ -171,6 +197,13 @@ public class CloudStorageDatabase(
                         var newETag = await ExecuteOrStageSaveAsync(path, entity, null, concurrencyEnabled,
                             cancellationToken);
                         ApplySavedETag(entry, newETag);
+                        if (_enableLogging)
+                        {
+                            _logger?.LogEntitySaved(entry.EntityType.ClrType.Name,
+                                Path.GetFileNameWithoutExtension(path),
+                                "added");
+                        }
+
                         changes++;
                         break;
                     }
@@ -188,6 +221,13 @@ public class CloudStorageDatabase(
                         var newETag = await ExecuteOrStageSaveAsync(path, entity, originalETag, concurrencyEnabled,
                             cancellationToken);
                         ApplySavedETag(entry, newETag);
+                        if (_enableLogging)
+                        {
+                            _logger?.LogEntitySaved(entry.EntityType.ClrType.Name,
+                                Path.GetFileNameWithoutExtension(path),
+                                "updated");
+                        }
+
                         changes++;
                         break;
                     }
@@ -203,6 +243,13 @@ public class CloudStorageDatabase(
                         }
 
                         await ExecuteOrStageDeleteAsync(path, originalETag, concurrencyEnabled, cancellationToken);
+                        if (_enableLogging)
+                        {
+                            _logger?.LogEntitySaved(entry.EntityType.ClrType.Name,
+                                Path.GetFileNameWithoutExtension(path),
+                                "deleted");
+                        }
+
                         changes++;
                         break;
                     }
@@ -255,16 +302,38 @@ public class CloudStorageDatabase(
 
         try
         {
-            if (useConditionalRequest)
+            if (_enableLogging)
             {
-                return await _storageProvider.SaveAsync(path, entity, ifMatchETag);
+                _logger?.LogBlobUploadStarting(path, 0);
             }
 
-            await _storageProvider.SaveAsync(path, entity);
+            if (useConditionalRequest)
+            {
+                var savedEtag = await ExecuteWithRetryAsync(_ => _storageProvider.SaveAsync(path, entity, ifMatchETag),
+                    cancellationToken);
+                if (_enableLogging)
+                {
+                    _logger?.LogBlobUploadCompleted(path, 0);
+                }
+
+                return savedEtag;
+            }
+
+            await ExecuteWithRetryAsync(_ => _storageProvider.SaveAsync(path, entity), cancellationToken);
+            if (_enableLogging)
+            {
+                _logger?.LogBlobUploadCompleted(path, 0);
+            }
+
             return null;
         }
         catch (StoragePreconditionFailedException ex)
         {
+            if (_enableLogging)
+            {
+                _logger?.LogConcurrencyConflict(entity.GetType().Name, Path.GetFileNameWithoutExtension(path), path);
+            }
+
             throw CreateConcurrencyException(path, ex);
         }
     }
@@ -292,16 +361,35 @@ public class CloudStorageDatabase(
 
         try
         {
+            if (_enableLogging)
+            {
+                _logger?.LogBlobDeletionStarting(path);
+            }
+
             if (!useConditionalRequest)
             {
-                await _storageProvider.DeleteAsync(path);
+                await ExecuteWithRetryAsync(_ => _storageProvider.DeleteAsync(path), cancellationToken);
+                if (_enableLogging)
+                {
+                    _logger?.LogBlobDeletionCompleted(path, 0);
+                }
+
                 return;
             }
 
-            await _storageProvider.DeleteAsync(path, ifMatchETag);
+            await ExecuteWithRetryAsync(_ => _storageProvider.DeleteAsync(path, ifMatchETag), cancellationToken);
+            if (_enableLogging)
+            {
+                _logger?.LogBlobDeletionCompleted(path, 0);
+            }
         }
         catch (StoragePreconditionFailedException ex)
         {
+            if (_enableLogging)
+            {
+                _logger?.LogConcurrencyConflict("Entity", Path.GetFileNameWithoutExtension(path), path);
+            }
+
             throw CreateConcurrencyException(path, ex);
         }
     }
@@ -323,6 +411,20 @@ public class CloudStorageDatabase(
             where !Equals(trackedValue, newValue)
             select trackedValue
         ).Any();
+    }
+
+    internal Task ExecuteWithRetryAsync(
+        Func<CancellationToken, Task> operation,
+        CancellationToken cancellationToken = default)
+    {
+        return _retryExecutor.ExecuteAsync(operation, cancellationToken);
+    }
+
+    internal Task<TResult> ExecuteWithRetryAsync<TResult>(
+        Func<CancellationToken, Task<TResult>> operation,
+        CancellationToken cancellationToken = default)
+    {
+        return _retryExecutor.ExecuteAsync(operation, cancellationToken);
     }
 
     Func<QueryContext, TResult> IDatabase.CompileQuery<TResult>(Expression query, bool async)
@@ -402,12 +504,22 @@ public class CloudStorageDatabase(
     private async Task<IList<TEntity>> InternalListAsync<TEntity>(string path, DbContext context)
         where TEntity : class
     {
-        var files = await _storageProvider.ListAsync(path);
+        var files = await ExecuteWithRetryAsync(_ => _storageProvider.ListAsync(path));
         var results = new List<TEntity>();
 
         foreach (var file in files)
         {
-            var storageObject = await _storageProvider.ReadWithMetadataAsync<TEntity>(file);
+            if (_enableLogging)
+            {
+                _logger?.LogBlobDownloadStarting(file);
+            }
+
+            var storageObject = await ExecuteWithRetryAsync(_ => _storageProvider.ReadWithMetadataAsync<TEntity>(file));
+            if (_enableLogging)
+            {
+                _logger?.LogBlobDownloadCompleted(file, 0, 0);
+            }
+
             if (!storageObject.Exists || storageObject.Value is null)
             {
                 continue;
@@ -488,7 +600,17 @@ public class CloudStorageDatabase(
         where TEntity : class
     {
         var path = _blobPathResolver.GetPath(typeof(TEntity), keyValue);
-        var storageObject = await _storageProvider.ReadWithMetadataAsync<TEntity>(path);
+        if (_enableLogging)
+        {
+            _logger?.LogBlobDownloadStarting(path);
+        }
+
+        var storageObject = await ExecuteWithRetryAsync(_ => _storageProvider.ReadWithMetadataAsync<TEntity>(path));
+        if (_enableLogging)
+        {
+            _logger?.LogBlobDownloadCompleted(path, 0, 0);
+        }
+
         var entity = storageObject.Value;
 
         AttachOrReplaceTrackedEntity(context ?? _context, entity, storageObject.ETag);
@@ -520,7 +642,7 @@ public class CloudStorageDatabase(
     {
         var targetContext = context ?? _context;
         var blobName = _blobPathResolver.GetBlobName(typeof(TEntity));
-        var files = await _storageProvider.ListAsync(blobName);
+        var files = await ExecuteWithRetryAsync(_ => _storageProvider.ListAsync(blobName));
         var results = new List<TEntity>();
 
         var entityType = Model.FindEntityType(typeof(TEntity));
@@ -546,7 +668,18 @@ public class CloudStorageDatabase(
                 continue;
             }
 
-            var storageObject = await _storageProvider.ReadWithMetadataAsync<TEntity?>(file);
+            if (_enableLogging)
+            {
+                _logger?.LogBlobDownloadStarting(file);
+            }
+
+            var storageObject =
+                await ExecuteWithRetryAsync(_ => _storageProvider.ReadWithMetadataAsync<TEntity?>(file));
+            if (_enableLogging)
+            {
+                _logger?.LogBlobDownloadCompleted(file, 0, 0);
+            }
+
             if (!storageObject.Exists || storageObject.Value is null)
             {
                 continue;
@@ -644,7 +777,7 @@ public class CloudStorageDatabase(
     public async Task<IList<TEntity>> ToListAsync<TEntity>(string containerName)
         where TEntity : class
     {
-        var files = await _storageProvider.ListAsync(containerName);
+        var files = await ExecuteWithRetryAsync(_ => _storageProvider.ListAsync(containerName));
         var results = new List<TEntity>();
 
         var entityType = _context.Model.FindEntityType(typeof(TEntity));
@@ -652,7 +785,17 @@ public class CloudStorageDatabase(
 
         foreach (var file in files)
         {
-            var storageObject = await _storageProvider.ReadWithMetadataAsync<TEntity?>(file);
+            if (_enableLogging)
+            {
+                _logger?.LogBlobDownloadStarting(file);
+            }
+
+            var storageObject =
+                await ExecuteWithRetryAsync(_ => _storageProvider.ReadWithMetadataAsync<TEntity?>(file));
+            if (_enableLogging)
+            {
+                _logger?.LogBlobDownloadCompleted(file, 0, 0);
+            }
 
             if (!storageObject.Exists || storageObject.Value is null)
             {
@@ -896,7 +1039,8 @@ public class CloudStorageDatabase(
         while (results.Count < take)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var page = await _storageProvider.ListPageAsync(prefix, pageSize, continuationToken, cancellationToken);
+            var page = await ExecuteWithRetryAsync(token =>
+                _storageProvider.ListPageAsync(prefix, pageSize, continuationToken, token), cancellationToken);
 
             if (page.Keys.Count == 0 && !page.HasMore)
             {
@@ -944,7 +1088,18 @@ public class CloudStorageDatabase(
 
         foreach (var path in paths)
         {
-            var storageObject = await _storageProvider.ReadWithMetadataAsync<TEntity?>(path);
+            if (_enableLogging)
+            {
+                _logger?.LogBlobDownloadStarting(path);
+            }
+
+            var storageObject =
+                await ExecuteWithRetryAsync(_ => _storageProvider.ReadWithMetadataAsync<TEntity?>(path));
+            if (_enableLogging)
+            {
+                _logger?.LogBlobDownloadCompleted(path, 0, 0);
+            }
+
             if (!storageObject.Exists || storageObject.Value is null)
             {
                 continue;

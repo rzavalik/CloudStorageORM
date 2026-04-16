@@ -1,12 +1,21 @@
 using System.ComponentModel.DataAnnotations;
+using CloudStorageORM.Abstractions;
 using CloudStorageORM.Enums;
 using CloudStorageORM.Extensions;
 using CloudStorageORM.Infrastructure;
 using CloudStorageORM.IntegrationTests.Aws;
+using CloudStorageORM.Interfaces.StorageProviders;
 using CloudStorageORM.Options;
 using CloudStorageORM.Providers.Aws.StorageProviders;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.EntityFrameworkCore.Update;
 using Shouldly;
+
+// ReSharper disable UnusedMember.Local
+// ReSharper disable UnusedParameter.Local
+// ReSharper disable PropertyCanBeMadeInitOnly.Local
 
 namespace CloudStorageORM.IntegrationTests.AWS.Aws.StorageProviders;
 
@@ -131,6 +140,71 @@ public class AwsS3StorageProviderTests(LocalStackFixture fixture) : IClassFixtur
         await Should.ThrowAsync<DbUpdateConcurrencyException>(() => transaction.CommitAsync());
     }
 
+    [Fact]
+    public async Task RetryEnabled_SaveChangesAndPrimaryKeyQuery_RecoverFromInjectedTransientFailure()
+    {
+        fixture.EnsureAvailableOrSkip();
+
+        var (innerProvider, bucketName) = await CreateIsolatedProviderAsync(fixture, "retry");
+        var options = new CloudStorageOptions
+        {
+            Provider = CloudProvider.Aws,
+            ContainerName = bucketName,
+            Aws = new CloudStorageAwsOptions
+            {
+                AccessKeyId = fixture.AccessKeyId,
+                SecretAccessKey = fixture.SecretAccessKey,
+                Region = fixture.Region,
+                ServiceUrl = fixture.ServiceUrl,
+                ForcePathStyle = true
+            },
+            Retry = new CloudStorageRetryOptions
+            {
+                Enabled = true,
+                MaxRetries = 2,
+                BaseDelay = TimeSpan.Zero,
+                MaxDelay = TimeSpan.Zero,
+                JitterFactor = 0
+            }
+        };
+
+        var flakyProvider = new TransientOnceStorageProvider(innerProvider, failSaveOnce: true, failReadOnce: true);
+        var dbContextOptions = new DbContextOptionsBuilder<RetryHarnessDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .Options;
+        await using var context = new RetryHarnessDbContext(dbContextOptions);
+
+        var database = new CloudStorageDatabase(
+            context.Model,
+            new NoOpDatabaseCreator(),
+            new NoOpExecutionStrategyFactory(),
+            flakyProvider,
+            new CurrentDbContextStub(context),
+            new BlobPathResolver(flakyProvider),
+            new CloudStorageTransactionManager(),
+            options);
+
+        var entity = new RetryHarnessEntity { Id = $"retry-{Guid.NewGuid():N}", Name = "before" };
+        context.Add(entity);
+        var entries = context
+            .ChangeTracker
+            .Entries()
+            .Select(e => (IUpdateEntry)e.GetInfrastructure())
+            .ToList();
+
+        var saved = await database.SaveChangesAsync(entries);
+        saved.ShouldBe(1);
+
+        var queryProvider = new CloudStorageQueryProvider(database, new BlobPathResolver(flakyProvider));
+        var queryable = new CloudStorageQueryable<RetryHarnessEntity>(queryProvider);
+        var loaded = queryable.FirstOrDefault(x => x.Id == entity.Id);
+
+        loaded.ShouldNotBeNull();
+        loaded.Name.ShouldBe("before");
+        flakyProvider.SaveAttempts.ShouldBeGreaterThanOrEqualTo(2);
+        flakyProvider.ReadAttempts.ShouldBeGreaterThanOrEqualTo(2);
+    }
+
     private static AwsTransactionalTestDbContext CreateTransactionContext(LocalStackFixture fixture, string bucketName)
     {
         var options = new DbContextOptionsBuilder<AwsTransactionalTestDbContext>()
@@ -190,14 +264,11 @@ public class AwsS3StorageProviderTests(LocalStackFixture fixture) : IClassFixtur
 
     private sealed class AwsTransactionalEntity
     {
-        [MaxLength(100)]
-        public string Id { get; init; } = string.Empty;
+        [MaxLength(100)] public string Id { get; init; } = string.Empty;
 
-        [MaxLength(100)]
-        public string Name { get; set; } = string.Empty;
+        [MaxLength(100)] public string Name { get; set; } = string.Empty;
 
-        [MaxLength(256)]
-        public string? ETag { get; set; }
+        [MaxLength(256)] public string? ETag { get; set; }
     }
 
     private sealed class AwsTransactionalTestDbContext(DbContextOptions<AwsTransactionalTestDbContext> options)
@@ -208,5 +279,127 @@ public class AwsS3StorageProviderTests(LocalStackFixture fixture) : IClassFixtur
             modelBuilder.Entity<AwsTransactionalEntity>().HasKey(x => x.Id);
             modelBuilder.Entity<AwsTransactionalEntity>().UseObjectETagConcurrency();
         }
+    }
+
+    private sealed class RetryHarnessDbContext(DbContextOptions<RetryHarnessDbContext> options) : DbContext(options)
+    {
+        public DbSet<RetryHarnessEntity> Entities => Set<RetryHarnessEntity>();
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<RetryHarnessEntity>().HasKey(x => x.Id);
+        }
+    }
+
+    private sealed class RetryHarnessEntity
+    {
+        [MaxLength(100)] public string Id { get; init; } = string.Empty;
+
+        [MaxLength(100)] public string Name { get; set; } = string.Empty;
+    }
+
+    private sealed class TransientOnceStorageProvider(
+        IStorageProvider inner,
+        bool failSaveOnce,
+        bool failReadOnce) : IStorageProvider
+    {
+        private int _saveFailuresRemaining = failSaveOnce ? 1 : 0;
+        private int _readFailuresRemaining = failReadOnce ? 1 : 0;
+
+        public int SaveAttempts { get; private set; }
+        public int ReadAttempts { get; private set; }
+
+        public CloudProvider CloudProvider => inner.CloudProvider;
+
+        public Task DeleteContainerAsync() => inner.DeleteContainerAsync();
+
+        public Task CreateContainerIfNotExistsAsync() => inner.CreateContainerIfNotExistsAsync();
+
+        public async Task SaveAsync<T>(string path, T entity)
+        {
+            SaveAttempts++;
+            if (_saveFailuresRemaining > 0)
+            {
+                _saveFailuresRemaining--;
+                throw new HttpRequestException("Injected transient save failure.");
+            }
+
+            await inner.SaveAsync(path, entity);
+        }
+
+        public async Task<string?> SaveAsync<T>(string path, T entity, string? ifMatchETag)
+        {
+            SaveAttempts++;
+            if (_saveFailuresRemaining > 0)
+            {
+                _saveFailuresRemaining--;
+                throw new HttpRequestException("Injected transient save failure.");
+            }
+
+            return await inner.SaveAsync(path, entity, ifMatchETag);
+        }
+
+        public Task<T> ReadAsync<T>(string path) => inner.ReadAsync<T>(path);
+
+        public async Task<StorageObject<T>> ReadWithMetadataAsync<T>(string path)
+        {
+            ReadAttempts++;
+            if (_readFailuresRemaining > 0)
+            {
+                _readFailuresRemaining--;
+                throw new HttpRequestException("Injected transient read failure.");
+            }
+
+            return await inner.ReadWithMetadataAsync<T>(path);
+        }
+
+        public Task DeleteAsync(string path) => inner.DeleteAsync(path);
+
+        public Task DeleteAsync(string path, string? ifMatchETag) => inner.DeleteAsync(path, ifMatchETag);
+
+        public Task<List<string>> ListAsync(string folderPath) => inner.ListAsync(folderPath);
+
+        public Task<StorageListPage> ListPageAsync(
+            string folderPath,
+            int pageSize,
+            string? continuationToken,
+            CancellationToken cancellationToken = default)
+        {
+            return inner.ListPageAsync(folderPath, pageSize, continuationToken, cancellationToken);
+        }
+
+        public string SanitizeBlobName(string rawName) => inner.SanitizeBlobName(rawName);
+    }
+
+    private sealed class NoOpDatabaseCreator : IDatabaseCreator
+    {
+        public bool EnsureDeleted() => true;
+
+        public Task<bool> EnsureDeletedAsync(CancellationToken cancellationToken = default) => Task.FromResult(true);
+
+        public bool EnsureCreated() => true;
+
+        public Task<bool> EnsureCreatedAsync(CancellationToken cancellationToken = default) => Task.FromResult(true);
+
+        public bool CanConnect() => true;
+
+        public Task<bool> CanConnectAsync(CancellationToken cancellationToken = default) => Task.FromResult(true);
+
+        public bool HasTables() => true;
+
+        public Task<bool> HasTablesAsync(CancellationToken cancellationToken = default) => Task.FromResult(true);
+    }
+
+    private sealed class NoOpExecutionStrategyFactory : IExecutionStrategyFactory
+    {
+        public IExecutionStrategy Create()
+        {
+            throw new NotSupportedException("Execution strategy is not used by this integration harness.");
+        }
+    }
+
+    private sealed class CurrentDbContextStub(DbContext context) : ICurrentDbContext
+    {
+        public DbContext Context => context;
     }
 }

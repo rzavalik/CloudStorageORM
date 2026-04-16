@@ -6,6 +6,7 @@
         <Nullable>enable</Nullable>
         <IsPackable>false</IsPackable>
         <LangVersion>14</LangVersion>
+        <NoWarn>$(NoWarn);EF1001</NoWarn>
         <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
     </PropertyGroup>
 
@@ -25,6 +26,7 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
+        <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory"/>
     </ItemGroup>
 
     <ItemGroup>
@@ -33,8 +35,7 @@
 
     <ItemGroup>
         <Compile Include="IntegrationTestSkip.cs"/>
-        <Compile Include="Azure/StorageFixture.cs"/>
-        <Compile Include="Azure/StorageProviders/**/*.cs"/>
+        <Compile Include="Azure/**/*.cs"/>
     </ItemGroup>
 
     <ItemGroup>

@@ -8,7 +8,7 @@
 
         <!-- NuGet package metadata -->
         <PackageId>CloudStorageORM</PackageId>
-        <Version>1.0.14</Version>
+        <Version>1.0.16</Version>
         <Authors>Rodrigo Zavalik Castro</Authors>
         <PackageReadmeFile>README.md</PackageReadmeFile>
 

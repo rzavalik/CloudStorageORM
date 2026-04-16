@@ -86,4 +86,66 @@ public class CloudStorageOrmOptionsExtensionInfoTests
 
         info.Extension.ShouldBeSameAs(extension);
     }
+
+    [Fact]
+    public void GetServiceProviderHashCode_ChangesWhenRetryConfigurationChanges()
+    {
+        var baseline = new CloudStorageOptions
+        {
+            Provider = CloudProvider.Azure,
+            ContainerName = "test",
+            Azure = new CloudStorageAzureOptions
+            {
+                ConnectionString = "UseDevelopmentStorage=true"
+            }
+        };
+        var withRetry = new CloudStorageOptions
+        {
+            Provider = CloudProvider.Azure,
+            ContainerName = "test",
+            Azure = new CloudStorageAzureOptions
+            {
+                ConnectionString = "UseDevelopmentStorage=true"
+            },
+            Retry = new CloudStorageRetryOptions
+            {
+                Enabled = true,
+                MaxRetries = 6,
+                BaseDelay = TimeSpan.FromMilliseconds(20),
+                MaxDelay = TimeSpan.FromMilliseconds(250),
+                JitterFactor = 0.5
+            }
+        };
+
+        var baselineInfo = new CloudStorageOrmOptionsExtensionInfo(new CloudStorageOrmOptionsExtension(baseline));
+        var retryInfo = new CloudStorageOrmOptionsExtensionInfo(new CloudStorageOrmOptionsExtension(withRetry));
+
+        baselineInfo.GetServiceProviderHashCode().ShouldNotBe(retryInfo.GetServiceProviderHashCode());
+    }
+
+    [Fact]
+    public void PopulateDebugInfo_IncludesRetryConfiguration()
+    {
+        var extension = new CloudStorageOrmOptionsExtension(new CloudStorageOptions
+        {
+            Retry = new CloudStorageRetryOptions
+            {
+                Enabled = true,
+                MaxRetries = 4,
+                BaseDelay = TimeSpan.FromMilliseconds(50),
+                MaxDelay = TimeSpan.FromMilliseconds(500),
+                JitterFactor = 0.25
+            }
+        });
+        var info = new CloudStorageOrmOptionsExtensionInfo(extension);
+        var debug = new Dictionary<string, string>();
+
+        info.PopulateDebugInfo(debug);
+
+        debug["CloudStorageORM:Retry:Enabled"].ShouldBe("True");
+        debug["CloudStorageORM:Retry:MaxRetries"].ShouldBe("4");
+        debug.ShouldContainKey("CloudStorageORM:Retry:BaseDelayMs");
+        debug.ShouldContainKey("CloudStorageORM:Retry:MaxDelayMs");
+        debug["CloudStorageORM:Retry:JitterFactor"].ShouldBe("0.25");
+    }
 }

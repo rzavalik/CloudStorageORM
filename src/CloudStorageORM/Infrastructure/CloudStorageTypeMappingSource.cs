@@ -6,6 +6,9 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 namespace CloudStorageORM.Infrastructure;
 
+/// <summary>
+/// Type-mapping source that adapts EF Core mappings for CloudStorageORM entity payloads.
+/// </summary>
 public class CloudStorageTypeMappingSource(
     TypeMappingSourceDependencies dependencies,
     CloudStorageOptions cloudOptions)
