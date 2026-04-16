@@ -120,7 +120,8 @@ docker run -d \
 <li>unit tests in <code>tests/CloudStorageORM.Tests</code></li>
 <li>Azure integration tests in <code>tests/CloudStorageORM.IntegrationTests/CloudStorageORM.IntegrationTests.Azure.csproj</code></li>
 <li>AWS integration tests in <code>tests/CloudStorageORM.IntegrationTests/CloudStorageORM.IntegrationTests.AWS.csproj</code></li>
-<li>SampleApp integration tests in <code>tests/CloudStorageORM.IntegrationTests.SampleApp/CloudStorageORM.IntegrationTests.SampleApp.csproj</code></li>
+<li>SampleApp integration tests in
+<code>tests/CloudStorageORM.IntegrationTests.SampleApp/CloudStorageORM.IntegrationTests.SampleApp.csproj</code></li>
 </ul>
 <p>For CI-style TRX and coverage artifact layout, see <a href="ci.html">ci.md</a>.</p>
 <p>If Azurite is unavailable, Azure-backed integration scenarios are skipped by fixture guards.</p>
@@ -128,6 +129,11 @@ docker run -d \
 <h2 id="run-only-the-integration-tests">Run only the integration tests</h2>
 <pre><code class="lang-bash">dotnet test tests/CloudStorageORM.IntegrationTests/CloudStorageORM.IntegrationTests.Azure.csproj --nologo -v minimal
 </code></pre>
+<p>To focus only on the Azure transaction failure-window suite (<code>AzureTransactionFailureWindowTests</code>), which covers
+rollback, commit, committed-manifest recovery, and stale-ETag conflict cases:</p>
+<pre><code class="lang-bash">dotnet test tests/CloudStorageORM.IntegrationTests/CloudStorageORM.IntegrationTests.Azure.csproj --nologo -v minimal --filter &quot;FullyQualifiedName~AzureTransactionFailureWindowTests&quot;
+</code></pre>
+<p>The suite also asserts the transaction and concurrency log events emitted by the runtime path.</p>
 <hr>
 <h2 id="run-the-sample-app-against-azurite">Run the sample app against Azurite</h2>
 <pre><code class="lang-bash">dotnet run --project samples/CloudStorageORM.SampleApp/SampleApp.csproj
@@ -182,6 +188,7 @@ docker run -d \
 <li><code>tests/CloudStorageORM.IntegrationTests/CloudStorageORM.IntegrationTests.Azure.csproj</code></li>
 <li><code>tests/CloudStorageORM.IntegrationTests/Azure/StorageFixture.cs</code></li>
 <li><code>tests/CloudStorageORM.IntegrationTests/Azure/StorageProviders/AzureBlobStorageProviderTests.cs</code></li>
+<li><code>tests/CloudStorageORM.IntegrationTests/Azure/Transactions/AzureTransactionFailureWindowTests.cs</code></li>
 <li><code>coverlet.runsettings</code></li>
 <li><code>dotnet-tools.json</code></li>
 </ul>

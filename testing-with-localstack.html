@@ -109,6 +109,11 @@ docker run -d \
 <h2 id="run-aws-integration-tests-only">Run AWS integration tests only</h2>
 <pre><code class="lang-bash">dotnet test tests/CloudStorageORM.IntegrationTests/CloudStorageORM.IntegrationTests.AWS.csproj --nologo -v minimal
 </code></pre>
+<p>To focus only on the AWS transaction failure-window suite (<code>AwsTransactionFailureWindowTests</code>), which covers rollback,
+commit, committed-manifest recovery, and stale-ETag conflict cases:</p>
+<pre><code class="lang-bash">dotnet test tests/CloudStorageORM.IntegrationTests/CloudStorageORM.IntegrationTests.AWS.csproj --nologo -v minimal --filter &quot;FullyQualifiedName~AwsTransactionFailureWindowTests&quot;
+</code></pre>
+<p>The suite also asserts the transaction and concurrency log events emitted by the runtime path.</p>
 <p>If LocalStack is unavailable, AWS integration scenarios are skipped by fixture guards.</p>
 <hr>
 <h2 id="run-the-sample-app-with-localstack-available">Run the sample app with LocalStack available</h2>
@@ -144,6 +149,7 @@ export CLOUDSTORAGEORM_AWS_FORCE_PATH_STYLE=true
 <li><code>tests/CloudStorageORM.IntegrationTests.SampleApp/CloudStorageORM.IntegrationTests.SampleApp.csproj</code></li>
 <li><code>tests/CloudStorageORM.IntegrationTests/Aws/LocalStackFixture.cs</code></li>
 <li><code>tests/CloudStorageORM.IntegrationTests/Aws/StorageProviders/AwsS3StorageProviderTests.cs</code></li>
+<li><code>tests/CloudStorageORM.IntegrationTests/Aws/Transactions/AwsTransactionFailureWindowTests.cs</code></li>
 <li><code>tests/CloudStorageORM.IntegrationTests.SampleApp/ProgramExitAwsSampleAppTests.cs</code></li>
 </ul>
 

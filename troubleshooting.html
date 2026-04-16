@@ -94,6 +94,23 @@
 # Verify connection
 aws s3 ls --endpoint-url=http://127.0.0.1:4566
 </code></pre>
+<h3 id="repeated-transient-network-failures">Repeated transient network failures</h3>
+<p><strong>Symptoms</strong>: intermittent <code>HttpRequestException</code>, timeout, or service unavailable responses during save/query
+operations.</p>
+<p><strong>Cause</strong>: temporary network/provider instability and retry policy disabled or under-sized.</p>
+<p><strong>Solution</strong>:</p>
+<ol>
+<li>Enable retries explicitly under <code>CloudStorageOptions.Retry</code>.</li>
+<li>Start with conservative values (<code>MaxRetries = 3</code>, <code>BaseDelay = 100ms</code>, <code>MaxDelay = 2s</code>, <code>JitterFactor = 0.2</code>).</li>
+<li>Increase <code>MaxRetries</code> or delay budget only when failures are recoverable and latency budget allows it.</li>
+<li>Keep in mind non-transient failures (for example stale ETag concurrency conflicts) are not retried.</li>
+</ol>
+<pre><code class="lang-csharp">storage.Retry.Enabled = true;
+storage.Retry.MaxRetries = 3;
+storage.Retry.BaseDelay = TimeSpan.FromMilliseconds(100);
+storage.Retry.MaxDelay = TimeSpan.FromSeconds(2);
+storage.Retry.JitterFactor = 0.2;
+</code></pre>
 <h3 id="invalid-credentials">Invalid credentials</h3>
 <p><strong>Error</strong>: <code>UnauthorizedAccessException</code> or <code>AccessDeniedException</code></p>
 <p><strong>Solution</strong>:</p>

@@ -76,16 +76,30 @@
 <p>This document outlines the evolution of CloudStorageORM from the current release line into the next planned milestones.</p>
 <hr>
 <h2 id="-current-released-version">✅ Current released version</h2>
+<h3 id="v1016">v1.0.16</h3>
+<ul>
+<li>Version bump to <code>1.0.16</code> for the current release line.</li>
+<li>Add configurable transient-fault retries with bounded exponential backoff and jitter in shared persistence/query
+paths.</li>
+<li>Keep provider-specific behavior unchanged while centralizing retry behavior at shared execution boundaries.</li>
+<li>Add unit and integration coverage for recoverable transient failures and retry budget behavior.</li>
+</ul>
+<hr>
+<h2 id="-previous-releases">📋 Previous releases</h2>
+<h3 id="v1015">v1.0.15</h3>
+<ul>
+<li>Version bump to <code>1.0.15</code> for the previous release line.</li>
+<li>Transaction replay is now crash-safe and idempotent with operation-level progress tracking.</li>
+<li>Interrupted commits can safely resume from the last applied operation without duplicating side effects.</li>
+</ul>
 <h3 id="v1014">v1.0.14</h3>
 <ul>
-<li>Version bump to <code>1.0.14</code> for the current release line.</li>
+<li>Version bump to <code>1.0.14</code> for the previous release line.</li>
 <li>Preserve staged transaction <code>If-Match</code> ETag preconditions during commit replay for update/delete operations.</li>
 <li>Surface stale-ETag transactional commit conflicts as <code>DbUpdateConcurrencyException</code>.</li>
 <li>Add Azure and AWS integration coverage for stale-ETag transactional commit scenarios.</li>
 <li>Enable Dependabot automation for NuGet and GitHub Actions updates through <code>.github/dependabot.yml</code>.</li>
 </ul>
-<hr>
-<h2 id="-previous-releases">📋 Previous releases</h2>
 <h3 id="v1013">v1.0.13</h3>
 <ul>
 <li>Version bump to <code>1.0.13</code> for the previous release line</li>
@@ -94,9 +108,12 @@
 <li>Observability improvements and refreshed guidance for logging, tracing, and diagnostics options</li>
 <li>ETag-based optimistic concurrency support to CloudStorageORM:
 <ul>
-<li>Introduces StorageObject<t> to encapsulate the stored value, ETag, and existence state, and adds IETag for entities that optionally expose an ETag property.</t></li>
-<li>The storage pipeline now supports SaveAsync and DeleteAsync operations with ETag conditions, and both Azure Blob Storage and AWS S3 providers have been updated to enforce concurrency checks.</li>
-<li>Model configuration has also been updated so entities can be configured for ETag concurrency, and tests were added to cover the new concurrency scenarios.</li>
+<li>Introduces StorageObject<t> to encapsulate the stored value, ETag, and existence state, and adds IETag for
+entities that optionally expose an ETag property.</t></li>
+<li>The storage pipeline now supports SaveAsync and DeleteAsync operations with ETag conditions, and both Azure Blob
+Storage and AWS S3 providers have been updated to enforce concurrency checks.</li>
+<li>Model configuration has also been updated so entities can be configured for ETag concurrency, and tests were added
+to cover the new concurrency scenarios.</li>
 </ul>
 </li>
 </ul>
@@ -106,9 +123,12 @@
 <li>Documentation refreshed to keep local test guidance aligned with CI emulator setup</li>
 <li>ETag-based optimistic concurrency support to CloudStorageORM:
 <ul>
-<li>Introduces StorageObject<t> to encapsulate the stored value, ETag, and existence state, and adds IETag for entities that optionally expose an ETag property.</t></li>
-<li>The storage pipeline now supports SaveAsync and DeleteAsync operations with ETag conditions, and both Azure Blob Storage and AWS S3 providers have been updated to enforce concurrency checks.</li>
-<li>Model configuration has also been updated so entities can be configured for ETag concurrency, and tests were added to cover the new concurrency scenarios.</li>
+<li>Introduces StorageObject<t> to encapsulate the stored value, ETag, and existence state, and adds IETag for
+entities that optionally expose an ETag property.</t></li>
+<li>The storage pipeline now supports SaveAsync and DeleteAsync operations with ETag conditions, and both Azure Blob
+Storage and AWS S3 providers have been updated to enforce concurrency checks.</li>
+<li>Model configuration has also been updated so entities can be configured for ETag concurrency, and tests were added
+to cover the new concurrency scenarios.</li>
 </ul>
 </li>
 </ul>
@@ -200,7 +220,8 @@
 </ul>
 <hr>
 <blockquote>
-<p>CloudStorageORM is evolving toward a practical EF-style experience over object storage, starting with Azure and expanding provider support over time.</p>
+<p>CloudStorageORM is evolving toward a practical EF-style experience over object storage, starting with Azure and
+expanding provider support over time.</p>
 </blockquote>
 
 </article>

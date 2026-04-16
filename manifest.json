@@ -184,7 +184,7 @@
       "Uid": null,
       "IsMRef": true,
       "Title": "CloudStorageORM.Enums.CloudProvider",
-      "Summary": null
+      "Summary": "<p sourcefile=\"api/CloudStorageORM.Enums.CloudProvider.yml\" sourcestartlinenumber=\"1\">Supported cloud object-storage providers.</p>\n"
     },
     {
       "type": "ManagedReference",
@@ -296,7 +296,7 @@
       "Uid": null,
       "IsMRef": true,
       "Title": "CloudStorageORM.Infrastructure.BlobPathResolver",
-      "Summary": null
+      "Summary": "<p sourcefile=\"api/CloudStorageORM.Infrastructure.BlobPathResolver.yml\" sourcestartlinenumber=\"1\">Resolves deterministic blob names and full storage paths for EF entity types.</p>\n"
     },
     {
       "type": "ManagedReference",
@@ -394,7 +394,7 @@
       "Uid": null,
       "IsMRef": true,
       "Title": "CloudStorageORM.Infrastructure.CloudStorageLoggingDefinitions",
-      "Summary": null
+      "Summary": "<p sourcefile=\"api/CloudStorageORM.Infrastructure.CloudStorageLoggingDefinitions.yml\" sourcestartlinenumber=\"1\">CloudStorageORM-specific logging definitions used by EF Core infrastructure wiring.</p>\n"
     },
     {
       "type": "ManagedReference",
@@ -422,7 +422,7 @@
       "Uid": null,
       "IsMRef": true,
       "Title": "CloudStorageORM.Infrastructure.CloudStorageQueryContext",
-      "Summary": null
+      "Summary": "<p sourcefile=\"api/CloudStorageORM.Infrastructure.CloudStorageQueryContext.yml\" sourcestartlinenumber=\"1\">CloudStorageORM-specific query context that reuses EF Core query infrastructure.</p>\n"
     },
     {
       "type": "ManagedReference",
@@ -534,7 +534,7 @@
       "Uid": null,
       "IsMRef": true,
       "Title": "CloudStorageORM.Infrastructure.CloudStorageTypeMappingSource",
-      "Summary": null
+      "Summary": "<p sourcefile=\"api/CloudStorageORM.Infrastructure.CloudStorageTypeMappingSource.yml\" sourcestartlinenumber=\"1\">Type-mapping source that adapts EF Core mappings for CloudStorageORM entity payloads.</p>\n"
     },
     {
       "type": "ManagedReference",
@@ -758,7 +758,7 @@
       "Uid": null,
       "IsMRef": true,
       "Title": "CloudStorageORM.Options.CloudStorageAwsOptions",
-      "Summary": null
+      "Summary": "<p sourcefile=\"api/CloudStorageORM.Options.CloudStorageAwsOptions.yml\" sourcestartlinenumber=\"1\">AWS S3-specific configuration.</p>\n"
     },
     {
       "type": "ManagedReference",
@@ -772,7 +772,7 @@
       "Uid": null,
       "IsMRef": true,
       "Title": "CloudStorageORM.Options.CloudStorageAzureOptions",
-      "Summary": null
+      "Summary": "<p sourcefile=\"api/CloudStorageORM.Options.CloudStorageAzureOptions.yml\" sourcestartlinenumber=\"1\">Azure Blob Storage-specific configuration.</p>\n"
     },
     {
       "type": "ManagedReference",
@@ -786,7 +786,21 @@
       "Uid": null,
       "IsMRef": true,
       "Title": "CloudStorageORM.Options.CloudStorageOptions",
-      "Summary": null
+      "Summary": "<p sourcefile=\"api/CloudStorageORM.Options.CloudStorageOptions.yml\" sourcestartlinenumber=\"1\">Root configuration model used by <code>UseCloudStorageOrm(...)</code> and DI registration.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/CloudStorageORM.Options.CloudStorageRetryOptions.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/CloudStorageORM.Options.CloudStorageRetryOptions.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "CloudStorageORM.Options.CloudStorageRetryOptions",
+      "Summary": "<p sourcefile=\"api/CloudStorageORM.Options.CloudStorageRetryOptions.yml\" sourcestartlinenumber=\"1\">Configures transient-fault retries for provider I/O executed by shared CloudStorageORM infrastructure.</p>\n"
     },
     {
       "type": "ManagedReference",

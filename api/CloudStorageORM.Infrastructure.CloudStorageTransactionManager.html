@@ -89,7 +89,7 @@
 
 
   <h1 id="CloudStorageORM_Infrastructure_CloudStorageTransactionManager" data-uid="CloudStorageORM.Infrastructure.CloudStorageTransactionManager" class="text-break">
-Class CloudStorageTransactionManager  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageTransactionManager.cs/#L11"><i class="bi bi-code-slash"></i></a>
+Class CloudStorageTransactionManager  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageTransactionManager.cs/#L14"><i class="bi bi-code-slash"></i></a>
   </h1>
 
   <div class="facts text-secondary">
@@ -164,7 +164,7 @@ Class CloudStorageTransactionManager  <a class="header-action link-secondary" ti
 
   <h3 id="CloudStorageORM_Infrastructure_CloudStorageTransactionManager__ctor" data-uid="CloudStorageORM.Infrastructure.CloudStorageTransactionManager.#ctor">
   CloudStorageTransactionManager()
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageTransactionManager.cs/#L26"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageTransactionManager.cs/#L35"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Creates a transaction manager without durable journal support.</p>
@@ -189,23 +189,29 @@ Class CloudStorageTransactionManager  <a class="header-action link-secondary" ti
 
   <a id="CloudStorageORM_Infrastructure_CloudStorageTransactionManager__ctor_" data-uid="CloudStorageORM.Infrastructure.CloudStorageTransactionManager.#ctor*"></a>
 
-  <h3 id="CloudStorageORM_Infrastructure_CloudStorageTransactionManager__ctor_CloudStorageORM_Interfaces_StorageProviders_IStorageProvider_" data-uid="CloudStorageORM.Infrastructure.CloudStorageTransactionManager.#ctor(CloudStorageORM.Interfaces.StorageProviders.IStorageProvider)">
-  CloudStorageTransactionManager(IStorageProvider)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageTransactionManager.cs/#L34"><i class="bi bi-code-slash"></i></a>
+  <h3 id="CloudStorageORM_Infrastructure_CloudStorageTransactionManager__ctor_CloudStorageORM_Interfaces_StorageProviders_IStorageProvider_CloudStorageORM_Options_CloudStorageOptions_Microsoft_Extensions_Logging_ILogger_CloudStorageORM_Infrastructure_CloudStorageTransactionManager__" data-uid="CloudStorageORM.Infrastructure.CloudStorageTransactionManager.#ctor(CloudStorageORM.Interfaces.StorageProviders.IStorageProvider,CloudStorageORM.Options.CloudStorageOptions,Microsoft.Extensions.Logging.ILogger{CloudStorageORM.Infrastructure.CloudStorageTransactionManager})">
+  CloudStorageTransactionManager(IStorageProvider?, CloudStorageOptions?, ILogger&lt;CloudStorageTransactionManager&gt;?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageTransactionManager.cs/#L46"><i class="bi bi-code-slash"></i></a>
   </h3>
 
-  <div class="markdown level1 summary"><p>Creates a transaction manager with durable journal support backed by object storage.</p>
+  <div class="markdown level1 summary"><p>Creates a transaction manager with optional storage, observability options, and logger.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public CloudStorageTransactionManager(IStorageProvider storageProvider)</code></pre>
+    <pre><code class="lang-csharp hljs">public CloudStorageTransactionManager(IStorageProvider? storageProvider, CloudStorageOptions? cloudStorageOptions = null, ILogger&lt;CloudStorageTransactionManager&gt;? logger = null)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
   <dl class="parameters">
     <dt><code>storageProvider</code> <a class="xref" href="CloudStorageORM.Interfaces.StorageProviders.IStorageProvider.html">IStorageProvider</a></dt>
     <dd><p>Storage provider used to persist transaction manifests.</p>
+</dd>
+    <dt><code>cloudStorageOptions</code> <a class="xref" href="CloudStorageORM.Options.CloudStorageOptions.html">CloudStorageOptions</a></dt>
+    <dd><p>Cloud storage options controlling observability toggles.</p>
+</dd>
+    <dt><code>logger</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/microsoft.extensions.logging.ilogger-1">ILogger</a>&lt;<a class="xref" href="CloudStorageORM.Infrastructure.CloudStorageTransactionManager.html">CloudStorageTransactionManager</a>&gt;</dt>
+    <dd><p>Logger used for runtime transaction events.</p>
 </dd>
   </dl>
 
@@ -228,7 +234,7 @@ Class CloudStorageTransactionManager  <a class="header-action link-secondary" ti
 
   <h3 id="CloudStorageORM_Infrastructure_CloudStorageTransactionManager_CurrentTransaction" data-uid="CloudStorageORM.Infrastructure.CloudStorageTransactionManager.CurrentTransaction">
   CurrentTransaction
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageTransactionManager.cs/#L109"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageTransactionManager.cs/#L132"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Gets the current transaction.</p>
@@ -264,7 +270,7 @@ Class CloudStorageTransactionManager  <a class="header-action link-secondary" ti
 
   <h3 id="CloudStorageORM_Infrastructure_CloudStorageTransactionManager_BeginTransaction" data-uid="CloudStorageORM.Infrastructure.CloudStorageTransactionManager.BeginTransaction">
   BeginTransaction()
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageTransactionManager.cs/#L40"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageTransactionManager.cs/#L58"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Begins a new transaction.</p>
@@ -297,7 +303,7 @@ Class CloudStorageTransactionManager  <a class="header-action link-secondary" ti
 
   <h3 id="CloudStorageORM_Infrastructure_CloudStorageTransactionManager_BeginTransactionAsync_System_Threading_CancellationToken_" data-uid="CloudStorageORM.Infrastructure.CloudStorageTransactionManager.BeginTransactionAsync(System.Threading.CancellationToken)">
   BeginTransactionAsync(CancellationToken)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageTransactionManager.cs/#L60"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageTransactionManager.cs/#L83"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Asynchronously begins a new transaction.</p>
@@ -342,7 +348,7 @@ Class CloudStorageTransactionManager  <a class="header-action link-secondary" ti
 
   <h3 id="CloudStorageORM_Infrastructure_CloudStorageTransactionManager_CommitTransaction" data-uid="CloudStorageORM.Infrastructure.CloudStorageTransactionManager.CommitTransaction">
   CommitTransaction()
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageTransactionManager.cs/#L67"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageTransactionManager.cs/#L90"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Commits all changes made to the database in the current transaction.</p>
@@ -369,7 +375,7 @@ Class CloudStorageTransactionManager  <a class="header-action link-secondary" ti
 
   <h3 id="CloudStorageORM_Infrastructure_CloudStorageTransactionManager_CommitTransactionAsync_System_Threading_CancellationToken_" data-uid="CloudStorageORM.Infrastructure.CloudStorageTransactionManager.CommitTransactionAsync(System.Threading.CancellationToken)">
   CommitTransactionAsync(CancellationToken)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageTransactionManager.cs/#L79"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageTransactionManager.cs/#L102"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Commits all changes made to the database in the current transaction.</p>
@@ -414,7 +420,7 @@ Class CloudStorageTransactionManager  <a class="header-action link-secondary" ti
 
   <h3 id="CloudStorageORM_Infrastructure_CloudStorageTransactionManager_ResetState" data-uid="CloudStorageORM.Infrastructure.CloudStorageTransactionManager.ResetState">
   ResetState()
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageTransactionManager.cs/#L91"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageTransactionManager.cs/#L114"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Resets the service so that it can be used from the pool.</p>
@@ -441,7 +447,7 @@ Class CloudStorageTransactionManager  <a class="header-action link-secondary" ti
 
   <h3 id="CloudStorageORM_Infrastructure_CloudStorageTransactionManager_ResetStateAsync_System_Threading_CancellationToken_" data-uid="CloudStorageORM.Infrastructure.CloudStorageTransactionManager.ResetStateAsync(System.Threading.CancellationToken)">
   ResetStateAsync(CancellationToken)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageTransactionManager.cs/#L102"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageTransactionManager.cs/#L125"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Resets the service so that it can be used from the pool.</p>
@@ -486,7 +492,7 @@ Class CloudStorageTransactionManager  <a class="header-action link-secondary" ti
 
   <h3 id="CloudStorageORM_Infrastructure_CloudStorageTransactionManager_RollbackTransaction" data-uid="CloudStorageORM.Infrastructure.CloudStorageTransactionManager.RollbackTransaction">
   RollbackTransaction()
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageTransactionManager.cs/#L73"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageTransactionManager.cs/#L96"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Discards all changes made to the database in the current transaction.</p>
@@ -513,7 +519,7 @@ Class CloudStorageTransactionManager  <a class="header-action link-secondary" ti
 
   <h3 id="CloudStorageORM_Infrastructure_CloudStorageTransactionManager_RollbackTransactionAsync_System_Threading_CancellationToken_" data-uid="CloudStorageORM.Infrastructure.CloudStorageTransactionManager.RollbackTransactionAsync(System.Threading.CancellationToken)">
   RollbackTransactionAsync(CancellationToken)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageTransactionManager.cs/#L85"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageTransactionManager.cs/#L108"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Discards all changes made to the database in the current transaction.</p>
@@ -558,7 +564,7 @@ Class CloudStorageTransactionManager  <a class="header-action link-secondary" ti
 </article>
 
         <div class="contribution d-print-none">
-          <a href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageTransactionManager.cs/#L11" class="edit-link">Edit this page</a>
+          <a href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageTransactionManager.cs/#L14" class="edit-link">Edit this page</a>
         </div>
 
 

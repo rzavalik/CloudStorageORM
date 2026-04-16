@@ -74,7 +74,7 @@
 <h1 id="-cloudstorageorm---library-documentation">📦 CloudStorageORM - Library Documentation</h1>
 
 <p><strong>Target Framework</strong>: <code>net10.0</code><br>
-<strong>Current Release</strong>: <code>v1.0.15</code><br>
+<strong>Current Release</strong>: <code>v1.0.16</code>
 <strong>Language Version</strong>: <code>C# 14</code><br>
 <strong>EF Core Packages</strong>: <code>Microsoft.EntityFrameworkCore 10.0.5</code>, <code>Microsoft.EntityFrameworkCore.Relational 10.0.5</code><br>
 <strong>Testing</strong>: <code>xUnit</code>, <code>Shouldly</code>, <code>Moq</code>, <code>Coverlet</code>, <code>ReportGenerator</code></p>
@@ -90,6 +90,14 @@ The provider surface is designed so that <strong>Google Cloud Storage</strong> c
 <li>LINQ query execution over persisted blobs</li>
 <li>CRUD flows that behave similarly to the EF InMemory provider for the sample app</li>
 <li>Unit and integration test coverage around infrastructure, queries, validators, and provider behavior</li>
+</ul>
+<h2 id="release-notes-for-v1016">Release notes for <code>v1.0.16</code></h2>
+<ul>
+<li>Added configurable transient-fault retries for shared persistence/query provider I/O boundaries.</li>
+<li>Retries now use bounded exponential backoff with jitter and explicit opt-in via <code>CloudStorageOptions.Retry</code>.</li>
+<li>Non-transient failures (including ETag concurrency conflicts) are intentionally not retried.</li>
+<li>Runtime logging/tracing now covers shared save, query, transaction, and recovery paths.</li>
+<li>Azure and AWS integration suites now cover rollback, commit, crash-recovery, and stale-ETag conflict windows.</li>
 </ul>
 <h2 id="release-notes-for-v1015">Release notes for <code>v1.0.15</code></h2>
 <ul>
@@ -182,6 +190,7 @@ The provider surface is designed so that <strong>Google Cloud Storage</strong> c
 <li>Common fields: <code>CloudStorageOptions.Provider</code>, <code>CloudStorageOptions.ContainerName</code></li>
 <li>Azure fields: <code>CloudStorageOptions.Azure.ConnectionString</code></li>
 <li>AWS fields: <code>CloudStorageOptions.Aws.AccessKeyId</code>, <code>SecretAccessKey</code>, <code>Region</code>, <code>ServiceUrl</code>, <code>ForcePathStyle</code></li>
+<li>Retry fields: <code>CloudStorageOptions.Retry.Enabled</code>, <code>MaxRetries</code>, <code>BaseDelay</code>, <code>MaxDelay</code>, <code>JitterFactor</code></li>
 <li>Observability fields: <code>CloudStorageOptions.Observability.EnableLogging</code>, <code>EnableTracing</code>, <code>EnableDiagnostics</code></li>
 <li><code>CloudStorageOptions.ConnectionString</code> at the root level is no longer used</li>
 </ul>
@@ -232,8 +241,8 @@ The provider surface is designed so that <strong>Google Cloud Storage</strong> c
 <ul>
 <li><code>EnableLogging</code> gates logging inside persistence and query paths.</li>
 <li><code>EnableTracing</code> gates <code>ActivitySource</code> spans emitted by internal operations.</li>
-<li><code>EnableDiagnostics</code> is currently surfaced as configuration/debug metadata and reserved for future custom diagnostics
-events.</li>
+<li><code>EnableDiagnostics</code> is currently surfaced as configuration/debug metadata; custom runtime <code>DiagnosticListener</code>
+events are not emitted yet.</li>
 </ul>
 <p>Related types:</p>
 <ul>
@@ -333,6 +342,8 @@ The codebase now uses file-scoped namespaces (<code>namespace X;</code>) and pla
 <code>tests/CloudStorageORM.IntegrationTests/CloudStorageORM.IntegrationTests.Azure.csproj</code></li>
 <li>LocalStack-backed AWS integration tests in
 <code>tests/CloudStorageORM.IntegrationTests/CloudStorageORM.IntegrationTests.AWS.csproj</code></li>
+<li>dedicated Azure and AWS transaction failure-window suites covering rollback, commit, crash recovery, and stale-ETag
+conflicts</li>
 <li>Sample app integration tests in
 <code>tests/CloudStorageORM.IntegrationTests.SampleApp/CloudStorageORM.IntegrationTests.SampleApp.csproj</code></li>
 <li>coverage collection through <code>coverlet.collector</code> / <code>coverlet.msbuild</code></li>

@@ -74,12 +74,9 @@
 <h1 id="observability">Observability</h1>
 
 <p>CloudStorageORM includes optional observability controls under <code>CloudStorageOptions.Observability</code>.</p>
-<h2 id="v1013-release-note">v1.0.13 release note</h2>
-<p>The <code>v1.0.13</code> release keeps the same observability switches, but the documentation now highlights the
-logging, tracing, and diagnostics surface alongside the new server-side <code>Skip</code>/<code>Take</code> query support.</p>
 <h2 id="current-capability-on-main">Current capability on <code>main</code></h2>
 <ul>
-<li><code>EnableLogging</code> controls provider query/save log emission from CloudStorageORM internals.</li>
+<li><code>EnableLogging</code> controls runtime <code>ILogger</code> emission from shared save/query/transaction/recovery paths.</li>
 <li><code>EnableTracing</code> controls <code>ActivitySource</code> spans created by CloudStorageORM internals.</li>
 <li><code>EnableDiagnostics</code> is part of the public options model and EF debug info, but there are currently no custom
 <code>DiagnosticListener</code> events emitted yet.</li>
@@ -105,7 +102,7 @@ logging, tracing, and diagnostics surface alongside the new server-side <code>Sk
         storage.Observability.EnableTracing = true;
         storage.Observability.EnableDiagnostics = true;
 
-        // Reserved naming options (currently not used by runtime emission)
+        // Naming options are currently surfaced in options/debug info.
         storage.Observability.ActivitySourceName = &quot;CloudStorageORM&quot;;
         storage.Observability.DiagnosticListenerName = &quot;CloudStorageORM&quot;;
     });
@@ -155,6 +152,13 @@ ActivitySource.AddActivityListener(listener);
 <li>Concurrency (<code>500x</code>)</li>
 <li>Provider I/O (<code>600x</code>)</li>
 <li>Validation (<code>700x</code>)</li>
+</ul>
+<p>Runtime paths currently emitting these event groups include:</p>
+<ul>
+<li><code>CloudStorageDatabase</code> save and materialization/listing boundaries</li>
+<li><code>CloudStorageQueryProvider</code> query execution boundaries</li>
+<li><code>CloudStorageTransactionManager</code> begin/commit/rollback/recovery and durable replay paths</li>
+<li><code>CloudStorageDbContext</code> configuration/validation initialization boundaries</li>
 </ul>
 <h2 id="related-docs">Related docs</h2>
 <ul>

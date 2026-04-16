@@ -89,7 +89,7 @@ Support for <strong>Google Cloud Storage</strong> remains on the roadmap.</p>
 <hr>
 <h2 id="-current-status">✨ Current status</h2>
 <ul>
-<li>✅ Current release line: <code>v1.0.15</code></li>
+<li>✅ Current release line: <code>v1.0.16</code></li>
 <li>✅ Targets <code>net10.0</code></li>
 <li>✅ Azure Blob Storage provider is implemented</li>
 <li>✅ AWS S3 provider is implemented</li>
@@ -97,6 +97,9 @@ Support for <strong>Google Cloud Storage</strong> remains on the roadmap.</p>
 <li>✅ Sample app runs the same CRUD flow against EF InMemory, Azure, and AWS</li>
 <li>✅ Unit + integration tests run locally with Azurite and LocalStack</li>
 <li>✅ Coverage collection is wired with Coverlet + ReportGenerator</li>
+<li>✅ <code>v1.0.16</code> adds configurable transient-fault retries (bounded exponential backoff + jitter) at shared persistence/query execution boundaries</li>
+<li>✅ <code>v1.0.16</code> completes runtime logging/tracing wiring across save/query/transaction/recovery paths</li>
+<li>✅ <code>v1.0.16</code> Azure and AWS integration suites cover rollback, commit, crash-recovery, and stale-ETag conflict windows</li>
 <li>✅ <code>v1.0.15</code> implements crash-safe, idempotent transaction replay with operation-level progress tracking</li>
 <li>✅ <code>v1.0.14</code> preserves <code>If-Match</code> ETag preconditions for staged transaction save/delete replay and surfaces conflicts
 as <code>DbUpdateConcurrencyException</code></li>
@@ -203,6 +206,8 @@ pre-commit manifests are marked as aborted (<code>Aborted</code>).</li>
 this interface is not required.</li>
 <li>When ETag concurrency is enabled, updates/deletes use provider-native <code>If-Match</code> conditions (Azure Blob and AWS S3)
 and conflicts are raised as <code>DbUpdateConcurrencyException</code>.</li>
+<li>Transient retries are optional and configured under <code>storage.Retry</code> (<code>Enabled</code>, <code>MaxRetries</code>, <code>BaseDelay</code>,
+<code>MaxDelay</code>, <code>JitterFactor</code>).</li>
 <li>Future versions may add provider-native temporary locking (for example, Azure blob leases and AWS
 conditional/object-lock strategies) to improve concurrent-writer coordination.</li>
 <li><code>IDatabaseCreator</code> behavior is still minimal right now: schema-style database lifecycle methods are not fully

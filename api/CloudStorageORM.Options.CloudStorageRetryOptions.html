@@ -2,11 +2,11 @@
 <html>
   <head>
     <meta charset="utf-8">
-      <title>Class StorageListPage | CloudStorageORM </title>
+      <title>Class CloudStorageRetryOptions | CloudStorageORM </title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="title" content="Class StorageListPage | CloudStorageORM ">
+      <meta name="title" content="Class CloudStorageRetryOptions | CloudStorageORM ">
       
-      <meta name="description" content="Represents a single provider list page with continuation state.">
+      <meta name="description" content="Configures transient-fault retries for provider I/O executed by shared CloudStorageORM infrastructure.">
       <link rel="icon" href="../favicon.ico">
       <link rel="stylesheet" href="../public/docfx.min.css">
       <link rel="stylesheet" href="../public/main.css">
@@ -16,7 +16,7 @@
       <meta name="docfx:rel" content="../">
       
       
-      <meta name="docfx:docurl" content="https://github.com/rzavalik/CloudStorageORM/new/main/apiSpec/new?filename=CloudStorageORM_Abstractions_StorageListPage.md&amp;value=---%0Auid%3A%20CloudStorageORM.Abstractions.StorageListPage%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">
+      <meta name="docfx:docurl" content="https://github.com/rzavalik/CloudStorageORM/new/main/apiSpec/new?filename=CloudStorageORM_Options_CloudStorageRetryOptions.md&amp;value=---%0Auid%3A%20CloudStorageORM.Options.CloudStorageRetryOptions%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">
       <meta name="loc:inThisArticle" content="In this article">
       <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
       <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
@@ -84,25 +84,25 @@
           <nav id="breadcrumb"></nav>
         </div>
 
-        <article data-uid="CloudStorageORM.Abstractions.StorageListPage">
+        <article data-uid="CloudStorageORM.Options.CloudStorageRetryOptions">
 
 
 
-  <h1 id="CloudStorageORM_Abstractions_StorageListPage" data-uid="CloudStorageORM.Abstractions.StorageListPage" class="text-break">
-Class StorageListPage  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Abstractions/StorageListPage.cs/#L9"><i class="bi bi-code-slash"></i></a>
+  <h1 id="CloudStorageORM_Options_CloudStorageRetryOptions" data-uid="CloudStorageORM.Options.CloudStorageRetryOptions" class="text-break">
+Class CloudStorageRetryOptions  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Options/CloudStorageRetryOptions.cs/#L6"><i class="bi bi-code-slash"></i></a>
   </h1>
 
   <div class="facts text-secondary">
-    <dl><dt>Namespace</dt><dd><a class="xref" href="CloudStorageORM.html">CloudStorageORM</a>.<a class="xref" href="CloudStorageORM.Abstractions.html">Abstractions</a></dd></dl>
+    <dl><dt>Namespace</dt><dd><a class="xref" href="CloudStorageORM.html">CloudStorageORM</a>.<a class="xref" href="CloudStorageORM.Options.html">Options</a></dd></dl>
   <dl><dt>Assembly</dt><dd>CloudStorageORM.dll</dd></dl>
   </div>
 
-  <div class="markdown summary"><p>Represents a single provider list page with continuation state.</p>
+  <div class="markdown summary"><p>Configures transient-fault retries for provider I/O executed by shared CloudStorageORM infrastructure.</p>
 </div>
   <div class="markdown conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public sealed record StorageListPage : IEquatable&lt;StorageListPage&gt;</code></pre>
+    <pre><code class="lang-csharp hljs">public class CloudStorageRetryOptions</code></pre>
   </div>
 
 
@@ -112,16 +112,10 @@ Class StorageListPage  <a class="header-action link-secondary" title="View sourc
     <dt>Inheritance</dt>
     <dd>
       <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
-      <div><span class="xref">StorageListPage</span></div>
+      <div><span class="xref">CloudStorageRetryOptions</span></div>
     </dd>
   </dl>
 
-  <dl class="typelist implements">
-    <dt>Implements</dt>
-    <dd>
-      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.iequatable-1">IEquatable</a>&lt;<a class="xref" href="CloudStorageORM.Abstractions.StorageListPage.html">StorageListPage</a>&gt;</div>
-    </dd>
-  </dl>
 
 
   <dl class="typelist inheritedMembers">
@@ -140,6 +134,9 @@ Class StorageListPage  <a class="header-action link-secondary" title="View sourc
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gettype">object.GetType()</a>
     </div>
     <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone">object.MemberwiseClone()</a>
+    </div>
+    <div>
       <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
     </div>
     <div>
@@ -152,66 +149,23 @@ Class StorageListPage  <a class="header-action link-secondary" title="View sourc
 
 
 
-  <h2 class="section" id="constructors">Constructors
-</h2>
-
-
-  <a id="CloudStorageORM_Abstractions_StorageListPage__ctor_" data-uid="CloudStorageORM.Abstractions.StorageListPage.#ctor*"></a>
-
-  <h3 id="CloudStorageORM_Abstractions_StorageListPage__ctor_System_Collections_Generic_IReadOnlyList_System_String__System_String_System_Boolean_" data-uid="CloudStorageORM.Abstractions.StorageListPage.#ctor(System.Collections.Generic.IReadOnlyList{System.String},System.String,System.Boolean)">
-  StorageListPage(IReadOnlyList&lt;string&gt;, string?, bool)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Abstractions/StorageListPage.cs/#L9"><i class="bi bi-code-slash"></i></a>
-  </h3>
-
-  <div class="markdown level1 summary"><p>Represents a single provider list page with continuation state.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public StorageListPage(IReadOnlyList&lt;string&gt; Keys, string? ContinuationToken, bool HasMore)</code></pre>
-  </div>
-
-  <h4 class="section">Parameters</h4>
-  <dl class="parameters">
-    <dt><code>Keys</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlylist-1">IReadOnlyList</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a>&gt;</dt>
-    <dd><p>The object keys returned in this page.</p>
-</dd>
-    <dt><code>ContinuationToken</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
-    <dd><p>The token that can be used to request the next page, when available.</p>
-</dd>
-    <dt><code>HasMore</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
-    <dd><p>Indicates whether more pages are available.</p>
-</dd>
-  </dl>
-
-
-
-
-
-
-
-
-
-
-
-
   <h2 class="section" id="properties">Properties
 </h2>
 
 
-  <a id="CloudStorageORM_Abstractions_StorageListPage_ContinuationToken_" data-uid="CloudStorageORM.Abstractions.StorageListPage.ContinuationToken*"></a>
+  <a id="CloudStorageORM_Options_CloudStorageRetryOptions_BaseDelay_" data-uid="CloudStorageORM.Options.CloudStorageRetryOptions.BaseDelay*"></a>
 
-  <h3 id="CloudStorageORM_Abstractions_StorageListPage_ContinuationToken" data-uid="CloudStorageORM.Abstractions.StorageListPage.ContinuationToken">
-  ContinuationToken
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Abstractions/StorageListPage.cs/#L11"><i class="bi bi-code-slash"></i></a>
+  <h3 id="CloudStorageORM_Options_CloudStorageRetryOptions_BaseDelay" data-uid="CloudStorageORM.Options.CloudStorageRetryOptions.BaseDelay">
+  BaseDelay
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Options/CloudStorageRetryOptions.cs/#L21"><i class="bi bi-code-slash"></i></a>
   </h3>
 
-  <div class="markdown level1 summary"><p>The token that can be used to request the next page, when available.</p>
+  <div class="markdown level1 summary"><p>Base delay used by exponential backoff.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public string? ContinuationToken { get; init; }</code></pre>
+    <pre><code class="lang-csharp hljs">public TimeSpan BaseDelay { get; set; }</code></pre>
   </div>
 
 
@@ -220,7 +174,7 @@ Class StorageListPage  <a class="header-action link-secondary" title="View sourc
 
   <h4 class="section">Property Value</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.timespan">TimeSpan</a></dt>
     <dd></dd>
   </dl>
 
@@ -231,19 +185,19 @@ Class StorageListPage  <a class="header-action link-secondary" title="View sourc
 
 
 
-  <a id="CloudStorageORM_Abstractions_StorageListPage_HasMore_" data-uid="CloudStorageORM.Abstractions.StorageListPage.HasMore*"></a>
+  <a id="CloudStorageORM_Options_CloudStorageRetryOptions_Enabled_" data-uid="CloudStorageORM.Options.CloudStorageRetryOptions.Enabled*"></a>
 
-  <h3 id="CloudStorageORM_Abstractions_StorageListPage_HasMore" data-uid="CloudStorageORM.Abstractions.StorageListPage.HasMore">
-  HasMore
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Abstractions/StorageListPage.cs/#L12"><i class="bi bi-code-slash"></i></a>
+  <h3 id="CloudStorageORM_Options_CloudStorageRetryOptions_Enabled" data-uid="CloudStorageORM.Options.CloudStorageRetryOptions.Enabled">
+  Enabled
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Options/CloudStorageRetryOptions.cs/#L11"><i class="bi bi-code-slash"></i></a>
   </h3>
 
-  <div class="markdown level1 summary"><p>Indicates whether more pages are available.</p>
+  <div class="markdown level1 summary"><p>Enables retry execution for transient failures. Defaults to disabled for explicit opt-in.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public bool HasMore { get; init; }</code></pre>
+    <pre><code class="lang-csharp hljs">public bool Enabled { get; set; }</code></pre>
   </div>
 
 
@@ -263,19 +217,19 @@ Class StorageListPage  <a class="header-action link-secondary" title="View sourc
 
 
 
-  <a id="CloudStorageORM_Abstractions_StorageListPage_Keys_" data-uid="CloudStorageORM.Abstractions.StorageListPage.Keys*"></a>
+  <a id="CloudStorageORM_Options_CloudStorageRetryOptions_JitterFactor_" data-uid="CloudStorageORM.Options.CloudStorageRetryOptions.JitterFactor*"></a>
 
-  <h3 id="CloudStorageORM_Abstractions_StorageListPage_Keys" data-uid="CloudStorageORM.Abstractions.StorageListPage.Keys">
-  Keys
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Abstractions/StorageListPage.cs/#L10"><i class="bi bi-code-slash"></i></a>
+  <h3 id="CloudStorageORM_Options_CloudStorageRetryOptions_JitterFactor" data-uid="CloudStorageORM.Options.CloudStorageRetryOptions.JitterFactor">
+  JitterFactor
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Options/CloudStorageRetryOptions.cs/#L31"><i class="bi bi-code-slash"></i></a>
   </h3>
 
-  <div class="markdown level1 summary"><p>The object keys returned in this page.</p>
+  <div class="markdown level1 summary"><p>Jitter factor in the range [0, 1]. Zero disables jitter.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public IReadOnlyList&lt;string&gt; Keys { get; init; }</code></pre>
+    <pre><code class="lang-csharp hljs">public double JitterFactor { get; set; }</code></pre>
   </div>
 
 
@@ -284,7 +238,71 @@ Class StorageListPage  <a class="header-action link-secondary" title="View sourc
 
   <h4 class="section">Property Value</h4>
   <dl class="parameters">
-    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlylist-1">IReadOnlyList</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a>&gt;</dt>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.double">double</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="CloudStorageORM_Options_CloudStorageRetryOptions_MaxDelay_" data-uid="CloudStorageORM.Options.CloudStorageRetryOptions.MaxDelay*"></a>
+
+  <h3 id="CloudStorageORM_Options_CloudStorageRetryOptions_MaxDelay" data-uid="CloudStorageORM.Options.CloudStorageRetryOptions.MaxDelay">
+  MaxDelay
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Options/CloudStorageRetryOptions.cs/#L26"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Maximum delay cap for exponential backoff.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public TimeSpan MaxDelay { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.timespan">TimeSpan</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="CloudStorageORM_Options_CloudStorageRetryOptions_MaxRetries_" data-uid="CloudStorageORM.Options.CloudStorageRetryOptions.MaxRetries*"></a>
+
+  <h3 id="CloudStorageORM_Options_CloudStorageRetryOptions_MaxRetries" data-uid="CloudStorageORM.Options.CloudStorageRetryOptions.MaxRetries">
+  MaxRetries
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Options/CloudStorageRetryOptions.cs/#L16"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Maximum number of retry attempts after the initial attempt.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public int MaxRetries { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
     <dd></dd>
   </dl>
 
@@ -299,7 +317,7 @@ Class StorageListPage  <a class="header-action link-secondary" title="View sourc
 </article>
 
         <div class="contribution d-print-none">
-          <a href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Abstractions/StorageListPage.cs/#L9" class="edit-link">Edit this page</a>
+          <a href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Options/CloudStorageRetryOptions.cs/#L6" class="edit-link">Edit this page</a>
         </div>
 
 

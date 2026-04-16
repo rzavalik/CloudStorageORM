@@ -161,9 +161,9 @@ Class CloudStorageDbContextDependencies  <a class="header-action link-secondary"
 
   <a id="CloudStorageORM_Infrastructure_CloudStorageDbContextDependencies__ctor_" data-uid="CloudStorageORM.Infrastructure.CloudStorageDbContextDependencies.#ctor*"></a>
 
-  <h3 id="CloudStorageORM_Infrastructure_CloudStorageDbContextDependencies__ctor_Microsoft_EntityFrameworkCore_Metadata_IModel_Microsoft_EntityFrameworkCore_Infrastructure_ICurrentDbContext_Microsoft_EntityFrameworkCore_ChangeTracking_Internal_IChangeDetector_Microsoft_EntityFrameworkCore_Internal_IDbSetSource_Microsoft_EntityFrameworkCore_Internal_IEntityFinderSource_Microsoft_EntityFrameworkCore_ChangeTracking_Internal_IEntityGraphAttacher_Microsoft_EntityFrameworkCore_Query_IAsyncQueryProvider_Microsoft_EntityFrameworkCore_ChangeTracking_Internal_IStateManager_Microsoft_EntityFrameworkCore_Storage_IExceptionDetector_Microsoft_EntityFrameworkCore_Diagnostics_IDiagnosticsLogger_Microsoft_EntityFrameworkCore_DbLoggerCategory_Update__Microsoft_EntityFrameworkCore_Diagnostics_IDiagnosticsLogger_Microsoft_EntityFrameworkCore_DbLoggerCategory_Infrastructure__" data-uid="CloudStorageORM.Infrastructure.CloudStorageDbContextDependencies.#ctor(Microsoft.EntityFrameworkCore.Metadata.IModel,Microsoft.EntityFrameworkCore.Infrastructure.ICurrentDbContext,Microsoft.EntityFrameworkCore.ChangeTracking.Internal.IChangeDetector,Microsoft.EntityFrameworkCore.Internal.IDbSetSource,Microsoft.EntityFrameworkCore.Internal.IEntityFinderSource,Microsoft.EntityFrameworkCore.ChangeTracking.Internal.IEntityGraphAttacher,Microsoft.EntityFrameworkCore.Query.IAsyncQueryProvider,Microsoft.EntityFrameworkCore.ChangeTracking.Internal.IStateManager,Microsoft.EntityFrameworkCore.Storage.IExceptionDetector,Microsoft.EntityFrameworkCore.Diagnostics.IDiagnosticsLogger{Microsoft.EntityFrameworkCore.DbLoggerCategory.Update},Microsoft.EntityFrameworkCore.Diagnostics.IDiagnosticsLogger{Microsoft.EntityFrameworkCore.DbLoggerCategory.Infrastructure})">
-  CloudStorageDbContextDependencies(IModel, ICurrentDbContext, IChangeDetector, IDbSetSource, IEntityFinderSource, IEntityGraphAttacher, IAsyncQueryProvider, IStateManager, IExceptionDetector, IDiagnosticsLogger&lt;Update&gt;, IDiagnosticsLogger&lt;Infrastructure&gt;)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageDbContextDependencies.cs/#L47"><i class="bi bi-code-slash"></i></a>
+  <h3 id="CloudStorageORM_Infrastructure_CloudStorageDbContextDependencies__ctor_Microsoft_EntityFrameworkCore_Metadata_IModel_Microsoft_EntityFrameworkCore_Infrastructure_ICurrentDbContext_Microsoft_EntityFrameworkCore_ChangeTracking_Internal_IChangeDetector_Microsoft_EntityFrameworkCore_Internal_IDbSetSource_Microsoft_EntityFrameworkCore_Internal_IEntityFinderSource_Microsoft_EntityFrameworkCore_ChangeTracking_Internal_IEntityGraphAttacher_Microsoft_EntityFrameworkCore_Query_IAsyncQueryProvider_Microsoft_EntityFrameworkCore_ChangeTracking_Internal_IStateManager_Microsoft_EntityFrameworkCore_Storage_IExceptionDetector_Microsoft_EntityFrameworkCore_Storage_IDbContextTransactionManager_Microsoft_EntityFrameworkCore_Diagnostics_IDiagnosticsLogger_Microsoft_EntityFrameworkCore_DbLoggerCategory_Update__Microsoft_EntityFrameworkCore_Diagnostics_IDiagnosticsLogger_Microsoft_EntityFrameworkCore_DbLoggerCategory_Infrastructure__" data-uid="CloudStorageORM.Infrastructure.CloudStorageDbContextDependencies.#ctor(Microsoft.EntityFrameworkCore.Metadata.IModel,Microsoft.EntityFrameworkCore.Infrastructure.ICurrentDbContext,Microsoft.EntityFrameworkCore.ChangeTracking.Internal.IChangeDetector,Microsoft.EntityFrameworkCore.Internal.IDbSetSource,Microsoft.EntityFrameworkCore.Internal.IEntityFinderSource,Microsoft.EntityFrameworkCore.ChangeTracking.Internal.IEntityGraphAttacher,Microsoft.EntityFrameworkCore.Query.IAsyncQueryProvider,Microsoft.EntityFrameworkCore.ChangeTracking.Internal.IStateManager,Microsoft.EntityFrameworkCore.Storage.IExceptionDetector,Microsoft.EntityFrameworkCore.Storage.IDbContextTransactionManager,Microsoft.EntityFrameworkCore.Diagnostics.IDiagnosticsLogger{Microsoft.EntityFrameworkCore.DbLoggerCategory.Update},Microsoft.EntityFrameworkCore.Diagnostics.IDiagnosticsLogger{Microsoft.EntityFrameworkCore.DbLoggerCategory.Infrastructure})">
+  CloudStorageDbContextDependencies(IModel, ICurrentDbContext, IChangeDetector, IDbSetSource, IEntityFinderSource, IEntityGraphAttacher, IAsyncQueryProvider, IStateManager, IExceptionDetector, IDbContextTransactionManager, IDiagnosticsLogger&lt;Update&gt;, IDiagnosticsLogger&lt;Infrastructure&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageDbContextDependencies.cs/#L39"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Initializes a new dependency container used by CloudStorageORM DbContext services.</p>
@@ -171,7 +171,7 @@ Class CloudStorageDbContextDependencies  <a class="header-action link-secondary"
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public CloudStorageDbContextDependencies(IModel model, ICurrentDbContext currentContext, IChangeDetector changeDetector, IDbSetSource setSource, IEntityFinderSource entityFinderSource, IEntityGraphAttacher entityGraphAttacher, IAsyncQueryProvider queryProvider, IStateManager stateManager, IExceptionDetector exceptionDetector, IDiagnosticsLogger&lt;DbLoggerCategory.Update&gt; updateLogger, IDiagnosticsLogger&lt;DbLoggerCategory.Infrastructure&gt; infrastructureLogger)</code></pre>
+    <pre><code class="lang-csharp hljs">public CloudStorageDbContextDependencies(IModel model, ICurrentDbContext currentContext, IChangeDetector changeDetector, IDbSetSource setSource, IEntityFinderSource entityFinderSource, IEntityGraphAttacher entityGraphAttacher, IAsyncQueryProvider queryProvider, IStateManager stateManager, IExceptionDetector exceptionDetector, IDbContextTransactionManager transactionManager, IDiagnosticsLogger&lt;DbLoggerCategory.Update&gt; updateLogger, IDiagnosticsLogger&lt;DbLoggerCategory.Infrastructure&gt; infrastructureLogger)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
@@ -203,6 +203,9 @@ Class CloudStorageDbContextDependencies  <a class="header-action link-secondary"
     <dt><code>exceptionDetector</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/microsoft.entityframeworkcore.storage.iexceptiondetector">IExceptionDetector</a></dt>
     <dd><p>EF exception detector.</p>
 </dd>
+    <dt><code>transactionManager</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/microsoft.entityframeworkcore.storage.idbcontexttransactionmanager">IDbContextTransactionManager</a></dt>
+    <dd><p>Transaction manager used by the DbContext infrastructure.</p>
+</dd>
     <dt><code>updateLogger</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/microsoft.entityframeworkcore.diagnostics.idiagnosticslogger-1">IDiagnosticsLogger</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/microsoft.entityframeworkcore.dbloggercategory">DbLoggerCategory</a>.<a class="xref" href="https://learn.microsoft.com/dotnet/api/microsoft.entityframeworkcore.dbloggercategory.update">Update</a>&gt;</dt>
     <dd><p>Update diagnostics logger.</p>
 </dd>
@@ -217,7 +220,7 @@ Class CloudStorageDbContextDependencies  <a class="header-action link-secondary"
 
 
 
-  <h4 class="section" id="CloudStorageORM_Infrastructure_CloudStorageDbContextDependencies__ctor_Microsoft_EntityFrameworkCore_Metadata_IModel_Microsoft_EntityFrameworkCore_Infrastructure_ICurrentDbContext_Microsoft_EntityFrameworkCore_ChangeTracking_Internal_IChangeDetector_Microsoft_EntityFrameworkCore_Internal_IDbSetSource_Microsoft_EntityFrameworkCore_Internal_IEntityFinderSource_Microsoft_EntityFrameworkCore_ChangeTracking_Internal_IEntityGraphAttacher_Microsoft_EntityFrameworkCore_Query_IAsyncQueryProvider_Microsoft_EntityFrameworkCore_ChangeTracking_Internal_IStateManager_Microsoft_EntityFrameworkCore_Storage_IExceptionDetector_Microsoft_EntityFrameworkCore_Diagnostics_IDiagnosticsLogger_Microsoft_EntityFrameworkCore_DbLoggerCategory_Update__Microsoft_EntityFrameworkCore_Diagnostics_IDiagnosticsLogger_Microsoft_EntityFrameworkCore_DbLoggerCategory_Infrastructure___examples">Examples</h4>
+  <h4 class="section" id="CloudStorageORM_Infrastructure_CloudStorageDbContextDependencies__ctor_Microsoft_EntityFrameworkCore_Metadata_IModel_Microsoft_EntityFrameworkCore_Infrastructure_ICurrentDbContext_Microsoft_EntityFrameworkCore_ChangeTracking_Internal_IChangeDetector_Microsoft_EntityFrameworkCore_Internal_IDbSetSource_Microsoft_EntityFrameworkCore_Internal_IEntityFinderSource_Microsoft_EntityFrameworkCore_ChangeTracking_Internal_IEntityGraphAttacher_Microsoft_EntityFrameworkCore_Query_IAsyncQueryProvider_Microsoft_EntityFrameworkCore_ChangeTracking_Internal_IStateManager_Microsoft_EntityFrameworkCore_Storage_IExceptionDetector_Microsoft_EntityFrameworkCore_Storage_IDbContextTransactionManager_Microsoft_EntityFrameworkCore_Diagnostics_IDiagnosticsLogger_Microsoft_EntityFrameworkCore_DbLoggerCategory_Update__Microsoft_EntityFrameworkCore_Diagnostics_IDiagnosticsLogger_Microsoft_EntityFrameworkCore_DbLoggerCategory_Infrastructure___examples">Examples</h4>
   <pre><code class="lang-csharp">var dependencies = new CloudStorageDbContextDependencies(...);</code></pre>
 
 
@@ -233,7 +236,7 @@ Class CloudStorageDbContextDependencies  <a class="header-action link-secondary"
 
   <h3 id="CloudStorageORM_Infrastructure_CloudStorageDbContextDependencies_ChangeDetector" data-uid="CloudStorageORM.Infrastructure.CloudStorageDbContextDependencies.ChangeDetector">
   ChangeDetector
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageDbContextDependencies.cs/#L102"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageDbContextDependencies.cs/#L98"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -268,7 +271,7 @@ doing so can result in application failures when updating to a new Entity Framew
 
   <h3 id="CloudStorageORM_Infrastructure_CloudStorageDbContextDependencies_ContextOptions" data-uid="CloudStorageORM.Infrastructure.CloudStorageDbContextDependencies.ContextOptions">
   ContextOptions
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageDbContextDependencies.cs/#L91"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageDbContextDependencies.cs/#L87"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"></div>
@@ -299,7 +302,7 @@ doing so can result in application failures when updating to a new Entity Framew
 
   <h3 id="CloudStorageORM_Infrastructure_CloudStorageDbContextDependencies_DesignTimeModel" data-uid="CloudStorageORM.Infrastructure.CloudStorageDbContextDependencies.DesignTimeModel">
   DesignTimeModel
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageDbContextDependencies.cs/#L90"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageDbContextDependencies.cs/#L86"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"></div>
@@ -330,7 +333,7 @@ doing so can result in application failures when updating to a new Entity Framew
 
   <h3 id="CloudStorageORM_Infrastructure_CloudStorageDbContextDependencies_EntityFinderFactory" data-uid="CloudStorageORM.Infrastructure.CloudStorageDbContextDependencies.EntityFinderFactory">
   EntityFinderFactory
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageDbContextDependencies.cs/#L96"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageDbContextDependencies.cs/#L92"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -365,7 +368,7 @@ doing so can result in application failures when updating to a new Entity Framew
 
   <h3 id="CloudStorageORM_Infrastructure_CloudStorageDbContextDependencies_EntityGraphAttacher" data-uid="CloudStorageORM.Infrastructure.CloudStorageDbContextDependencies.EntityGraphAttacher">
   EntityGraphAttacher
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageDbContextDependencies.cs/#L104"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageDbContextDependencies.cs/#L100"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -400,7 +403,7 @@ doing so can result in application failures when updating to a new Entity Framew
 
   <h3 id="CloudStorageORM_Infrastructure_CloudStorageDbContextDependencies_ExceptionDetector" data-uid="CloudStorageORM.Infrastructure.CloudStorageDbContextDependencies.ExceptionDetector">
   ExceptionDetector
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageDbContextDependencies.cs/#L106"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageDbContextDependencies.cs/#L102"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -435,7 +438,7 @@ doing so can result in application failures when updating to a new Entity Framew
 
   <h3 id="CloudStorageORM_Infrastructure_CloudStorageDbContextDependencies_InfrastructureLogger" data-uid="CloudStorageORM.Infrastructure.CloudStorageDbContextDependencies.InfrastructureLogger">
   InfrastructureLogger
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageDbContextDependencies.cs/#L110"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageDbContextDependencies.cs/#L106"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -470,7 +473,7 @@ doing so can result in application failures when updating to a new Entity Framew
 
   <h3 id="CloudStorageORM_Infrastructure_CloudStorageDbContextDependencies_InternalServiceProvider" data-uid="CloudStorageORM.Infrastructure.CloudStorageDbContextDependencies.InternalServiceProvider">
   InternalServiceProvider
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageDbContextDependencies.cs/#L92"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageDbContextDependencies.cs/#L88"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"></div>
@@ -501,7 +504,7 @@ doing so can result in application failures when updating to a new Entity Framew
 
   <h3 id="CloudStorageORM_Infrastructure_CloudStorageDbContextDependencies_Model" data-uid="CloudStorageORM.Infrastructure.CloudStorageDbContextDependencies.Model">
   Model
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageDbContextDependencies.cs/#L89"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageDbContextDependencies.cs/#L84"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"></div>
@@ -532,7 +535,7 @@ doing so can result in application failures when updating to a new Entity Framew
 
   <h3 id="CloudStorageORM_Infrastructure_CloudStorageDbContextDependencies_QueryProvider" data-uid="CloudStorageORM.Infrastructure.CloudStorageDbContextDependencies.QueryProvider">
   QueryProvider
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageDbContextDependencies.cs/#L98"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageDbContextDependencies.cs/#L94"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -567,7 +570,7 @@ doing so can result in application failures when updating to a new Entity Framew
 
   <h3 id="CloudStorageORM_Infrastructure_CloudStorageDbContextDependencies_SetSource" data-uid="CloudStorageORM.Infrastructure.CloudStorageDbContextDependencies.SetSource">
   SetSource
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageDbContextDependencies.cs/#L94"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageDbContextDependencies.cs/#L90"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -602,7 +605,7 @@ doing so can result in application failures when updating to a new Entity Framew
 
   <h3 id="CloudStorageORM_Infrastructure_CloudStorageDbContextDependencies_StateManager" data-uid="CloudStorageORM.Infrastructure.CloudStorageDbContextDependencies.StateManager">
   StateManager
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageDbContextDependencies.cs/#L100"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageDbContextDependencies.cs/#L96"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -637,7 +640,7 @@ doing so can result in application failures when updating to a new Entity Framew
 
   <h3 id="CloudStorageORM_Infrastructure_CloudStorageDbContextDependencies_TransactionManager" data-uid="CloudStorageORM.Infrastructure.CloudStorageDbContextDependencies.TransactionManager">
   TransactionManager
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageDbContextDependencies.cs/#L88"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageDbContextDependencies.cs/#L82"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"></div>
@@ -668,7 +671,7 @@ doing so can result in application failures when updating to a new Entity Framew
 
   <h3 id="CloudStorageORM_Infrastructure_CloudStorageDbContextDependencies_UpdateLogger" data-uid="CloudStorageORM.Infrastructure.CloudStorageDbContextDependencies.UpdateLogger">
   UpdateLogger
-  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageDbContextDependencies.cs/#L108"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/rzavalik/CloudStorageORM/blob/main/src/CloudStorageORM/Infrastructure/CloudStorageDbContextDependencies.cs/#L104"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>This is an internal API that supports the Entity Framework Core infrastructure and not subject to

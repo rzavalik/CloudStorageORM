@@ -165,6 +165,8 @@ This matches the non-transactional <code>SaveChangesAsync()</code> conflict beha
 </li>
 </ul>
 <p>Recovery is deterministic and idempotent—running it multiple times produces the same result.</p>
+<p>The rollback, commit, crash-recovery, and stale-ETag conflict windows described above are covered by the dedicated
+Azure and AWS integration suites <code>AzureTransactionFailureWindowTests</code> and <code>AwsTransactionFailureWindowTests</code>.</p>
 <h2 id="example-transaction-with-retry">Example: Transaction with retry</h2>
 <pre><code class="lang-csharp">var maxRetries = 3;
 var retryCount = 0;
