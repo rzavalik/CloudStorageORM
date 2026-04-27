@@ -3,7 +3,7 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
   <ItemGroup>
-    <PackageVersion Include="AWSSDK.S3" Version="4.0.21.1" />
+    <PackageVersion Include="AWSSDK.S3" Version="4.0.22.1" />
     <PackageVersion Include="Azure.Storage.Blobs" Version="12.27.0" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.6" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.6" />
